@@ -1,0 +1,22 @@
+---
+id: vm-baremetal
+title: VM & bare metal
+sidebar_label: VM & bare metal
+sidebar_position: 3
+description: Run the gateway on a VM or bare-metal host and export OTLP to it.
+---
+
+# VM & bare metal
+
+Outside Kubernetes, run the **gateway** as a host service and point your OTLP
+exporters at it.
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuru-gateway:4318
+```
+
+:::note This page is expanding
+A systemd unit for the gateway and a host-mode `sensor` (eBPF without
+Kubernetes) are being documented. For now, the [OTLP bridge](/docs/setup/otel-bridge)
+covers exporter configuration.
+:::

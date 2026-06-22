@@ -1,0 +1,53 @@
+---
+id: "integration-<slug>"
+title: "<Integration name>"
+description: "<One sentence, 140 chars max>"
+sidebar_label: "<Short name>"
+tags: [integration, "<language>", "<category>"]
+support_level: community # community | official | experimental
+since_version: 0.1.0
+---
+
+import {InstallSelector, ConfigBuilder, SupportMatrix} from '@site/src/components';
+
+# &lt;Integration name&gt;
+
+<!-- One short paragraph: what this integration does and when to use it. -->
+
+## Quick start
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+## Signals collected
+
+<SupportMatrix
+  signals={[
+    {signal: 'Traces', status: 'yes', notes: '<which spans>'},
+    {signal: 'Metrics', status: 'yes', notes: '<which metrics>'},
+    {signal: 'Logs', status: 'partial', notes: '<limits>'},
+    {signal: 'Profiling', status: 'no', notes: 'Not supported'},
+  ]}
+/>
+
+## Configuration
+
+<ConfigBuilder schema="integrations/<slug>" />
+
+```yaml
+# Minimal configuration example
+```
+
+## Verification
+
+```bash
+# Command that proves ingestion works
+```
+
+## Troubleshooting
+
+<!-- The 3 most common problems, Q/A format. -->
+
+## References
+
+- <!-- upstream link -->
+- <!-- OTel semconv link -->

@@ -1,0 +1,20 @@
+---
+title: PostgreSQL
+description: Observe PostgreSQL calls — captured automatically by eBPF and enriched via OTLP.
+sidebar_label: PostgreSQL
+sidebar_position: 1
+tags: [integration, postgres, database]
+support_level: community
+since_version: 0.1.0
+---
+
+# PostgreSQL
+
+The eBPF `sensor` already sees connections to PostgreSQL as edges on the service
+map. For **statement-level** spans, enable your language's database
+instrumentation (e.g. JDBC, `pg`, `database/sql`) so each query becomes a child
+span.
+
+:::note This page is expanding
+Slow-query correlation and connection-pool metrics are being documented.
+:::

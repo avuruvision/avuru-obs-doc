@@ -1,0 +1,27 @@
+---
+id: instrument-a-service
+title: Instrument a service
+sidebar_label: Instrument a service
+sidebar_position: 3
+description: Add rich, in-process OTLP spans on top of the free eBPF service map.
+---
+
+# Instrument a service
+
+The eBPF `sensor` gives you the service map for free. Add an OTLP SDK where you
+want **in-process detail** — database statements, business attributes, custom
+spans.
+
+1. Add the OpenTelemetry SDK / auto-instrumentation for your language (see
+   [Integrations](/integrations)).
+2. Point the exporter at the gateway:
+
+   ```bash
+   export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+   ```
+
+3. Redeploy. Your spans now nest inside the eBPF-discovered traces.
+
+:::note This page is expanding
+A full worked example with a sample app is on the way.
+:::

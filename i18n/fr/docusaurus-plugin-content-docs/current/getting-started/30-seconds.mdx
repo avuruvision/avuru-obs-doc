@@ -1,0 +1,68 @@
+---
+id: 30-seconds
+title: De zéro à la première trace en 30 secondes
+sidebar_label: 30 secondes
+sidebar_position: 1
+description: Installez avuru obs avec une seule commande Helm et regardez la carte des services apparaître — sans changement de code.
+---
+
+import {InstallSelector} from '@site/src/components';
+
+# De zéro à la première trace
+
+C'est le chemin sacré. Une commande, aucun changement de code, une carte des
+services en direct.
+
+## 1. Installer
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+Le chart Helm installe le DaemonSet `sensor`, le collecteur `gateway`, le plan de
+contrôle `hub`, l'`ui` et ClickHouse.
+
+## 2. Ouvrir l'UI
+
+```bash
+kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+```
+
+Ouvrez <strong>http://localhost:8080</strong>. En une minute ou deux, la
+**carte des services** se remplit toute seule — le `sensor` découvre les services
+à partir des évènements TCP du noyau, donc il n'y a **rien à instrumenter**.
+
+## 3. (Optionnel) Envoyer de l'OTLP
+
+Vous avez déjà des SDK OpenTelemetry ? Pointez-les vers le gateway et vos spans
+atterrissent à côté de ceux découverts par eBPF :
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+# gRPC plutôt ? utilisez http://avuruops-gateway:4317
+```
+
+:::tip C'est tout
+Pas d'agents à déployer, pas de redéploiement applicatif. Si votre noyau dispose
+de BTF (Linux ≥ 5.8), vous obtenez l'image complète ; les noyaux plus anciens se
+dégradent proprement.
+:::
+
+## Vérifier
+
+```bash
+kubectl -n avuruops get pods
+# avuruops-sensor-xxxxx     Running
+# avuruops-gateway-xxxxx    Running
+# avuruops-hub-xxxxx        Running
+# avuruops-ui-xxxxx         Running
+# avuruops-clickhouse-0     Running
+```
+
+Si chaque pod est `Running` et que la carte des services affiche des nœuds, c'est
+gagné.
+
+## Et après
+
+- **[Votre première trace](/docs/getting-started/first-trace)** — suivez une
+  requête de bout en bout dans l'application de démo.
+- **[Concepts clés](/docs/getting-started/core-concepts)** — ce que signifient
+  vraiment un signal, le contexte et la propagation.

@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # One grouped PR per ecosystem per week (mirrors the engine repo convention).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      docs-npm:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"

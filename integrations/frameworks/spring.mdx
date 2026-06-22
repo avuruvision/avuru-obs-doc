@@ -1,0 +1,75 @@
+---
+title: Spring
+description: Send traces, metrics and logs from a Spring Boot app to avuru obs over OTLP.
+sidebar_label: Spring
+sidebar_position: 1
+tags: [integration, java, framework]
+support_level: community
+since_version: 0.1.0
+---
+
+import {InstallSelector, SupportMatrix, ConfigBuilder} from '@site/src/components';
+
+# Spring
+
+Spring Boot apps export OpenTelemetry over OTLP to the avuru `gateway`. The eBPF
+`sensor` already maps the service; this adds **rich in-process spans** (HTTP
+routes, JDBC statements, custom business spans).
+
+## Quick start
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+Add the OpenTelemetry Java agent (zero-code) and point it at the gateway:
+
+```bash
+java -javaagent:opentelemetry-javaagent.jar \
+  -Dotel.exporter.otlp.endpoint=http://avuruops-gateway:4318 \
+  -Dotel.service.name=checkout \
+  -jar checkout.jar
+```
+
+## Signals collected
+
+<SupportMatrix
+  signals={[
+    {signal: 'Traces', status: 'yes', notes: 'HTTP, JDBC, custom spans'},
+    {signal: 'Metrics', status: 'yes', notes: 'JVM + HTTP server metrics'},
+    {signal: 'Logs', status: 'partial', notes: 'Via OTLP log appender'},
+    {signal: 'Profiling', status: 'no', notes: 'Use the eBPF profiler instead'},
+  ]}
+/>
+
+## Configuration
+
+<ConfigBuilder schema="integrations/spring" />
+
+```properties
+otel.exporter.otlp.endpoint=http://avuruops-gateway:4318
+otel.exporter.otlp.protocol=http/protobuf
+otel.service.name=checkout
+otel.resource.attributes=deployment.environment=prod
+```
+
+## Verification
+
+```bash
+# Drive a request, then look for the service in the avuru UI → Service Map.
+curl -s http://localhost:8080/api/checkout >/dev/null
+```
+
+The `checkout` service should appear with in-process spans nested under the
+eBPF-discovered trace.
+
+## Troubleshooting
+
+- **No spans?** Confirm the agent endpoint and that the gateway is reachable from
+  the pod (`:4318`).
+- **Service name `unknown_service:java`?** Set `otel.service.name`.
+- **Logs missing?** The OTLP log appender is opt-in; wire it in `logback.xml`.
+
+## References
+
+- [OpenTelemetry Java](https://opentelemetry.io/docs/languages/java/)
+- [OTLP bridge](/docs/setup/otel-bridge)
+- [Semantic conventions](/reference/semantic-conventions)

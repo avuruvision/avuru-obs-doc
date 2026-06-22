@@ -1,0 +1,26 @@
+---
+title: Go
+description: Export OpenTelemetry traces and metrics from a Go service to avuru obs.
+sidebar_label: Go
+sidebar_position: 1
+tags: [integration, go, language]
+support_level: community
+since_version: 0.1.0
+---
+
+# Go
+
+Use the OpenTelemetry Go SDK and the OTLP exporter:
+
+```go
+exp, _ := otlptracehttp.New(ctx,
+    otlptracehttp.WithEndpoint("avuruops-gateway:4318"),
+    otlptracehttp.WithInsecure(),
+)
+```
+
+Set `OTEL_SERVICE_NAME` so spans carry a stable identity.
+
+:::note This page is expanding
+A complete example with metrics and graceful shutdown is on the way.
+:::

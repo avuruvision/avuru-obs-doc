@@ -1,0 +1,33 @@
+---
+id: code
+title: Contribute to the code
+sidebar_label: Code
+sidebar_position: 2
+description: Build, test and contribute to the avuru obs engine.
+---
+
+# Contribute to the code
+
+The engine lives in **[avuruvision/avuru-obs](https://github.com/avuruvision/avuru-obs)**.
+It's a small set of components in different languages:
+
+| Component | Language | Build |
+|---|---|---|
+| `agent` | Rust (aya, eBPF) | `make agent` |
+| `hub` | Go | `make hub` |
+| `ui` | Next.js / TypeScript | `make ui` |
+| `gateway` | OCB manifest | — |
+
+Run the full gate before pushing:
+
+```bash
+make check    # build + test + lint across all components
+```
+
+Branch from `main` as `feature/<topic>` (or `ai/<topic>`), use conventional
+commits, sign them, and open a PR. See the engine repo's `CONTRIBUTING.md` for
+the authoritative workflow.
+
+:::note This page is expanding
+A deeper build/test walkthrough is being mirrored from the engine's `agent_docs/`.
+:::

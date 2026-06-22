@@ -1,0 +1,20 @@
+---
+id: scaling
+title: Scaling & retention
+sidebar_label: Scaling
+sidebar_position: 1
+description: Sizing, sharding and retention for the ClickHouse storage engine.
+---
+
+# Scaling & retention
+
+avuru obs stores every signal in **ClickHouse**, so capacity planning is mostly
+ClickHouse planning — one engine to size instead of four.
+
+- **Sizing** — driven by ingest rate (spans/s, metric points/s) and retention.
+- **Retention** — TTL per signal table.
+- **Sharding** — for high-volume clusters.
+
+:::note This page is expanding
+Concrete sizing tables and TTL examples are being added.
+:::

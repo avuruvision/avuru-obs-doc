@@ -1,0 +1,197 @@
+import {themes as prismThemes} from 'prism-react-renderer';
+import type {Config} from '@docusaurus/types';
+import type * as Preset from '@docusaurus/preset-classic';
+
+// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
+// --- Single source of truth for repo/edit links ---------------------------
+const ENGINE_REPO = 'https://github.com/avuruvision/avuru-obs';
+const DOCS_REPO = 'https://github.com/avuruvision/avuru-obs-docs';
+// "Edit this page" → GitHub web editor on the docs repo (the <3 clicks → PR flow).
+const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
+
+const config: Config = {
+  title: 'avuru obs',
+  tagline: 'APM & Observability without friction',
+  favicon: 'img/favicon.ico',
+
+  future: {
+    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+  },
+
+  // Production URL — change to your Hostinger domain. baseUrl '/' assumes the
+  // site is served at the domain/subdomain root (public_html). If you deploy
+  // into a sub-folder (public_html/docs), set baseUrl '/docs/' and match the
+  // FTP server-dir in .github/workflows/deploy.yml.
+  url: 'https://docs.avuru-obs.com',
+  baseUrl: '/',
+
+  organizationName: 'avuruvision',
+  projectName: 'avuru-obs-docs',
+
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'warn',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
+
+  // English is canonical; French falls back to English for untranslated pages.
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'fr'],
+    localeConfigs: {
+      en: {label: 'English', htmlLang: 'en'},
+      fr: {label: 'Français', htmlLang: 'fr'},
+    },
+  },
+
+  presets: [
+    [
+      'classic',
+      {
+        // Default docs instance → /docs (onboarding, setup, signals, ops, contribute, releases)
+        docs: {
+          path: 'docs',
+          routeBasePath: 'docs',
+          sidebarPath: './sidebars.docs.ts',
+          editUrl: EDIT_BASE,
+        },
+        blog: {
+          showReadingTime: true,
+          editUrl: EDIT_BASE,
+          feedOptions: {type: ['rss', 'atom'], xslt: true},
+          onInlineTags: 'warn',
+          onInlineAuthors: 'warn',
+          onUntruncatedBlogPosts: 'warn',
+        },
+        theme: {
+          customCss: './src/css/custom.css',
+        },
+      } satisfies Preset.Options,
+    ],
+  ],
+
+  // Additional docs instances, each with its own route + contextual sidebar.
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'guides',
+        path: 'guides',
+        routeBasePath: 'guides',
+        sidebarPath: './sidebars.guides.ts',
+        editUrl: EDIT_BASE,
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'reference',
+        path: 'reference',
+        routeBasePath: 'reference',
+        sidebarPath: './sidebars.reference.ts',
+        editUrl: EDIT_BASE,
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'integrations',
+        path: 'integrations',
+        routeBasePath: 'integrations',
+        sidebarPath: './sidebars.integrations.ts',
+        editUrl: EDIT_BASE,
+      },
+    ],
+  ],
+
+  themeConfig: {
+    image: 'img/docusaurus-social-card.jpg',
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
+    },
+    navbar: {
+      title: 'avuru obs',
+      // Logo intentionally omitted — the wordmark is the brand (terminal-forward).
+      items: [
+        // 6 content entries (locked). The locale dropdown is a utility control.
+        {
+          type: 'docSidebar',
+          sidebarId: 'docsSidebar',
+          position: 'left',
+          label: 'Docs',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'guidesSidebar',
+          docsPluginId: 'guides',
+          position: 'left',
+          label: 'Guides',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'referenceSidebar',
+          docsPluginId: 'reference',
+          position: 'left',
+          label: 'Reference',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'integrationsSidebar',
+          docsPluginId: 'integrations',
+          position: 'left',
+          label: 'Integrations',
+        },
+        {to: '/blog', label: 'Blog', position: 'left'},
+        {type: 'localeDropdown', position: 'right'},
+        {
+          href: ENGINE_REPO,
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
+    },
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: 'Docs',
+          items: [
+            {label: 'Introduction', to: '/docs/intro'},
+            {label: '30 seconds', to: '/docs/getting-started/30-seconds'},
+            {label: 'Architecture', to: '/guides/architecture'},
+          ],
+        },
+        {
+          title: 'Reference',
+          items: [
+            {label: 'Configuration', to: '/reference/configuration'},
+            {label: 'API', to: '/reference/api'},
+            {label: 'Integrations', to: '/integrations'},
+          ],
+        },
+        {
+          title: 'More',
+          items: [
+            {label: 'Blog', to: '/blog'},
+            {label: 'GitHub', href: ENGINE_REPO},
+            {label: 'Contribute', to: '/docs/contribute/docs'},
+          ],
+        },
+      ],
+      copyright: `avuru obs · Apache-2.0 · built with Docusaurus.`,
+    },
+    prism: {
+      theme: prismThemes.vsLight,
+      darkTheme: prismThemes.vsDark,
+      additionalLanguages: ['bash', 'yaml', 'go', 'rust', 'toml', 'json', 'docker'],
+    },
+  } satisfies Preset.ThemeConfig,
+};
+
+export default config;

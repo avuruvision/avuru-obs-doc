@@ -1,0 +1,18 @@
+name: Docs issue
+description: Report a problem or gap in the documentation.
+labels: [docs]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: URL or file path of the affected page.
+      placeholder: /docs/getting-started/30-seconds
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong or missing?
+    validations:
+      required: true

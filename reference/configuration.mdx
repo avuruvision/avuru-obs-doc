@@ -1,0 +1,31 @@
+---
+id: configuration
+title: Configuration
+sidebar_label: Configuration
+sidebar_position: 2
+description: Helm values and configuration keys for avuru obs.
+---
+
+# Configuration
+
+avuru obs is configured through Helm **values** (Kubernetes) and environment
+variables (gateway on VMs).
+
+```yaml
+# values.yaml (excerpt)
+gateway:
+  otlp:
+    http: 4318
+    grpc: 4317
+clickhouse:
+  persistence:
+    size: 50Gi
+sensor:
+  ebpf:
+    enabled: true
+```
+
+:::note This page is expanding
+The exhaustive values table is generated from the chart and will be filled in
+here. For now, see `deploy/helm/avuruops/values.yaml` in the engine repo.
+:::

@@ -1,0 +1,45 @@
+name: deploy
+
+# Builds the site and publishes it to Hostinger over FTPS on every push to main.
+# Required repo secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD.
+# Optional repo variable:  FTP_SERVER_DIR (defaults to /public_html/).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never let two deploys race the same remote.
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Build (all locales)
+        run: npm run build
+
+      - name: Publish to Hostinger (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./build/
+          server-dir: ${{ vars.FTP_SERVER_DIR || '/public_html/' }}

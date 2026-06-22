@@ -1,0 +1,27 @@
+---
+id: semantic-conventions
+title: Semantic conventions
+sidebar_label: Semantic conventions
+sidebar_position: 5
+description: How avuru obs aligns with OpenTelemetry semantic conventions.
+---
+
+# Semantic conventions
+
+avuru obs follows OpenTelemetry
+[semantic conventions](https://opentelemetry.io/docs/specs/semconv/) so resource
+and span attributes are consistent across signals and integrations.
+
+Key resource attributes:
+
+| Attribute | Meaning |
+|---|---|
+| `service.name` | Logical service identity |
+| `k8s.namespace.name` | Kubernetes namespace |
+| `k8s.pod.name` | Pod producing the telemetry |
+| `deployment.environment` | prod / staging / … |
+
+:::note This page is expanding
+The full attribute mapping (including avuru-specific extensions) is being
+documented.
+:::

@@ -1,0 +1,30 @@
+---
+id: traces
+title: Traces
+sidebar_label: Traces
+sidebar_position: 1
+description: The trace data model in avuru obs — spans, sampling and span links.
+---
+
+# Traces
+
+A **trace** is the path of a request across services, modelled as a tree of
+**spans**. avuru obs ingests spans from two sources — the eBPF `sensor` and OTLP
+exporters — and stores them together in ClickHouse.
+
+## Model
+
+- **Span** — one operation, with start/end time, status and attributes.
+- **Parent/child** — nesting that forms the waterfall.
+- **Span links** — relate spans across traces (e.g. batch/fan-in).
+
+## Sampling
+
+Head sampling is configured at the SDK or gateway. Tail-based sampling at the
+gateway is on the roadmap.
+
+:::note This page is expanding
+Sampling configuration, span-link semantics and the ClickHouse `traces` schema
+are being documented. See [Core concepts](/docs/getting-started/core-concepts)
+for the mental model.
+:::

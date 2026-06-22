@@ -1,0 +1,71 @@
+---
+id: intro
+title: What is avuru obs?
+sidebar_label: Introduction
+sidebar_position: 1
+description: All-in-one observability — traces, metrics, logs and continuous profiling in a single install, with zero code changes.
+---
+
+# What is avuru obs?
+
+**avuru obs** is an open-source, all-in-one observability platform. Traces,
+metrics, logs and continuous profiling — in a **single install**, on **one
+storage engine**, behind **one UI**. It replaces the Grafana LGTM stack with a
+much smaller footprint and no SDK rollout.
+
+The wedge is simple:
+
+> A fresh Kubernetes cluster goes from **zero to a live service map in under five
+> minutes — with zero changes to your applications.**
+
+## Why it's different
+
+- **eBPF auto-discovery.** A kernel-level `sensor` watches `tcp_connect()` /
+  `tcp_close()` and reconstructs your service map. No SDKs, no sidecars, no YAML
+  archaeology — install the chart and watch the map light up.
+- **One engine.** Every signal lands in **ClickHouse**. One thing to size, back
+  up and reason about — not four.
+- **OpenTelemetry-native.** Already instrumented? Point your OTLP exporters at
+  the gateway (`:4318` / `:4317`) and you're done. avuru obs is a drop-in OTLP
+  backend.
+- **Low footprint.** A minimal collector distro and a single Go control plane —
+  not a constellation of services.
+
+## The four signals
+
+| Signal | How it arrives | Where it lives |
+|---|---|---|
+| **Traces** | eBPF + OTLP | ClickHouse |
+| **Metrics** | RED + OTLP | ClickHouse |
+| **Logs** | collected, correlated by `trace_id` | ClickHouse |
+| **Profiling** | continuous (eBPF profiler) | ClickHouse |
+
+## The pieces
+
+avuru obs is a handful of components, each doing one job:
+
+- **`sensor`** — eBPF DaemonSet (flows, traces, RED metrics, logs, profiles).
+- **`gateway`** — a minimal OpenTelemetry Collector distribution.
+- **`hub`** — a single Go binary: REST/WebSocket API + OpAMP config plane.
+- **`ui`** — a static SPA served from its own pod.
+- **ClickHouse** — the one storage engine for all signals.
+
+See [Architecture](/guides/architecture) for the full data flow.
+
+:::tip Ready in 30 seconds?
+Jump straight to the [30-second guide](/docs/getting-started/30-seconds) — the
+fastest path from `helm install` to your first trace.
+:::
+
+## Where to go next
+
+- **[30 seconds](/docs/getting-started/30-seconds)** — install and see the map.
+- **[Core concepts](/docs/getting-started/core-concepts)** — signals, context,
+  propagation.
+- **[Your first trace](/docs/getting-started/first-trace)** — verify end-to-end.
+- **[Integrations](/integrations)** — languages, frameworks, databases, infra.
+
+:::note Status
+avuru obs is pre-v0.1 and under active development. APIs and schemas may change
+between minor versions. Licensed under **Apache-2.0**.
+:::

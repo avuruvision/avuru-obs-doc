@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Product bug or feature (engine)
+    url: https://github.com/avuruvision/avuru-obs/issues/new/choose
+    about: Issues about avuru obs itself (not the docs) belong in the engine repo.
+  - name: Questions & discussions
+    url: https://github.com/avuruvision/avuru-obs/discussions
+    about: Ask questions and discuss usage.

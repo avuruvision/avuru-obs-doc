@@ -1,0 +1,79 @@
+---
+id: first-trace
+title: Your first trace
+sidebar_label: Your first trace
+sidebar_position: 3
+description: Generate load against the bundled demo app and follow a request end-to-end through avuru obs.
+---
+
+# Your first trace
+
+This walkthrough takes you from "it's installed" to "I can read a distributed
+trace." It uses the bundled **HotROD** demo app (a multi-service ride-sharing
+example) so you have real traffic to look at.
+
+## 1. Bring up the sandbox
+
+The fastest way to get traffic is the local Docker sandbox, which includes the
+demo app:
+
+```bash
+git clone https://github.com/avuruvision/avuru-obs && cd avuru-obs
+make dev
+```
+
+This starts ClickHouse, the gateway, the hub, the UI, and the HotROD demo. The
+UI is on **http://localhost:8080**.
+
+:::note Already on Kubernetes?
+If you installed with Helm instead, deploy any workload that makes
+service-to-service calls — the eBPF `sensor` will map it automatically. The rest
+of this guide is identical.
+:::
+
+## 2. Generate some load
+
+Open the HotROD app and click a few of the "request ride" buttons, or drive load
+from the terminal:
+
+```bash
+for i in $(seq 1 20); do curl -s localhost:8080/dispatch?customer=123 >/dev/null; done
+```
+
+## 3. Watch the map
+
+In the avuru UI, open **Service Map**. You should see the demo services wired
+together — `frontend → driver → route`, with edges weighted by request rate.
+This map came entirely from eBPF: no SDK was added to the demo.
+
+## 4. Open a trace
+
+1. Go to **Traces**.
+2. Sort by **duration** to find a slow request.
+3. Click it to open the **waterfall** — each span is one hop, nested by parent.
+
+Read it top-down: total latency at the root, then where the time actually went.
+
+## 5. Correlate
+
+From the open trace, pivot:
+
+- **Logs** for the same `trace_id` — what the service logged during the request.
+- **Metrics** — the RED metrics (Rate, Errors, Duration) for that endpoint.
+- **Profiling** — which functions burned CPU while the span was open.
+
+That pivot — staying inside one request's context across all four signals — is
+the whole point of a single storage engine.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Empty Service Map | No traffic yet | Generate load (step 2) |
+| Map but no traces | Kernel lacks BTF | Use OTLP SDKs, or upgrade kernel (≥ 5.8) |
+| Nothing at all | Pods not ready | `kubectl -n avuruops get pods` |
+
+## Next
+
+- **[Setup](/docs/setup/kubernetes)** — production install options.
+- **[Integrations](/integrations)** — add rich spans for your stack.

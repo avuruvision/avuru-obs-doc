@@ -1,0 +1,56 @@
+{
+  "home.title": {
+    "message": "APM & observabilité sans friction"
+  },
+  "home.subtitle": {
+    "message": "Traces, métriques, logs et profilage continu — une seule installation, un seul moteur, zéro changement de code."
+  },
+  "home.copy": {
+    "message": "Copier"
+  },
+  "home.copied": {
+    "message": "Copié !"
+  },
+  "home.cta.guide": {
+    "message": "Guide en 30 secondes"
+  },
+  "home.cta.docs": {
+    "message": "Lire la documentation"
+  },
+  "home.meta.title": {
+    "message": "APM & observabilité sans friction"
+  },
+  "home.demo.title": {
+    "message": "Voyez le collecteur, pas une capture d'écran"
+  },
+  "home.demo.lede": {
+    "message": "Installez le chart et la carte des services s'allume — sans SDK, sans sidecar, sans archéologie YAML."
+  },
+  "home.arch.title": {
+    "message": "Un moteur. Un plan de contrôle. Une UI."
+  },
+  "home.arch.lede": {
+    "message": "Cliquez sur un composant pour ouvrir sa documentation."
+  },
+  "home.metrics.title": {
+    "message": "Open source & bien vivant"
+  },
+  "home.metrics.lede": {
+    "message": "Sous licence Apache-2.0, développé au grand jour sur GitHub."
+  },
+  "metrics.stars": {
+    "message": "Étoiles GitHub"
+  },
+  "metrics.contributors": {
+    "message": "Contributeurs"
+  },
+  "metrics.release": {
+    "message": "Dernière version"
+  },
+  "configBuilder.title": {
+    "message": "⚙️ Générateur de configuration"
+  },
+  "configBuilder.body": {
+    "message": "Le générateur interactif pour le schéma {schema} arrive bientôt. En attendant, copiez le YAML de l'exemple ci-dessous et modifiez-le à la main."
+  }
+}

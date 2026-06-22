@@ -1,0 +1,20 @@
+---
+id: logs
+title: Logs
+sidebar_label: Logs
+sidebar_position: 2
+description: Log ingestion, parsing and correlation by trace_id.
+---
+
+# Logs
+
+Logs are timestamped events. In avuru obs they become powerful when they carry a
+`trace_id` — that's what lets you pivot from a slow trace straight to the lines
+the service logged during that request.
+
+- **Ingestion** — via OTLP logs or the collector's log receivers.
+- **Correlation** — by `trace_id` / `span_id` and resource attributes.
+
+:::note This page is expanding
+Parsing, structured-log fields and retention are being documented.
+:::

@@ -1,0 +1,20 @@
+---
+id: reduce-cardinality
+title: Reduce cardinality
+sidebar_label: Reduce cardinality
+sidebar_position: 4
+description: Keep storage lean by controlling label and attribute cardinality.
+---
+
+# Reduce cardinality
+
+High-cardinality attributes (user IDs, URLs with IDs, request IDs as labels) blow
+up storage and slow queries. This guide covers where to trim.
+
+- Drop or hash high-cardinality attributes at the gateway.
+- Prefer route templates (`/users/:id`) over raw paths.
+- Keep metric label sets small; put detail on traces instead.
+
+:::note This page is expanding
+Concrete gateway processor configuration is being added.
+:::

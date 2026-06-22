@@ -1,0 +1,43 @@
+---
+id: kubernetes
+title: Kubernetes
+sidebar_label: Kubernetes
+sidebar_position: 1
+description: Install avuru obs on Kubernetes with the Helm chart.
+---
+
+import {InstallSelector} from '@site/src/components';
+
+# Kubernetes
+
+The Helm chart is the flagship install. It deploys the `sensor` DaemonSet, the
+`gateway`, the `hub`, the `ui`, and ClickHouse.
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+## Requirements
+
+- Kubernetes ≥ 1.26
+- Linux nodes with **BTF** (kernel ≥ 5.8) for full eBPF; older kernels degrade
+  gracefully (map + OTLP still work).
+- A default StorageClass for ClickHouse's PersistentVolume.
+
+## Point apps at the gateway
+
+```bash
+# OTLP/HTTP
+http://avuruops-gateway:4318
+# OTLP/gRPC
+http://avuruops-gateway:4317
+```
+
+## Open the UI
+
+```bash
+kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+```
+
+:::note This page is expanding
+Values reference, ingress, and resource sizing are being filled in. See
+[Configuration](/reference/configuration) for the full values list.
+:::

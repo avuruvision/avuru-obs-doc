@@ -1,0 +1,55 @@
+/**
+ * avuru obs — dark, terminal-forward theme.
+ * Infima variables: https://docusaurus.io/docs/styling-layout
+ */
+
+:root {
+  --ifm-color-primary: #0a9e74;
+  --ifm-color-primary-dark: #098e68;
+  --ifm-color-primary-darker: #088662;
+  --ifm-color-primary-darkest: #066e51;
+  --ifm-color-primary-light: #0bae80;
+  --ifm-color-primary-lighter: #0cb686;
+  --ifm-color-primary-lightest: #0fce98;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-monospace: 'JetBrains Mono', ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+
+  /* avuru tokens */
+  --avuru-accent: #0a9e74;
+  --avuru-border: #e3e6ea;
+  --avuru-muted: #6b7280;
+  --avuru-term-bg: #0d1117;
+  --avuru-term-bar: #161b22;
+  --avuru-term-fg: #c9d1d9;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #34d399;
+  --ifm-color-primary-dark: #20cd8f;
+  --ifm-color-primary-darker: #18c388;
+  --ifm-color-primary-darkest: #14a070;
+  --ifm-color-primary-light: #4ad9a6;
+  --ifm-color-primary-lighter: #56dcac;
+  --ifm-color-primary-lightest: #7ce5c0;
+  --ifm-background-color: #0b0e14;
+  --ifm-background-surface-color: #11151d;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.06);
+
+  --avuru-accent: #34d399;
+  --avuru-border: #232a35;
+  --avuru-muted: #8b949e;
+  --avuru-term-bg: #0d1117;
+  --avuru-term-bar: #161b22;
+  --avuru-term-fg: #c9d1d9;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--avuru-border);
+}
+
+.navbar__title {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}

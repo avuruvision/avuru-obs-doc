@@ -1,0 +1,70 @@
+---
+id: core-concepts
+title: Concepts clés
+sidebar_label: Concepts clés
+sidebar_position: 2
+description: Signaux, contexte et propagation — le modèle mental derrière avuru obs.
+---
+
+# Concepts clés
+
+Un petit modèle mental va loin. avuru obs s'appuie sur les concepts
+OpenTelemetry : si vous connaissez OTel, vous connaissez déjà l'essentiel.
+
+## Signaux
+
+Un **signal** est une catégorie de télémétrie. avuru obs en gère quatre :
+
+- **Traces** — le chemin d'une requête à travers les services, sous forme d'arbre
+  de **spans**.
+- **Métriques** — des mesures numériques dans le temps (compteurs, jauges,
+  histogrammes).
+- **Logs** — des évènements horodatés, idéalement porteurs d'un `trace_id`.
+- **Profils** — des échantillons CPU/mémoire continus, attribués au code.
+
+Les quatre sont stockés ensemble dans ClickHouse, ce qui rend la **corrélation
+inter-signaux** peu coûteuse.
+
+## Contexte & propagation
+
+Le **contexte** est la métadonnée qui relie les signaux — surtout le `trace_id`
+et le `span_id`. Quand un service en appelle un autre, ce contexte est
+**propagé** sur le réseau (en-tête W3C `traceparent` pour HTTP, métadonnées pour
+gRPC). Cette propagation est ce qui permet à une seule trace de traverser
+plusieurs services.
+
+avuru obs obtient le contexte de deux façons :
+
+1. **eBPF (sans code).** Le `sensor` reconstruit la carte des services et les flux
+   L4 à partir des évènements noyau — aucun en-tête de propagation requis pour la
+   **carte**.
+2. **OTLP (fidélité complète).** Pour des traces distribuées complètes avec
+   attributs de span, propagez le contexte avec un SDK OpenTelemetry ou
+   l'auto-instrumentation, et exportez en OTLP vers le gateway.
+
+:::info eBPF ou SDK — de quoi ai-je besoin ?
+Le `sensor` eBPF vous donne la **carte des services et les métriques RED
+gratuitement**. Ajoutez un SDK OTLP uniquement là où vous voulez des **spans
+riches en cours de processus** (requêtes SQL, attributs métier, évènements
+personnalisés). Ils se composent — les spans eBPF et OTLP partagent le même
+stockage.
+:::
+
+## Corrélation
+
+Comme chaque signal partage le `trace_id` et les attributs de ressource (nom du
+service, namespace, pod), vous pouvez pivoter d'une trace lente → ses logs → les
+métriques de cet endpoint → un profil CPU, sans quitter le contexte de la requête.
+
+## Attributs de ressource
+
+Une **ressource** décrit *ce qui* a produit la télémétrie : `service.name`,
+`k8s.namespace.name`, `k8s.pod.name`, etc. avuru obs suit les
+[conventions sémantiques](/reference/semantic-conventions) OTel afin que ces
+attributs soient cohérents entre signaux et intégrations.
+
+## Et après
+
+- **[Votre première trace](/docs/getting-started/first-trace)** — ces concepts en
+  action.
+- **[Signaux](/docs/signals/traces)** — le modèle de chaque signal en détail.

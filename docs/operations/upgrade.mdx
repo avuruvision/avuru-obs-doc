@@ -1,0 +1,25 @@
+---
+id: upgrade
+title: Upgrade
+sidebar_label: Upgrade
+sidebar_position: 3
+description: Migration paths and schema migrations between versions.
+---
+
+# Upgrade
+
+avuru obs runs ClickHouse **schema migrations** as a Helm hook
+(`post-install,post-upgrade`), so a `helm upgrade` carries the schema forward.
+
+```bash
+helm upgrade avuruops ./avuruops -n avuruops
+```
+
+:::note Pre-1.0
+Minor version bumps may include breaking changes; patch bumps are fixes only.
+Always read the [release notes](/docs/releases) before upgrading.
+:::
+
+:::note This page is expanding
+Version-to-version migration notes are added here as releases ship.
+:::

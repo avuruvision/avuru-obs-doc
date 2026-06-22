@@ -1,0 +1,21 @@
+---
+title: Kubernetes
+description: Resource attributes, pod metadata and cluster signals from Kubernetes.
+sidebar_label: Kubernetes
+sidebar_position: 1
+tags: [integration, kubernetes, infra]
+support_level: official
+since_version: 0.1.0
+---
+
+# Kubernetes
+
+On Kubernetes, the `sensor` DaemonSet enriches every signal with pod metadata
+(`k8s.namespace.name`, `k8s.pod.name`, `k8s.node.name`) so traces, metrics and
+logs are all attributable to the workload that produced them.
+
+See [Setup → Kubernetes](/docs/setup/kubernetes) for the install.
+
+:::note This page is expanding
+Cluster-level metrics and events ingestion are being documented.
+:::

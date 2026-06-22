@@ -1,0 +1,83 @@
+---
+id: first-trace
+title: Votre première trace
+sidebar_label: Votre première trace
+sidebar_position: 3
+description: Générez du trafic sur l'application de démo et suivez une requête de bout en bout dans avuru obs.
+---
+
+# Votre première trace
+
+Ce guide vous fait passer de « c'est installé » à « je sais lire une trace
+distribuée ». Il utilise l'application de démo **HotROD** (un exemple multi-service
+de VTC) pour avoir du vrai trafic à observer.
+
+## 1. Démarrer le bac à sable
+
+Le moyen le plus rapide d'obtenir du trafic est le bac à sable Docker local, qui
+inclut l'application de démo :
+
+```bash
+git clone https://github.com/avuruvision/avuru-obs && cd avuru-obs
+make dev
+```
+
+Cela démarre ClickHouse, le gateway, le hub, l'UI et la démo HotROD. L'UI est sur
+**http://localhost:8080**.
+
+:::note Déjà sur Kubernetes ?
+Si vous avez installé avec Helm, déployez n'importe quelle charge applicative qui
+fait des appels service-à-service — le `sensor` eBPF la cartographiera
+automatiquement. La suite du guide est identique.
+:::
+
+## 2. Générer de la charge
+
+Ouvrez l'application HotROD et cliquez sur quelques boutons « demander une
+course », ou pilotez la charge depuis le terminal :
+
+```bash
+for i in $(seq 1 20); do curl -s localhost:8080/dispatch?customer=123 >/dev/null; done
+```
+
+## 3. Regarder la carte
+
+Dans l'UI avuru, ouvrez **Service Map**. Vous devriez voir les services de la
+démo reliés entre eux — `frontend → driver → route`, avec des arêtes pondérées par
+le débit. Cette carte vient entièrement d'eBPF : aucun SDK n'a été ajouté à la démo.
+
+## 4. Ouvrir une trace
+
+1. Allez dans **Traces**.
+2. Triez par **durée** pour trouver une requête lente.
+3. Cliquez dessus pour ouvrir le **waterfall** — chaque span est un saut, imbriqué
+   sous son parent.
+
+Lisez-le de haut en bas : la latence totale à la racine, puis où le temps est
+réellement passé.
+
+## 5. Corréler
+
+Depuis la trace ouverte, pivotez :
+
+- **Logs** pour le même `trace_id` — ce que le service a journalisé pendant la
+  requête.
+- **Métriques** — les métriques RED (débit, erreurs, durée) de cet endpoint.
+- **Profilage** — quelles fonctions ont consommé du CPU pendant que le span était
+  ouvert.
+
+Ce pivot — rester dans le contexte d'une seule requête à travers les quatre
+signaux — c'est tout l'intérêt d'un moteur de stockage unique.
+
+## Dépannage
+
+| Symptôme | Cause probable | Correctif |
+|---|---|---|
+| Carte des services vide | Pas encore de trafic | Générez de la charge (étape 2) |
+| Carte mais pas de traces | Le noyau n'a pas BTF | Utilisez les SDK OTLP, ou montez le noyau (≥ 5.8) |
+| Rien du tout | Pods pas prêts | `kubectl -n avuruops get pods` |
+
+## Et après
+
+- **[Installation](/docs/setup/kubernetes)** — options d'installation en production.
+- **[Intégrations](/integrations)** — ajoutez des spans riches pour votre stack.

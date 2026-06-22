@@ -1,0 +1,26 @@
+---
+id: integrations
+title: Add an integration
+sidebar_label: Integrations
+sidebar_position: 3
+description: How to document a new connector using the integration template.
+---
+
+# Add an integration
+
+An integration page documents how a language, framework, database or piece of
+infrastructure sends signals to avuru obs.
+
+1. Copy [`templates/integration.mdx`](https://github.com/avuruvision/avuru-obs-docs/tree/main/templates/integration.mdx).
+2. Drop it under the right folder: `integrations/{languages,frameworks,databases,infra}/`.
+3. Fill the front-matter — **`support_level`** and **`since_version`** are
+   required (the linter enforces this).
+4. Use the shared components: `<InstallSelector />`, `<SupportMatrix />`,
+   `<ConfigBuilder />`.
+
+See [Spring](/integrations/frameworks/spring) for a complete worked example.
+
+:::tip Required front-matter
+`title`, `description`, `tags`, `support_level` (`community | official |
+experimental`), and `since_version`. Miss one and `npm run lint:docs` fails.
+:::

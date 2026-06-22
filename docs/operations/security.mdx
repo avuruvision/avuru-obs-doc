@@ -1,0 +1,20 @@
+---
+id: security
+title: Security
+sidebar_label: Security
+sidebar_position: 2
+description: mTLS, RBAC, secrets and the eBPF capabilities the sensor needs.
+---
+
+# Security
+
+- **mTLS** — securing OTLP ingestion and inter-component traffic.
+- **RBAC** — access control in the hub API and UI.
+- **Secrets** — ClickHouse credentials and tokens.
+- **eBPF capabilities** — the `sensor` DaemonSet needs privileges to load eBPF
+  programs; this page documents the minimal set.
+
+:::note This page is expanding
+Hardening guidance and the exact capability list are being documented. To report
+a vulnerability, see the engine repo's `SECURITY.md`.
+:::

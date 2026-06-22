@@ -1,0 +1,21 @@
+---
+id: troubleshooting
+title: Troubleshooting
+sidebar_label: Troubleshooting
+sidebar_position: 4
+description: Decision trees for the most common avuru obs issues.
+---
+
+# Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Empty Service Map | No traffic, or sensor not ready | Generate load; `kubectl -n avuruops get pods` |
+| Map but no in-process spans | No OTLP SDK | Add an [integration](/integrations) |
+| No eBPF data | Kernel lacks BTF (< 5.8) | Use the [OTLP bridge](/docs/setup/otel-bridge) |
+| ClickHouse pod pending | No PersistentVolume | Provide a default StorageClass |
+| UI loads but is empty | hub can't reach ClickHouse | Check hub logs and DB credentials |
+
+:::note This page is expanding
+Per-component decision trees and a log-reading guide are being added.
+:::

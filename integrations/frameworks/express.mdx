@@ -1,0 +1,28 @@
+---
+title: Express
+description: Instrument an Express (Node.js) app and export OTLP to avuru obs.
+sidebar_label: Express
+sidebar_position: 2
+tags: [integration, nodejs, framework]
+support_level: community
+since_version: 0.1.0
+---
+
+import {InstallSelector} from '@site/src/components';
+
+# Express
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+Use the OpenTelemetry Node SDK auto-instrumentation and point the exporter at the
+gateway:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+export OTEL_SERVICE_NAME=api
+node --require @opentelemetry/auto-instrumentations-node/register server.js
+```
+
+:::note This page is expanding
+A full worked example mirrors the [Spring](/integrations/frameworks/spring) page.
+:::

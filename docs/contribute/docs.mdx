@@ -1,0 +1,54 @@
+---
+id: docs
+title: Contribute to the docs
+sidebar_label: Docs
+sidebar_position: 1
+description: Edit any page in under three clicks, with standardized MDX templates and a front-matter linter.
+---
+
+# Contribute to the docs
+
+Docs live in their own repo, **[avuruvision/avuru-obs-docs](https://github.com/avuruvision/avuru-obs-docs)**,
+and the contribution loop is deliberately short.
+
+## The 3-click flow
+
+1. Click **"Edit this page"** at the bottom of any page → opens the GitHub web
+   editor on the source `.mdx`.
+2. Make your change and **"Propose changes"** → GitHub forks the repo for you.
+3. **"Create pull request"** → a pre-filled template asks two things: the change
+   type and an optional linked issue.
+
+No local checkout required for small fixes.
+
+## Templates
+
+For new pages, copy a template from the
+[`templates/`](https://github.com/avuruvision/avuru-obs-docs/tree/main/templates)
+directory, rename it, and fill the placeholders. Each template has strict
+front-matter and the sections we expect:
+
+- `integration.mdx` — document a new connector.
+- `metric.mdx` — document a metric.
+- `guide.mdx` — a cookbook recipe.
+- `adr.mdx` — an architecture decision record.
+
+## The linter does the styling
+
+CI runs a front-matter linter (`npm run lint:docs`). If you forget a required
+key — `support_level` on an integration, say — it fails **before** a human
+reviews it. Follow the template and you'll pass.
+
+## Local preview
+
+```bash
+npm install
+npm start            # English at http://localhost:3000
+npm run start:fr     # French
+npm run build        # production build (also checks for broken links)
+```
+
+:::note Commit hygiene
+Use conventional commits (`docs: …`), sign your commits, and **don't** add AI
+co-author trailers — mirroring the engine repo's `AI_POLICY.md`.
+:::

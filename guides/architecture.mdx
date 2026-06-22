@@ -1,0 +1,57 @@
+---
+id: architecture
+title: Architecture
+sidebar_label: Architecture
+sidebar_position: 2
+description: The avuru obs data flow — sensor, gateway, ClickHouse, hub and UI.
+---
+
+import {ArchitectureDiagram} from '@site/src/components';
+
+# Architecture
+
+avuru obs is a few components, each with one job. Click any node to open its docs.
+
+<ArchitectureDiagram />
+
+## Data flow
+
+1. **Telemetry path** — the `sensor` (eBPF + OTLP) ships signals to the
+   `gateway`, which writes them to **ClickHouse**.
+2. **Query path** — the `ui` and external clients call the `hub` REST API, which
+   queries ClickHouse with SQL.
+3. **Config path** — agents and collectors register with the `hub` and receive
+   remote configuration over **OpAMP**.
+
+```
+sensor DaemonSet  (eBPF: flows · traces · RED · logs · profiles)
+     │ OTLP
+     ▼
+  gateway  (minimal OTel Collector) ──► ClickHouse  (all signals)
+                                           ▲ SQL
+  hub  (Go: REST/WS API + OpAMP)  ◄────────┘   ◄──  UI  (static SPA, own pod)
+```
+
+## Components
+
+| Component | Repo path | Stack | Responsibility |
+|---|---|---|---|
+| `sensor` | `sensor/` | DaemonSet | eBPF agent + OBI + collector + profiler |
+| `agent` | `agent/` | Rust (aya) | L4 flow tracer feeding the service map |
+| `gateway` | `gateway/` | OCB / OTel | Minimal collector distribution |
+| `hub` | `hub/` | Go | REST/WS API + OpAMP config plane |
+| `ui` | `ui/` | Next.js | Static SPA, served from its own pod |
+| storage | — | ClickHouse | One engine for **all** signals |
+
+## Why one engine
+
+Storing traces, metrics, logs and profiles in the **same** ClickHouse cluster is
+what makes cross-signal correlation cheap: shared `trace_id` and resource
+attributes mean a pivot from trace → logs → metrics → profile is just another
+query, not another system.
+
+## Design decisions
+
+Significant decisions are captured as
+[ADRs](/docs/contribute/adrs/0001-docs-stack) (and as Avuru Enhancement Proposals
+in the engine repo).

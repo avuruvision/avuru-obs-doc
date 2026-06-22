@@ -1,0 +1,74 @@
+---
+id: intro
+title: Qu'est-ce qu'avuru obs ?
+sidebar_label: Introduction
+sidebar_position: 1
+description: Observabilité tout-en-un — traces, métriques, logs et profilage continu en une seule installation, sans changement de code.
+---
+
+# Qu'est-ce qu'avuru obs ?
+
+**avuru obs** est une plateforme d'observabilité tout-en-un et open source.
+Traces, métriques, logs et profilage continu — en **une seule installation**,
+sur **un seul moteur de stockage**, derrière **une seule UI**. Elle remplace la
+stack Grafana LGTM avec une empreinte bien plus faible et sans déploiement de SDK.
+
+Le pari est simple :
+
+> Un cluster Kubernetes neuf passe de **zéro à une carte des services en direct
+> en moins de cinq minutes — sans aucun changement applicatif.**
+
+## Pourquoi c'est différent
+
+- **Auto-découverte eBPF.** Un `sensor` au niveau du noyau observe
+  `tcp_connect()` / `tcp_close()` et reconstruit votre carte des services. Pas de
+  SDK, pas de sidecar, pas d'archéologie YAML — installez le chart et regardez la
+  carte s'allumer.
+- **Un seul moteur.** Chaque signal atterrit dans **ClickHouse**. Une seule chose
+  à dimensionner, sauvegarder et comprendre — pas quatre.
+- **Natif OpenTelemetry.** Déjà instrumenté ? Pointez vos exporteurs OTLP vers le
+  gateway (`:4318` / `:4317`) et c'est terminé. avuru obs est un backend OTLP
+  prêt à l'emploi.
+- **Faible empreinte.** Une distribution de collecteur minimale et un seul plan de
+  contrôle Go — pas une constellation de services.
+
+## Les quatre signaux
+
+| Signal | Comment il arrive | Où il vit |
+|---|---|---|
+| **Traces** | eBPF + OTLP | ClickHouse |
+| **Métriques** | RED + OTLP | ClickHouse |
+| **Logs** | collectés, corrélés par `trace_id` | ClickHouse |
+| **Profilage** | continu (profileur eBPF) | ClickHouse |
+
+## Les composants
+
+avuru obs, c'est une poignée de composants, chacun avec un seul rôle :
+
+- **`sensor`** — DaemonSet eBPF (flux, traces, métriques RED, logs, profils).
+- **`gateway`** — une distribution minimale du collecteur OpenTelemetry.
+- **`hub`** — un seul binaire Go : API REST/WebSocket + plan de configuration OpAMP.
+- **`ui`** — une SPA statique servie depuis son propre pod.
+- **ClickHouse** — l'unique moteur de stockage pour tous les signaux.
+
+Voir [Architecture](/guides/architecture) pour le flux de données complet.
+
+:::tip Prêt en 30 secondes ?
+Allez droit au [guide en 30 secondes](/docs/getting-started/30-seconds) — le
+chemin le plus rapide d'un `helm install` à votre première trace.
+:::
+
+## Et après
+
+- **[30 secondes](/docs/getting-started/30-seconds)** — installez et voyez la carte.
+- **[Concepts clés](/docs/getting-started/core-concepts)** — signaux, contexte,
+  propagation.
+- **[Votre première trace](/docs/getting-started/first-trace)** — vérification de
+  bout en bout.
+- **[Intégrations](/integrations)** — langages, frameworks, bases de données,
+  infrastructure.
+
+:::note Statut
+avuru obs est en pré-v0.1 et en développement actif. Les API et schémas peuvent
+changer entre versions mineures. Sous licence **Apache-2.0**.
+:::

@@ -1,0 +1,78 @@
+{
+  "version.label": {
+    "message": "Actuel",
+    "description": "The label for version current"
+  },
+  "sidebar.docsSidebar.category.Getting started": {
+    "message": "Prise en main",
+    "description": "The label for category 'Getting started' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Getting started.link.generated-index.title": {
+    "message": "Prise en main",
+    "description": "The generated-index page title for category 'Getting started' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Getting started.link.generated-index.description": {
+    "message": "Le chemin le plus court de l'installation à votre première trace.",
+    "description": "The generated-index page description for category 'Getting started' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Setup": {
+    "message": "Installation",
+    "description": "The label for category 'Setup' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Setup.link.generated-index.title": {
+    "message": "Installation",
+    "description": "The generated-index page title for category 'Setup' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Setup.link.generated-index.description": {
+    "message": "Installez avuru obs sur Kubernetes, Docker ou bare metal — et choisissez entre le mode eBPF sans code et le pont OTLP.",
+    "description": "The generated-index page description for category 'Setup' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Signals": {
+    "message": "Signaux",
+    "description": "The label for category 'Signals' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Signals.link.generated-index.title": {
+    "message": "Signaux",
+    "description": "The generated-index page title for category 'Signals' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Signals.link.generated-index.description": {
+    "message": "Traces, logs, métriques et profilage — le modèle de données de chacun et comment ils se corrèlent.",
+    "description": "The generated-index page description for category 'Signals' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Operations": {
+    "message": "Exploitation",
+    "description": "The label for category 'Operations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Operations.link.generated-index.title": {
+    "message": "Exploitation",
+    "description": "The generated-index page title for category 'Operations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Operations.link.generated-index.description": {
+    "message": "Exploitez avuru obs en production — montée en charge, sécurité, mises à niveau et dépannage.",
+    "description": "The generated-index page description for category 'Operations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Contribute": {
+    "message": "Contribuer",
+    "description": "The label for category 'Contribute' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Contribute.link.generated-index.title": {
+    "message": "Contribuer",
+    "description": "The generated-index page title for category 'Contribute' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Contribute.link.generated-index.description": {
+    "message": "Améliorez la doc, le code, ou ajoutez une intégration — en moins de trois clics.",
+    "description": "The generated-index page description for category 'Contribute' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.ADRs": {
+    "message": "ADR",
+    "description": "The label for category 'ADRs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.ADRs.link.generated-index.title": {
+    "message": "Registre des décisions d'architecture",
+    "description": "The generated-index page title for category 'ADRs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.ADRs.link.generated-index.description": {
+    "message": "Trace des décisions d'architecture importantes pour la doc et la plateforme.",
+    "description": "The generated-index page description for category 'ADRs' in sidebar 'docsSidebar'"
+  }
+}

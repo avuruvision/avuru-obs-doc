@@ -1,0 +1,22 @@
+---
+id: cli
+title: CLI
+sidebar_label: CLI
+sidebar_position: 3
+description: Command-line tooling for avuru obs.
+---
+
+# CLI
+
+Today the `hub` binary exposes two operational subcommands:
+
+```bash
+hub                 # run the API server (default)
+hub migrate         # run ClickHouse schema migrations
+hub -healthcheck    # probe the local hub and exit
+```
+
+:::note Coming in v0.2
+A dedicated client CLI (`avuructl`) for queries and administration is planned for
+v0.2+. This page will document it when it lands.
+:::

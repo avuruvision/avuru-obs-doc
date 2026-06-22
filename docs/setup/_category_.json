@@ -1,0 +1,9 @@
+{
+  "label": "Setup",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "title": "Setup",
+    "description": "Install avuru obs on Kubernetes, Docker, or bare metal — and choose between eBPF zero-code and the OTLP bridge."
+  }
+}

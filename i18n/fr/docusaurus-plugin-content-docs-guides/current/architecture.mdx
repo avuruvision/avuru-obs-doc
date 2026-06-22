@@ -1,0 +1,58 @@
+---
+id: architecture
+title: Architecture
+sidebar_label: Architecture
+sidebar_position: 2
+description: Le flux de données d'avuru obs — sensor, gateway, ClickHouse, hub et UI.
+---
+
+import {ArchitectureDiagram} from '@site/src/components';
+
+# Architecture
+
+avuru obs, c'est quelques composants, chacun avec un seul rôle. Cliquez sur un
+nœud pour ouvrir sa documentation.
+
+<ArchitectureDiagram />
+
+## Flux de données
+
+1. **Chemin de la télémétrie** — le `sensor` (eBPF + OTLP) envoie les signaux au
+   `gateway`, qui les écrit dans **ClickHouse**.
+2. **Chemin des requêtes** — l'`ui` et les clients externes appellent l'API REST
+   du `hub`, qui interroge ClickHouse en SQL.
+3. **Chemin de la configuration** — les agents et collecteurs s'enregistrent
+   auprès du `hub` et reçoivent leur configuration à distance via **OpAMP**.
+
+```
+sensor DaemonSet  (eBPF : flux · traces · RED · logs · profils)
+     │ OTLP
+     ▼
+  gateway  (collecteur OTel minimal) ──► ClickHouse  (tous les signaux)
+                                           ▲ SQL
+  hub  (Go : API REST/WS + OpAMP)  ◄────────┘   ◄──  UI  (SPA statique, son pod)
+```
+
+## Composants
+
+| Composant | Chemin du repo | Stack | Responsabilité |
+|---|---|---|---|
+| `sensor` | `sensor/` | DaemonSet | agent eBPF + OBI + collecteur + profileur |
+| `agent` | `agent/` | Rust (aya) | traceur de flux L4 alimentant la carte |
+| `gateway` | `gateway/` | OCB / OTel | distribution minimale du collecteur |
+| `hub` | `hub/` | Go | API REST/WS + plan de configuration OpAMP |
+| `ui` | `ui/` | Next.js | SPA statique, servie depuis son propre pod |
+| stockage | — | ClickHouse | un seul moteur pour **tous** les signaux |
+
+## Pourquoi un seul moteur
+
+Stocker traces, métriques, logs et profils dans le **même** cluster ClickHouse,
+c'est ce qui rend la corrélation inter-signaux peu coûteuse : `trace_id` et
+attributs de ressource partagés signifient qu'un pivot trace → logs → métriques →
+profil n'est qu'une requête de plus, pas un autre système.
+
+## Décisions de conception
+
+Les décisions importantes sont consignées sous forme d'
+[ADR](/docs/contribute/adrs/0001-docs-stack) (et d'Avuru Enhancement Proposals
+dans le repo moteur).

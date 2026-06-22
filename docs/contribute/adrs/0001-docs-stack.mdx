@@ -1,0 +1,36 @@
+---
+id: 0001-docs-stack
+title: "ADR 0001: Docusaurus on Hostinger, poly-repo"
+sidebar_label: "0001 · Docs stack"
+sidebar_position: 1
+description: Why the docs are a separate Docusaurus site deployed to Hostinger via GitHub Actions.
+---
+
+# ADR 0001 — Docs stack
+
+- **Status:** Accepted
+- **Date:** 2026-06-22
+
+## Context
+
+The engine repo (`avuru-obs`) keeps documentation as in-repo Markdown. We need a
+public docs **website** with a low-friction contribution flow, without coupling
+docs releases to engine releases.
+
+## Decision
+
+- **Docusaurus 3** (MDX, i18n, versioning-ready) as the framework.
+- A **separate repo** (`avuru-obs-docs`) so docs PRs don't gate the engine.
+- **Hostinger** static hosting, published by a **GitHub Action over FTPS** on
+  every push to `main`.
+- **English** is the canonical locale; **French** is maintained alongside it.
+
+## Consequences
+
+- "Edit this page" → 3-click PR; the home page proves the install promise.
+- A front-matter linter replaces most manual style review.
+- Preview deploys (Vercel/Netlify) are optional and not wired in v1; the CI build
+  is the PR gate.
+
+> This is the example ADR. Copy [`templates/adr.mdx`](https://github.com/avuruvision/avuru-obs-docs/tree/main/templates/adr.mdx)
+> for new ones.

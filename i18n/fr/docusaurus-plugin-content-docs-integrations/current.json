@@ -1,0 +1,22 @@
+{
+  "version.label": {
+    "message": "Actuel",
+    "description": "The label for version current"
+  },
+  "sidebar.integrationsSidebar.category.Frameworks": {
+    "message": "Frameworks",
+    "description": "The label for category 'Frameworks' in sidebar 'integrationsSidebar'"
+  },
+  "sidebar.integrationsSidebar.category.Languages": {
+    "message": "Langages",
+    "description": "The label for category 'Languages' in sidebar 'integrationsSidebar'"
+  },
+  "sidebar.integrationsSidebar.category.Databases": {
+    "message": "Bases de données",
+    "description": "The label for category 'Databases' in sidebar 'integrationsSidebar'"
+  },
+  "sidebar.integrationsSidebar.category.Infrastructure": {
+    "message": "Infrastructure",
+    "description": "The label for category 'Infrastructure' in sidebar 'integrationsSidebar'"
+  }
+}

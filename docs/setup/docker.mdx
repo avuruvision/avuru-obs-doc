@@ -1,0 +1,25 @@
+---
+id: docker
+title: Docker
+sidebar_label: Docker
+sidebar_position: 2
+description: Run the full avuru obs stack locally with Docker Compose.
+---
+
+# Docker
+
+The Docker Compose sandbox brings up ClickHouse, the gateway, the hub, the UI,
+and a demo app — ideal for evaluation and local development.
+
+```bash
+git clone https://github.com/avuruvision/avuru-obs && cd avuru-obs
+make dev          # up: ClickHouse + gateway + hub + UI + HotROD demo
+make dev-clean    # down + wipe volumes (re-run schema migration)
+```
+
+- UI: <strong>http://localhost:8080</strong>
+- OTLP: `localhost:4318` (HTTP) · `localhost:4317` (gRPC)
+
+:::note This page is expanding
+Standalone `docker run` recipes and a slimmed compose profile are on the way.
+:::

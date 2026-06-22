@@ -1,0 +1,24 @@
+---
+id: profiling
+title: Profiling
+sidebar_label: Profiling
+sidebar_position: 4
+description: Continuous, eBPF-based profiling correlated with traces.
+---
+
+# Profiling
+
+Continuous profiling samples CPU (and, over time, heap) and attributes the cost
+back to your code — so you can answer "which function burned the time in this
+slow span?".
+
+- **Source** — the OpenTelemetry eBPF profiler in the `sensor` pod.
+- **Correlation** — by resource attributes and time window with traces.
+
+:::note Status
+Profiling is **alpha** and isolated behind an adapter. Expect changes.
+:::
+
+:::note This page is expanding
+Flame-graph navigation and Pyroscope-compatible ingestion are being documented.
+:::

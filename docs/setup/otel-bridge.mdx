@@ -1,0 +1,33 @@
+---
+id: otel-bridge
+title: OTLP bridge
+sidebar_label: OTLP bridge
+sidebar_position: 5
+description: Already instrumented with OpenTelemetry? Point your exporters at the gateway.
+---
+
+# OTLP bridge
+
+If your services already emit OpenTelemetry, avuru obs is a **drop-in OTLP
+backend**. Change the endpoint — nothing else.
+
+```bash
+# OTLP/HTTP
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+# OTLP/gRPC
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4317
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+```
+
+This works for **traces, metrics and logs**. Spans you export land next to the
+eBPF-discovered map and share the same `service.name` resource identity.
+
+## Migrating from Jaeger / another OTLP backend
+
+Repoint the exporter endpoint to the gateway. No SDK or code changes are needed —
+avuru obs speaks native OTLP.
+
+:::note This page is expanding
+Per-language exporter snippets live under [Integrations](/integrations). Sampling
+and tail-based sampling guidance is being added to [Traces](/docs/signals/traces).
+:::

@@ -1,0 +1,76 @@
+---
+title: Spring
+description: Envoyez traces, métriques et logs d'une app Spring Boot vers avuru obs en OTLP.
+sidebar_label: Spring
+sidebar_position: 1
+tags: [integration, java, framework]
+support_level: community
+since_version: 0.1.0
+---
+
+import {InstallSelector, SupportMatrix, ConfigBuilder} from '@site/src/components';
+
+# Spring
+
+Les applications Spring Boot exportent OpenTelemetry en OTLP vers le `gateway`
+avuru. Le `sensor` eBPF cartographie déjà le service ; ceci ajoute des **spans
+riches en cours de processus** (routes HTTP, requêtes JDBC, spans métier).
+
+## Démarrage rapide
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+Ajoutez l'agent Java OpenTelemetry (sans code) et pointez-le vers le gateway :
+
+```bash
+java -javaagent:opentelemetry-javaagent.jar \
+  -Dotel.exporter.otlp.endpoint=http://avuruops-gateway:4318 \
+  -Dotel.service.name=checkout \
+  -jar checkout.jar
+```
+
+## Signaux collectés
+
+<SupportMatrix
+  signals={[
+    {signal: 'Traces', status: 'yes', notes: 'HTTP, JDBC, spans personnalisés'},
+    {signal: 'Métriques', status: 'yes', notes: 'JVM + métriques serveur HTTP'},
+    {signal: 'Logs', status: 'partial', notes: "Via l'appender de logs OTLP"},
+    {signal: 'Profilage', status: 'no', notes: 'Utilisez plutôt le profileur eBPF'},
+  ]}
+/>
+
+## Configuration
+
+<ConfigBuilder schema="integrations/spring" />
+
+```properties
+otel.exporter.otlp.endpoint=http://avuruops-gateway:4318
+otel.exporter.otlp.protocol=http/protobuf
+otel.service.name=checkout
+otel.resource.attributes=deployment.environment=prod
+```
+
+## Vérification
+
+```bash
+# Lancez une requête, puis cherchez le service dans l'UI avuru → Service Map.
+curl -s http://localhost:8080/api/checkout >/dev/null
+```
+
+Le service `checkout` devrait apparaître avec des spans en cours de processus
+imbriqués sous la trace découverte par eBPF.
+
+## Dépannage
+
+- **Pas de spans ?** Vérifiez l'endpoint de l'agent et que le gateway est
+  joignable depuis le pod (`:4318`).
+- **Nom de service `unknown_service:java` ?** Définissez `otel.service.name`.
+- **Logs manquants ?** L'appender de logs OTLP est optionnel ; activez-le dans
+  `logback.xml`.
+
+## Références
+
+- [OpenTelemetry Java](https://opentelemetry.io/docs/languages/java/)
+- [Pont OTLP](/docs/setup/otel-bridge)
+- [Conventions sémantiques](/reference/semantic-conventions)

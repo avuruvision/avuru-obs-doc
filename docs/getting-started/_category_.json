@@ -1,0 +1,11 @@
+{
+  "label": "Getting started",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Getting started",
+    "description": "The shortest path from install to your first trace."
+  }
+}

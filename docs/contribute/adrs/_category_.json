@@ -1,0 +1,9 @@
+{
+  "label": "ADRs",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "title": "Architecture Decision Records",
+    "description": "Records of significant architectural decisions for the docs and the platform."
+  }
+}

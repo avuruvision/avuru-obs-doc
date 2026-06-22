@@ -1,0 +1,65 @@
+---
+id: 30-seconds
+title: From zero to first trace in 30 seconds
+sidebar_label: 30 seconds
+sidebar_position: 1
+description: Install avuru obs with one Helm command and watch the service map appear — zero code changes.
+---
+
+import {InstallSelector} from '@site/src/components';
+
+# From zero to first trace
+
+This is the sacred path. One command, no code changes, a live service map.
+
+## 1. Install
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+The Helm chart installs the `sensor` DaemonSet, the `gateway` collector, the
+`hub` control plane, the `ui`, and ClickHouse.
+
+## 2. Open the UI
+
+```bash
+kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+```
+
+Open <strong>http://localhost:8080</strong>. Within a minute or two the
+**Service Map** populates itself — the `sensor` discovers services from kernel
+TCP events, so there is **nothing to instrument**.
+
+## 3. (Optional) Send OTLP
+
+Already have OpenTelemetry SDKs? Point them at the gateway and your spans land
+next to the eBPF-discovered ones:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+# gRPC instead? use http://avuruops-gateway:4317
+```
+
+:::tip That's it
+No agents to roll out, no app redeploys. If your kernel has BTF (Linux ≥ 5.8),
+you get the full picture; older kernels degrade gracefully.
+:::
+
+## Verify
+
+```bash
+kubectl -n avuruops get pods
+# avuruops-sensor-xxxxx     Running
+# avuruops-gateway-xxxxx    Running
+# avuruops-hub-xxxxx        Running
+# avuruops-ui-xxxxx         Running
+# avuruops-clickhouse-0     Running
+```
+
+If every pod is `Running` and the Service Map shows nodes, you're done.
+
+## Next
+
+- **[Your first trace](/docs/getting-started/first-trace)** — follow a request
+  end-to-end through the demo app.
+- **[Core concepts](/docs/getting-started/core-concepts)** — what a signal,
+  context and propagation actually mean here.

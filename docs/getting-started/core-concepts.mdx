@@ -1,0 +1,65 @@
+---
+id: core-concepts
+title: Core concepts
+sidebar_label: Core concepts
+sidebar_position: 2
+description: Signals, context and propagation — the mental model behind avuru obs.
+---
+
+# Core concepts
+
+A small mental model goes a long way. avuru obs is built on OpenTelemetry
+concepts, so if you know OTel, you already know most of this.
+
+## Signals
+
+A **signal** is a category of telemetry. avuru obs handles four:
+
+- **Traces** — the path of a request across services, as a tree of **spans**.
+- **Metrics** — numeric measurements over time (counters, gauges, histograms).
+- **Logs** — timestamped events, ideally carrying a `trace_id`.
+- **Profiles** — continuous CPU/heap samples, attributed to code.
+
+All four are stored together in ClickHouse, which is what makes
+**cross-signal correlation** cheap.
+
+## Context & propagation
+
+**Context** is the metadata that ties signals together — most importantly the
+`trace_id` and `span_id`. When a service calls another, that context is
+**propagated** over the wire (W3C `traceparent` header for HTTP, metadata for
+gRPC). That propagation is what lets a single trace span many services.
+
+avuru obs gets context two ways:
+
+1. **eBPF (zero-code).** The `sensor` reconstructs the service map and L4 flows
+   from kernel events — no propagation headers required for the **map**.
+2. **OTLP (full fidelity).** For full distributed traces with span attributes,
+   propagate context with an OpenTelemetry SDK or auto-instrumentation and export
+   OTLP to the gateway.
+
+:::info eBPF vs SDK — which do I need?
+The eBPF `sensor` gives you the **service map and RED metrics for free**. Add an
+OTLP SDK only where you want **rich, in-process spans** (DB statements, business
+attributes, custom events). They compose — eBPF and OTLP spans share the same
+storage.
+:::
+
+## Correlation
+
+Because every signal shares `trace_id` and resource attributes (service name,
+namespace, pod), you can pivot from a slow trace → its logs → the metrics for
+that endpoint → a CPU profile, without leaving the request's context.
+
+## Resource attributes
+
+A **resource** describes *what* produced the telemetry: `service.name`,
+`k8s.namespace.name`, `k8s.pod.name`, and so on. avuru obs follows OTel
+[semantic conventions](/reference/semantic-conventions) so these attributes are
+consistent across signals and across integrations.
+
+## Next
+
+- **[Your first trace](/docs/getting-started/first-trace)** — see these concepts
+  in action.
+- **[Signals](/docs/signals/traces)** — the model for each signal in depth.

@@ -1,0 +1,9 @@
+{
+  "label": "Signals",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "title": "Signals",
+    "description": "Traces, logs, metrics and profiling — the data model for each, and how they correlate."
+  }
+}

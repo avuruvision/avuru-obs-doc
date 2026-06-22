@@ -1,0 +1,22 @@
+---
+id: api
+title: API
+sidebar_label: API
+sidebar_position: 4
+description: The hub REST and gRPC API surface.
+---
+
+# API
+
+The **`hub`** exposes a client-agnostic API contract used by the UI and any
+future client (CLI, Grafana data source).
+
+- **REST / WebSocket** — query signals, stream updates.
+- **OpAMP** — remote configuration for agents and collectors.
+- **Protobuf contracts** — shared across Rust ↔ Go ↔ TypeScript (`proto/` in the
+  engine repo).
+
+:::note This page is expanding
+The generated REST/gRPC schema reference will be published here. Until then, see
+`proto/` and the hub source in the engine repo.
+:::

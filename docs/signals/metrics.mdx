@@ -1,0 +1,20 @@
+---
+id: metrics
+title: Metrics
+sidebar_label: Metrics
+sidebar_position: 3
+description: OTLP metrics, exemplars and histograms in avuru obs.
+---
+
+# Metrics
+
+Metrics are numeric measurements over time. avuru obs derives **RED metrics**
+(Rate, Errors, Duration) from eBPF automatically, and ingests OTLP metrics from
+your SDKs.
+
+- **Types** — counter, gauge, histogram, updowncounter.
+- **Exemplars** — link a metric data point back to a representative trace.
+
+:::note This page is expanding
+Histogram handling, exemplar wiring and the metrics schema are being documented.
+:::
