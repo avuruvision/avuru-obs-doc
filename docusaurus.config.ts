@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 // --- Single source of truth for repo/edit links ---------------------------
 const ENGINE_REPO = 'https://github.com/avuruvision/avuru-obs';
-const DOCS_REPO = 'https://github.com/avuruvision/avuru-obs-docs';
+const DOCS_REPO = 'https://github.com/avuruvision/avuru-obs-doc';
 // "Edit this page" → GitHub web editor on the docs repo (the <3 clicks → PR flow).
 const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
@@ -27,7 +27,7 @@ const config: Config = {
   baseUrl: '/',
 
   organizationName: 'avuruvision',
-  projectName: 'avuru-obs-docs',
+  projectName: 'avuru-obs-doc',
 
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'warn',

@@ -20,7 +20,7 @@ docs releases to engine releases.
 ## Decision
 
 - **Docusaurus 3** (MDX, i18n, versioning-ready) as the framework.
-- A **separate repo** (`avuru-obs-docs`) so docs PRs don't gate the engine.
+- A **separate repo** (`avuru-obs-doc`) so docs PRs don't gate the engine.
 - **Hostinger** static hosting, published by a **GitHub Action over FTPS** on
   every push to `main`.
 - **English** is the canonical locale; **French** is maintained alongside it.
@@ -32,5 +32,5 @@ docs releases to engine releases.
 - Preview deploys (Vercel/Netlify) are optional and not wired in v1; the CI build
   is the PR gate.
 
-> This is the example ADR. Copy [`templates/adr.mdx`](https://github.com/avuruvision/avuru-obs-docs/tree/main/templates/adr.mdx)
+> This is the example ADR. Copy [`templates/adr.mdx`](https://github.com/avuruvision/avuru-obs-doc/tree/main/templates/adr.mdx)
 > for new ones.
