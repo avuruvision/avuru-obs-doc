@@ -34,12 +34,26 @@ jobs:
       - name: Build (all locales)
         run: npm run build
 
-      - name: Publish to Hostinger (FTPS)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          local-dir: ./build/
-          server-dir: ${{ vars.FTP_SERVER_DIR || '/public_html/' }}
+      # lftp mirror is resilient to Hostinger's burst throttling: it reuses the
+      # control connection and retries transient 425 data-connection errors with
+      # backoff, instead of failing the whole deploy like a per-file uploader.
+      - name: Publish to Hostinger (FTPS via lftp)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR || '/public_html/' }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          lftp -c "
+            set cmd:fail-exit true;
+            set ftp:ssl-force true;
+            set ftp:ssl-protect-data true;
+            set ssl:verify-certificate no;
+            set net:max-retries 5;
+            set net:timeout 25;
+            set net:reconnect-interval-base 5;
+            set ftp:use-mlsd true;
+            open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"$FTP_SERVER\";
+            mirror --reverse --delete --no-perms --parallel=1 --verbose ./build/ \"$FTP_SERVER_DIR\";
+          "
