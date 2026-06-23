@@ -42,7 +42,11 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR || '/public_html/' }}
+          # This Hostinger FTP account is chrooted to the web root, so we land
+          # directly in public_html — deploy to '.' (login dir), not '/public_html/'
+          # (which would nest it as public_html/public_html). Override via the
+          # FTP_SERVER_DIR repo variable if your account roots elsewhere.
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR || './' }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
           lftp -c "

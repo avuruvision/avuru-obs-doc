@@ -54,7 +54,9 @@ over FTPS on push to `main`. Configure these repo **secrets**:
 - `FTP_USERNAME`
 - `FTP_PASSWORD`
 
-And optionally the repo **variable** `FTP_SERVER_DIR` (default `/public_html/`).
+And optionally the repo **variable** `FTP_SERVER_DIR` (default `./` — the FTP
+login directory; set to `/public_html/` if your account is **not** chrooted to
+the web root).
 
 > **baseUrl note:** `docusaurus.config.ts` assumes the site is served at the
 > domain root (`baseUrl: '/'`). If you deploy into a sub-folder, set
