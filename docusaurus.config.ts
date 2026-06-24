@@ -49,9 +49,6 @@ const config: Config = {
       },
     },
     {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},
-    // Google Search Console: add https://avuruobs.io as a property, pick the
-    // "HTML tag" method, and paste the token over REPLACE_WITH_GOOGLE_TOKEN.
-    {tagName: 'meta', attributes: {name: 'google-site-verification', content: 'REPLACE_WITH_GOOGLE_TOKEN'}},
   ],
 
   markdown: {

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import Translate, {translate} from '@docusaurus/Translate';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Head from '@docusaurus/Head';
 import {
   TerminalDemo,
   ArchitectureDiagram,
@@ -16,6 +16,51 @@ import styles from './index.module.css';
 
 const INSTALL_CMD =
   'helm install avuruops ./avuruops -n avuruops --create-namespace';
+
+/** schema.org SoftwareApplication for rich search results. */
+const STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Avuru Obs',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Linux, Kubernetes',
+  description:
+    'Open-source, eBPF-native observability and APM platform — distributed tracing, metrics, logs and continuous profiling in one engine. A self-hosted alternative to Datadog, New Relic and the Grafana/Prometheus stack.',
+  url: 'https://avuruobs.io',
+  license: 'https://www.apache.org/licenses/LICENSE-2.0',
+  isAccessibleForFree: true,
+  offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
+};
+
+function AltPoint({
+  title,
+  text,
+}: {
+  title: React.ReactNode;
+  text: React.ReactNode;
+}): React.ReactElement {
+  return (
+    <div className={styles.altPoint}>
+      <svg
+        className={styles.altPointIcon}
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true">
+        <path d="M20 6 9 17l-5-5" />
+      </svg>
+      <span className={styles.altPointText}>
+        <strong>{title}</strong>
+        {text}
+      </span>
+    </div>
+  );
+}
 
 function CopyButton({text}: {text: string}): React.ReactElement {
   const [copied, setCopied] = useState(false);
@@ -67,7 +112,7 @@ function Hero(): React.ReactElement {
         </Link>
 
         <div className={styles.eyebrow}>
-          eBPF-native · OpenTelemetry · Low footprint
+          Open source · eBPF-native · OpenTelemetry
         </div>
         <h1 className={styles.title}>
           <Translate id="home.title.lead">APM &amp; Observability</Translate>{' '}
@@ -115,11 +160,17 @@ function Hero(): React.ReactElement {
 }
 
 export default function Home(): React.ReactElement {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={translate({id: 'home.meta.title', message: 'APM & Observability without friction'})}
-      description={siteConfig.tagline}>
+      title={translate({id: 'home.meta.title', message: 'Open-Source Observability & APM'})}
+      description={translate({
+        id: 'home.meta.desc',
+        message:
+          'Avuru Obs is an open-source, eBPF-native observability platform — distributed tracing, metrics, logs and continuous profiling in one engine. A self-hosted alternative to Datadog, New Relic and the Grafana stack.',
+      })}>
+      <Head>
+        <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
+      </Head>
       <Hero />
 
       <section className={styles.statSection}>
@@ -137,6 +188,37 @@ export default function Home(): React.ReactElement {
           </Translate>
         </p>
         <FeatureGrid />
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <div className={styles.altPanel}>
+          <h2 className={styles.sectionTitle}>
+            <Translate id="home.alt.title">
+              The open-source alternative to Datadog &amp; the Grafana stack
+            </Translate>
+          </h2>
+          <p className={styles.sectionLede}>
+            <Translate id="home.alt.lede">
+              Self-host the entire platform on your own cluster. One engine replaces a
+              Prometheus + Loki + Tempo + Grafana sprawl — and the proprietary agents from
+              Datadog or New Relic — with none of the per-host billing or lock-in.
+            </Translate>
+          </p>
+          <div className={styles.altPoints}>
+            <AltPoint
+              title={<Translate id="home.alt.p1.t">Predictable cost</Translate>}
+              text={<Translate id="home.alt.p1.d">Scale telemetry without per-host or per-GB surprise bills.</Translate>}
+            />
+            <AltPoint
+              title={<Translate id="home.alt.p2.t">Own your data</Translate>}
+              text={<Translate id="home.alt.p2.d">Self-hosted and Apache-2.0 — your telemetry never leaves your infrastructure.</Translate>}
+            />
+            <AltPoint
+              title={<Translate id="home.alt.p3.t">No lock-in</Translate>}
+              text={<Translate id="home.alt.p3.d">OpenTelemetry-native: standard OTLP in and out, no proprietary agents.</Translate>}
+            />
+          </div>
+        </div>
       </section>
 
       <section className={`${styles.section} ${styles.sectionBordered}`}>
@@ -170,7 +252,8 @@ export default function Home(): React.ReactElement {
         </h2>
         <p className={styles.sectionLede}>
           <Translate id="home.metrics.lede">
-            Apache-2.0, built in the open on GitHub.
+            Apache-2.0 and self-hostable — own your telemetry, no per-host or
+            per-GB billing. Built in the open on GitHub.
           </Translate>
         </p>
         <GitHubMetrics />

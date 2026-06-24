@@ -282,6 +282,32 @@
 }
 .cta .ctaRow { margin-bottom: 0; }
 
+/* open-source / alternative panel */
+.altPanel {
+  border: 1px solid var(--avuru-glass-border);
+  border-radius: 18px;
+  padding: 2.2rem;
+  background: var(--avuru-glass-bg);
+  backdrop-filter: blur(10px);
+}
+.altPanel .sectionLede { max-width: 760px; margin-bottom: 0; }
+.altPoints {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 1.6rem;
+}
+.altPoint { display: flex; gap: 10px; align-items: flex-start; }
+.altPointIcon { color: var(--avuru-accent); flex: 0 0 auto; margin-top: 1px; }
+.altPointText { font-size: 0.92rem; color: var(--avuru-muted); line-height: 1.5; }
+.altPointText strong {
+  display: block;
+  color: var(--ifm-font-color-base);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+@media (max-width: 760px) { .altPoints { grid-template-columns: 1fr; } }
+
 @media (prefers-reduced-motion: reduce) {
   .blob { animation: none; }
   .pill, .btnGrad { transition: none; }
