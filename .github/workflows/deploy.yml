@@ -2,7 +2,8 @@ name: deploy
 
 # Builds the site and publishes it to Hostinger over FTPS on every push to main.
 # Required repo secrets: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD.
-# Optional repo variable:  FTP_SERVER_DIR (defaults to /public_html/).
+# The account is chrooted to the web root, so we upload straight to the login
+# directory ('.') — no server-dir variable needed.
 
 on:
   push:
@@ -48,6 +49,13 @@ jobs:
           # directory IS public_html. Upload straight there ('.') — never into a
           # '/public_html/' subpath, which nests as public_html/public_html.
           # `pwd` is logged so the login directory is visible if anything's off.
+          #
+          # An earlier deploy that uploaded into '/public_html/' left a stray
+          # 'public_html' directory inside the web root. With cmd:fail-exit on,
+          # `mirror --delete` aborts the whole job trying to remove it ("Removing
+          # old directory `public_html' ... 550 ... No such file or directory").
+          # --exclude keeps the relic out of the delete scan so deploys complete;
+          # it serves nothing (404) and can be deleted by hand from the FTP panel.
           lftp -c "
             set cmd:fail-exit true;
             set ftp:ssl-force true;
@@ -60,5 +68,5 @@ jobs:
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"$FTP_SERVER\";
             echo '--- FTP login directory: ---';
             pwd;
-            mirror --reverse --delete --no-perms --parallel=1 --verbose ./build/ .;
+            mirror --reverse --delete --no-perms --parallel=1 --verbose --exclude=^public_html ./build/ .;
           "
