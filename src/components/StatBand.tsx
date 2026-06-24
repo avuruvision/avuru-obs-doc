@@ -36,25 +36,25 @@ export default function StatBand(): React.ReactElement {
   return (
     <div className={styles.statBand}>
       <div className={styles.stat}>
-        <div className={styles.statValue}>4</div>
+        <div className={`${styles.statValue} ${styles.gradNum}`}>4</div>
         <div className={styles.statLabel}>
           <Translate id="home.stat.signals">signals, one engine</Translate>
         </div>
       </div>
       <div className={styles.stat}>
-        <div className={styles.statValue}>0</div>
+        <div className={`${styles.statValue} ${styles.gradNum}`}>0</div>
         <div className={styles.statLabel}>
           <Translate id="home.stat.code">code changes</Translate>
         </div>
       </div>
       <div className={styles.stat}>
-        <div className={styles.statValue}>0</div>
+        <div className={`${styles.statValue} ${styles.gradNum}`}>0</div>
         <div className={styles.statLabel}>
           <Translate id="home.stat.sidecars">sidecars to run</Translate>
         </div>
       </div>
       <Link className={styles.stat} to={`https://github.com/${REPO}/stargazers`}>
-        <div className={styles.statValue}>{stars}</div>
+        <div className={`${styles.statValue} ${styles.gradNum}`}>{stars}</div>
         <div className={styles.statLabel}>
           <Translate id="home.stat.stars">GitHub stars</Translate>
         </div>

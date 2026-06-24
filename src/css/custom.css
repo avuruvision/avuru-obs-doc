@@ -23,6 +23,15 @@
   --avuru-term-bg: #0d1117;
   --avuru-term-bar: #161b22;
   --avuru-term-fg: #c9d1d9;
+
+  /* modern: gradient · glass · glow */
+  --avuru-grad: linear-gradient(100deg, #0a9e74, #0891b2, #6366f1);
+  --avuru-grad-soft: linear-gradient(100deg, #0a9e74, #6366f1);
+  --avuru-glass-bg: rgba(255, 255, 255, 0.66);
+  --avuru-glass-border: rgba(15, 23, 42, 0.09);
+  --avuru-glow-1: rgba(16, 185, 129, 0.20);
+  --avuru-glow-2: rgba(34, 211, 238, 0.16);
+  --avuru-glow-3: rgba(129, 140, 248, 0.16);
 }
 
 [data-theme='dark'] {
@@ -43,10 +52,21 @@
   --avuru-term-bg: #0d1117;
   --avuru-term-bar: #161b22;
   --avuru-term-fg: #c9d1d9;
+
+  /* modern: gradient · glass · glow */
+  --avuru-grad: linear-gradient(100deg, #34d399, #22d3ee, #818cf8);
+  --avuru-grad-soft: linear-gradient(100deg, #34d399, #818cf8);
+  --avuru-glass-bg: rgba(255, 255, 255, 0.04);
+  --avuru-glass-border: rgba(255, 255, 255, 0.09);
+  --avuru-glow-1: rgba(52, 211, 153, 0.22);
+  --avuru-glow-2: rgba(34, 211, 238, 0.18);
+  --avuru-glow-3: rgba(129, 140, 248, 0.20);
 }
 
 .navbar {
   border-bottom: 1px solid var(--avuru-border);
+  backdrop-filter: saturate(160%) blur(12px);
+  background-color: color-mix(in srgb, var(--ifm-navbar-background-color) 80%, transparent);
 }
 
 .navbar__title {

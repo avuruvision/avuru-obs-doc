@@ -10,6 +10,7 @@ import {
   HeroDashboard,
   FeatureGrid,
   StatBand,
+  BuiltOn,
 } from '@site/src/components';
 import styles from './index.module.css';
 
@@ -52,12 +53,27 @@ function InstallCommand(): React.ReactElement {
 function Hero(): React.ReactElement {
   return (
     <header className={styles.hero}>
+      <div className={styles.heroBg} aria-hidden="true">
+        <span className={`${styles.blob} ${styles.blob1}`} />
+        <span className={`${styles.blob} ${styles.blob2}`} />
+        <span className={`${styles.blob} ${styles.blob3}`} />
+      </div>
+
       <div className={styles.heroInner}>
+        <Link className={styles.pill} to="/docs/signals/profiling">
+          <span className={styles.pillTag}>New</span>
+          <Translate id="home.pill">Continuous eBPF profiling</Translate>
+          <span className={styles.pillArrow}>→</span>
+        </Link>
+
         <div className={styles.eyebrow}>
           eBPF-native · OpenTelemetry · Low footprint
         </div>
         <h1 className={styles.title}>
-          <Translate id="home.title">APM &amp; Observability without friction</Translate>
+          <Translate id="home.title.lead">APM &amp; Observability</Translate>{' '}
+          <span className={styles.gradText}>
+            <Translate id="home.title.grad">without friction</Translate>
+          </span>
         </h1>
         <p className={styles.subtitle}>
           <Translate id="home.subtitle">
@@ -70,7 +86,7 @@ function Hero(): React.ReactElement {
 
         <div className={styles.ctaRow}>
           <Link
-            className="button button--primary button--lg"
+            className={`button button--lg ${styles.btnGrad}`}
             to="/docs/getting-started/30-seconds">
             <Translate id="home.cta.guide">30-second guide</Translate>
           </Link>
@@ -92,6 +108,8 @@ function Hero(): React.ReactElement {
       <div className={styles.heroShot}>
         <HeroDashboard />
       </div>
+
+      <BuiltOn />
     </header>
   );
 }
@@ -172,7 +190,7 @@ export default function Home(): React.ReactElement {
           <InstallCommand />
           <div className={styles.ctaRow}>
             <Link
-              className="button button--primary button--lg"
+              className={`button button--lg ${styles.btnGrad}`}
               to="/docs/getting-started/30-seconds">
               <Translate id="home.cta.guide">30-second guide</Translate>
             </Link>

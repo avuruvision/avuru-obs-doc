@@ -8,3 +8,4 @@ export {default as GitHubMetrics} from './GitHubMetrics';
 export {default as HeroDashboard} from './HeroDashboard';
 export {default as FeatureGrid} from './FeatureGrid';
 export {default as StatBand} from './StatBand';
+export {default as BuiltOn} from './BuiltOn';
