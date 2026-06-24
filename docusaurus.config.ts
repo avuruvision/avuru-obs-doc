@@ -23,7 +23,7 @@ const config: Config = {
   // site is served at the domain/subdomain root (public_html). If you deploy
   // into a sub-folder (public_html/docs), set baseUrl '/docs/' and match the
   // FTP server-dir in .github/workflows/deploy.yml.
-  url: 'https://docs.avuru-obs.com',
+  url: 'https://avuruobs.io',
   baseUrl: '/',
 
   organizationName: 'avuruvision',
