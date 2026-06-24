@@ -11,9 +11,9 @@ const DOCS_REPO = 'https://github.com/avuruvision/avuru-obs-doc';
 const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
 const config: Config = {
-  title: 'avuru obs',
+  title: 'Avuru Obs',
   tagline: 'APM & Observability without friction',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
@@ -116,8 +116,13 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'avuru obs',
-      // Logo intentionally omitted — the wordmark is the brand (terminal-forward).
+      title: 'Avuru Obs',
+      logo: {
+        alt: 'Avuru Obs',
+        src: 'img/logo.svg',
+        width: 28,
+        height: 28,
+      },
       items: [
         // 6 content entries (locked). The locale dropdown is a utility control.
         {

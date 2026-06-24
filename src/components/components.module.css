@@ -172,3 +172,250 @@
   font-variant-numeric: tabular-nums;
 }
 .metricLabel { font-size: 0.82rem; color: var(--avuru-muted); margin-top: 2px; }
+
+/* --- Hero dashboard (faux product shot) --- */
+.dash {
+  margin: 0;
+  border: 1px solid var(--avuru-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--avuru-term-bg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  font-family: var(--ifm-font-family-monospace);
+}
+.dashBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--avuru-term-bar);
+  border-bottom: 1px solid var(--avuru-border);
+}
+.dashUrl {
+  margin-left: 8px;
+  font-size: 0.78rem;
+  color: var(--avuru-muted);
+}
+.livePill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--avuru-accent);
+  border: 1px solid var(--avuru-border);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--avuru-accent);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  animation: avuruPulse 1.8s ease-out infinite;
+}
+@keyframes avuruPulse {
+  70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+.dashBody { padding: 16px; }
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi {
+  border: 1px solid var(--avuru-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--avuru-term-bar);
+}
+.kpiLabel { font-size: 0.7rem; color: var(--avuru-muted); }
+.kpiValue {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.kpiUnit { font-size: 0.8rem; font-weight: 600; margin-left: 2px; opacity: 0.8; }
+.tone_accent { color: var(--avuru-accent); }
+.tone_ok { color: #27c93f; }
+.tone_warn { color: #e0a000; }
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  margin-top: 8px;
+}
+.sparkBar {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--avuru-accent);
+  opacity: 0.45;
+}
+
+.dashGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 12px;
+}
+.panel {
+  border: 1px solid var(--avuru-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(127, 127, 127, 0.04);
+  min-width: 0;
+}
+.panelTitle {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--avuru-muted);
+  margin-bottom: 10px;
+}
+
+/* service map */
+.map { width: 100%; height: auto; display: block; }
+.mapNode { fill: var(--avuru-term-bar); stroke: var(--avuru-border); stroke-width: 1; }
+.mapStore { stroke: var(--avuru-accent); }
+.mapDot { fill: #27c93f; }
+.mapText {
+  fill: var(--avuru-term-fg);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 11px;
+}
+.edge { fill: none; stroke: var(--avuru-muted); stroke-width: 1.4; opacity: 0.7; }
+.mapArrow { fill: var(--avuru-muted); }
+
+/* trace waterfall */
+.waterfall { display: flex; flex-direction: column; gap: 7px; }
+.spanRow { display: flex; align-items: center; gap: 8px; }
+.spanName {
+  flex: 0 0 118px;
+  font-size: 0.72rem;
+  color: var(--avuru-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spanTrack {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 12px;
+  background: rgba(127, 127, 127, 0.1);
+  border-radius: 6px;
+  min-width: 0;
+}
+.spanBar { height: 8px; border-radius: 4px; background: var(--avuru-accent); }
+.spanBarDb { background: var(--avuru-muted); }
+.spanDur {
+  flex: 0 0 40px;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--avuru-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Feature grid --- */
+.featGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 16px;
+  text-align: left;
+}
+.featCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--avuru-border);
+  border-radius: 12px;
+  padding: 22px;
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.featCard:hover {
+  text-decoration: none;
+  color: var(--ifm-font-color-base);
+  transform: translateY(-3px);
+  border-color: var(--avuru-accent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+.featIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--avuru-accent);
+  margin-bottom: 14px;
+}
+.featTitle { font-size: 1.02rem; font-weight: 700; margin: 0 0 6px; }
+.featDesc {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--avuru-muted);
+  margin: 0;
+}
+.featLink {
+  margin-top: 14px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--avuru-accent);
+  transition: transform 0.15s ease;
+}
+.featCard:hover .featLink { transform: translateX(3px); }
+
+/* --- Stat band --- */
+.statBand {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+.stat {
+  text-align: center;
+  border: 1px solid var(--avuru-border);
+  border-radius: 12px;
+  padding: 22px 16px;
+  background: var(--ifm-background-surface-color);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.stat:hover { text-decoration: none; border-color: var(--avuru-accent); }
+.statValue {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--avuru-accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.statLabel {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--avuru-muted);
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* responsive */
+@media (max-width: 640px) {
+  .kpiRow { grid-template-columns: repeat(2, 1fr); }
+  .dashGrid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot { animation: none; }
+  .featCard, .featLink, .stat { transition: none; }
+  .featCard:hover { transform: none; }
+}
