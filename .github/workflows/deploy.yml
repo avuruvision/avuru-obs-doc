@@ -42,13 +42,12 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          # This Hostinger FTP account is chrooted to the web root, so we land
-          # directly in public_html — deploy to '.' (login dir), not '/public_html/'
-          # (which would nest it as public_html/public_html). Override via the
-          # FTP_SERVER_DIR repo variable if your account roots elsewhere.
-          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR || './' }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          # This Hostinger FTP account is chrooted to the web root, so the login
+          # directory IS public_html. Upload straight there ('.') — never into a
+          # '/public_html/' subpath, which nests as public_html/public_html.
+          # `pwd` is logged so the login directory is visible if anything's off.
           lftp -c "
             set cmd:fail-exit true;
             set ftp:ssl-force true;
@@ -59,5 +58,7 @@ jobs:
             set net:reconnect-interval-base 5;
             set ftp:use-mlsd true;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"$FTP_SERVER\";
-            mirror --reverse --delete --no-perms --parallel=1 --verbose ./build/ \"$FTP_SERVER_DIR\";
+            echo '--- FTP login directory: ---';
+            pwd;
+            mirror --reverse --delete --no-perms --parallel=1 --verbose ./build/ .;
           "
