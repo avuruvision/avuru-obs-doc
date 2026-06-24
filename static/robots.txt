@@ -1,0 +1,8 @@
+# robots.txt for https://avuruobs.io
+# Allow every crawler full access and point them at the sitemap.
+# Docusaurus copies static/ to the site root, so this is served at /robots.txt.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://avuruobs.io/sitemap.xml

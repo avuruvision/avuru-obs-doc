@@ -12,8 +12,10 @@ const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
 const config: Config = {
   title: 'Avuru Obs',
-  tagline: 'APM & Observability without friction',
-  favicon: 'img/favicon.svg',
+  tagline: 'Open-source observability & APM — a self-hosted Datadog & Grafana alternative',
+  // .ico is the broadly-compatible default (Safari ignores SVG favicons); the
+  // crisp SVG + PNG + apple-touch variants are advertised via headTags below.
+  favicon: 'img/favicon.ico',
 
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
@@ -31,6 +33,26 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'warn',
+
+  // Favicons (raster + svg + apple-touch) and SEO meta. robots.txt +
+  // auto-generated /sitemap.xml handle crawler discovery.
+  headTags: [
+    {tagName: 'link', attributes: {rel: 'icon', type: 'image/svg+xml', href: '/img/favicon.svg'}},
+    {tagName: 'link', attributes: {rel: 'icon', type: 'image/png', sizes: '32x32', href: '/img/favicon-32.png'}},
+    {tagName: 'link', attributes: {rel: 'apple-touch-icon', sizes: '180x180', href: '/img/apple-touch-icon.png'}},
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content:
+          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP',
+      },
+    },
+    {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},
+    // Google Search Console: add https://avuruobs.io as a property, pick the
+    // "HTML tag" method, and paste the token over REPLACE_WITH_GOOGLE_TOKEN.
+    {tagName: 'meta', attributes: {name: 'google-site-verification', content: 'REPLACE_WITH_GOOGLE_TOKEN'}},
+  ],
 
   markdown: {
     hooks: {
