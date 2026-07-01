@@ -1,0 +1,21 @@
+---
+slug: system-status
+title: "État du système : santé, stockage, rétention & disque"
+authors: [avuru]
+tags: [platform]
+date: 2026-06-22
+---
+
+Un nouvel onglet **État du système** (sous Paramètres) donne aux opérateurs une
+vue d'ensemble de la santé du backend.
+
+{/* truncate */}
+
+- **Santé des composants** — hub, ClickHouse et ingestion, avec la fraîcheur des
+  dernières données.
+- **Stockage par signal** — lignes, taille sur disque, taux de compression,
+  données depuis, et rétention (jours) pour les traces et les logs.
+- **Capacité disque** — usage disque ClickHouse avec une barre libre/total.
+
+Servi par `/api/v1/system/status`, pour que tout client affiche les mêmes
+chiffres.

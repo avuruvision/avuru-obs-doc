@@ -3,20 +3,57 @@ id: api
 title: API
 sidebar_label: API
 sidebar_position: 4
-description: The hub REST and gRPC API surface.
+description: The hub REST API surface — services, traces, logs and system status.
 ---
 
 # API
 
-The **`hub`** exposes a client-agnostic API contract used by the UI and any
-future client (CLI, Grafana data source).
+The **`hub`** exposes a client-agnostic REST API used by the UI and any future
+client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
+(UTC); durations are milliseconds.
 
-- **REST / WebSocket** — query signals, stream updates.
-- **OpAMP** — remote configuration for agents and collectors.
-- **Protobuf contracts** — shared across Rust ↔ Go ↔ TypeScript (`proto/` in the
-  engine repo).
+- **Base path** — `/api/v1`.
+- **Time range** — most query endpoints accept `start` and `end` (RFC3339);
+  omitted, they default to the **last 15 minutes**.
+- **Tenancy** — single-tenant by default; an `X-Avuru-Tenant` header selects a
+  tenant (enterprise seam).
 
-:::note This page is expanding
-The generated REST/gRPC schema reference will be published here. Until then, see
-`proto/` and the hub source in the engine repo.
+## Endpoints
+
+| Method & path | Purpose |
+|---|---|
+| `GET /healthz` | Liveness probe (always `200`, even during a ClickHouse outage). |
+| `GET /api/v1/status` | Hub build info + ClickHouse reachability. |
+| `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. |
+| `GET /api/v1/services` | Services with RED aggregates over the window. |
+| `GET /api/v1/service-map` | Service nodes **plus call edges** (caller→callee, derived from trace spans). |
+| `GET /api/v1/traces` | Search traces (filters + keyset pagination — see below). |
+| `GET /api/v1/traces/overview` | Per-`(service, operation)` RED metrics (count, errors, P50/P95/P99). |
+| `GET /api/v1/traces/heatmap` | Latency × time histogram (sparse cells) over root spans. |
+| `GET /api/v1/traces/{traceId}` | Full span tree for one trace (attributes, events, links). |
+| `GET /api/v1/traces/{traceId}/logs` | Logs correlated to a trace. |
+| `GET /api/v1/logs` | Search logs (filters + keyset pagination). |
+
+## Trace search
+
+`GET /api/v1/traces` accepts:
+
+| Param | Meaning |
+|---|---|
+| `service`, `operation` | Filter by root service / operation. |
+| `status` | `ok` or `error`. |
+| `tags` | Span-attribute equality, comma-separated: `http.status_code=500,http.method=GET`. |
+| `order` | `newest` (default), `oldest`, or `slowest`. |
+| `minDurationMs`, `maxDurationMs` | Duration band. |
+| `includeAux` | `true` to include auxiliary traffic (health checks, `/actuator/*`, metrics). Excluded by default. |
+| `limit`, `cursor` | Page size and opaque keyset cursor (`nextCursor` in the response). |
+
+`GET /api/v1/traces/heatmap` additionally takes `tags`, `includeAux`,
+`timeBuckets` and `durationBuckets`. `GET /api/v1/logs` takes `service`,
+`severity`, `q` (full-text), `limit` and `cursor`.
+
+:::note Planned
+Remote configuration (**OpAMP**) and streaming (**WebSocket**) surfaces exist in
+the hub and will be documented as their UIs land. Protobuf contracts are shared
+across Rust ↔ Go ↔ TypeScript (`proto/` in the engine repo).
 :::

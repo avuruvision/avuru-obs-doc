@@ -15,10 +15,9 @@ slow span?".
 - **Source** — the OpenTelemetry eBPF profiler in the `sensor` pod.
 - **Correlation** — by resource attributes and time window with traces.
 
-:::note Status
-Profiling is **alpha** and isolated behind an adapter. Expect changes.
-:::
-
-:::note This page is expanding
-Flame-graph navigation and Pyroscope-compatible ingestion are being documented.
+:::info Planned — M4
+Continuous profiling is **not yet available** in the UI. The OpenTelemetry eBPF
+profiler runs in the `sensor`, but the storage schema and flame-graph UI land in
+**M4**, isolated behind an adapter and expected to change. See the
+[Roadmap](/docs/roadmap) and [Feature status](/docs/status).
 :::

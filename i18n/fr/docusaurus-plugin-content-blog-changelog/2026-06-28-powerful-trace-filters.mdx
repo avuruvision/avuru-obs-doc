@@ -1,0 +1,22 @@
+---
+slug: powerful-trace-filters
+title: "Filtres de traces puissants : tags, tri & masquage auxiliaire"
+authors: [avuru]
+tags: [traces]
+date: 2026-06-28
+---
+
+La recherche de traces gagne un vrai panneau de filtres (inspiré du Trace Inspect
+d'Apache SkyWalking) — pour trancher selon ce qui compte vraiment.
+
+{/* truncate */}
+
+- **Requêtes auxiliaires masquées par défaut.** Health checks, `/actuator/*`,
+  scrapes de métriques et trafic de plan de contrôle sont exclus de la heatmap,
+  de l'aperçu et de la liste — une bascule les réaffiche.
+- **Filtres par tag.** Filtrez par attributs de span, p. ex.
+  `http.status_code=500`, `http.method=GET`.
+- **Ordre des résultats.** Plus récent, plus ancien ou plus lent — avec une
+  pagination keyset sans trou sur l'une ou l'autre clé de tri.
+- **Recherche par Trace-ID + plage de durée**, plus service/opération/statut,
+  tout dans l'URL pour des vues partageables.

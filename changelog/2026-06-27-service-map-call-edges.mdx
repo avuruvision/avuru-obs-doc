@@ -1,0 +1,18 @@
+---
+slug: service-map-call-edges
+title: "Service map: real call edges from traces"
+authors: [avuru]
+tags: [service-map]
+date: 2026-06-27
+---
+
+The service map went from disconnected dots to an actual topology.
+
+{/* truncate */}
+
+- **Call edges from trace spans.** Caller→callee edges are derived from
+  cross-service Client/Server span pairs (`/api/v1/service-map`), so the map shows
+  real dependencies today — eBPF flow enrichment lands in a later milestone.
+- **Readable layout.** The graph now accounts for label size, so service names no
+  longer overlap; edges show direction and call volume, red on errors.
+- **Auxiliary traffic excluded** from node sizing and edges by default.

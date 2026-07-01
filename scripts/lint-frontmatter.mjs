@@ -22,7 +22,7 @@ import {fileURLToPath} from 'node:url';
 import matter from 'gray-matter';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
-const SCAN_DIRS = ['docs', 'guides', 'reference', 'integrations', 'blog', 'templates', 'i18n'];
+const SCAN_DIRS = ['docs', 'guides', 'reference', 'integrations', 'blog', 'changelog', 'templates', 'i18n'];
 const EXTS = new Set(['.md', '.mdx']);
 
 const SUPPORT_LEVELS = ['community', 'official', 'experimental'];

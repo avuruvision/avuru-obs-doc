@@ -1,0 +1,24 @@
+---
+slug: full-window-trace-explorer
+title: "Full-window trace explorer with six views"
+authors: [avuru]
+tags: [traces]
+date: 2026-06-30
+---
+
+Open any trace in a **full-window explorer** and switch between six Jaeger-style
+views of the same trace — no context lost.
+
+{/* truncate */}
+
+- **Timeline** — the classic waterfall of spans.
+- **Spans table** — a flat, sortable list (service, operation, kind, duration,
+  self-time, status).
+- **Flamegraph** — an icicle chart of the span tree by duration.
+- **Statistics** — per service / per operation aggregates (count, total, self,
+  % of trace).
+- **Trace graph** — a node-link diagram of the call tree.
+- **JSON** — the raw, copyable trace.
+
+Every view is shareable via the URL, and the whole thing is derived from the
+existing trace API — no extra collection required.

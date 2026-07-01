@@ -1,0 +1,104 @@
+---
+id: roadmap
+title: Roadmap
+sidebar_label: Roadmap
+sidebar_position: 6
+description: Where avuru obs is headed — the v0.1 wedge, milestones M1–M5, and beyond.
+---
+
+import {MilestoneGrid, MilestoneCard, StatusBadge} from '@site/src/components';
+
+# Roadmap
+
+Where avuru obs is headed. This is **directional, not a commitment** — scope and
+order shift as we learn. The authoritative technical detail lives in the engine
+repo's [`ROADMAP.md`](https://github.com/avuruvision/avuru-obs/blob/main/ROADMAP.md);
+this page is the human-readable summary. For what already works today, see
+[Feature status](/docs/status); for what has shipped, see the
+[Changelog](/changelog).
+
+## North star
+
+:::tip The wedge
+A fresh Kubernetes cluster → **live service map in under five minutes**, zero app
+changes. Every milestone is judged against this, and it's enforced as a CI gate.
+:::
+
+## v0.1 — the wedge (first tagged release)
+
+The signal tiers we ship for `0.1`:
+
+| Tier | Signal | Status |
+|---|---|---|
+| **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> trace explorer · <StatusBadge status="in-progress" /> RED UI |
+| **Basic** | Logs (collection, full-text search, `trace_id` correlation) | <StatusBadge status="shipped" /> |
+| **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="planned" /> |
+| **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="planned" /> |
+
+Plus the hard promise: an **OTLP drop-in replacement** — already-instrumented apps
+migrate by changing only the exporter endpoint, no SDK or code changes.
+
+## Milestones toward v0.1
+
+<MilestoneGrid>
+
+<MilestoneCard tag="M1" title="Local stack & ingestion" status="in-progress">
+
+- `make dev` compose stack (ClickHouse + collector + demo app)
+- OTLP ingest end-to-end; first drop-in e2e test
+- Trace explorer, logs, service map & System Status **live**
+- `proto/` codegen (buf) — in progress
+
+</MilestoneCard>
+
+<MilestoneCard tag="M2" title="Deployable OTLP backend" status="planned">
+
+- Helm install path; gateway → ClickHouse → hub in-cluster
+- Full eBPF agent build (aya) replacing the M0 scaffold
+- Service inventory UI (RED per service)
+
+</MilestoneCard>
+
+<MilestoneCard tag="M3" title="Signal depth & correlation" status="planned">
+
+- Infra metrics & node/pod health dashboards
+- RED metrics dashboard (API already live)
+- eBPF **flows** table — service-map topology from the kernel
+
+</MilestoneCard>
+
+<MilestoneCard tag="M4" title="UI depth" status="in-progress">
+
+- Trace waterfall + flamegraph, spans table, statistics, trace graph — **live**
+- Trace comparison (structural diff) — **live**
+- Continuous profiling UI — planned
+
+</MilestoneCard>
+
+<MilestoneCard tag="M5" title="Gateway build & TTV gate" status="planned">
+
+- OCB-built minimal collector distro
+- kind-based time-to-value gate enforcing the sub-5-minute wedge
+- Configuration / OpAMP controls in the UI
+
+</MilestoneCard>
+
+</MilestoneGrid>
+
+## Beyond v0.1 (directional)
+
+- **v0.2 — auth:** OIDC behind the existing `hub` auth provider interface (v0.1
+  ships a local admin password). The enterprise seam — auth provider, `tenant`
+  column, retention policy objects — is built in from v0.1, so this lands without
+  a rewrite.
+- **More clients:** the hub API is the client-agnostic contract; the SPA is one
+  thin client. A **Grafana** data source and a **CLI** are planned.
+- **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
+  interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
+  code.
+
+## How this roadmap changes
+
+Open an issue or discussion to propose a change of direction; larger items
+graduate into an Avuru Enhancement Proposal before implementation. Roadmap edits
+go through a normal pull request.

@@ -1,0 +1,24 @@
+---
+slug: compare-traces-split-workspace
+title: "Compare traces, split workspace & span panel"
+authors: [avuru]
+tags: [traces, ui]
+date: 2026-07-01
+---
+
+The trace explorer moved to a **SkyWalking-style split layout**: the trace list
+stays on the left while the detail opens on the right, so hopping between traces
+is one click. Clicking a span now opens a **side panel** (no more inline expand),
+and a **maximize** button pops the whole thing to a full-window view.
+
+{/* truncate */}
+
+- **Trace comparison (structural diff).** Pin a second trace and see the two span
+  trees aligned — added, removed, faster and slower spans are highlighted so you
+  can debug "fast vs slow" across services at a glance.
+- **Split workspace.** Collapsible trace-list rail ↔ trace detail; the selected
+  trace, view, span and compare target all live in the URL (shareable).
+- **Span detail drawer.** Attributes, events and status render in a dedicated
+  side panel next to the waterfall.
+- **Themed filter dropdowns.** The Status/Order selectors now match the app
+  theme instead of the browser's default popup.

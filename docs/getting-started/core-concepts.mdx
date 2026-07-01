@@ -32,11 +32,17 @@ gRPC). That propagation is what lets a single trace span many services.
 
 avuru obs gets context two ways:
 
-1. **eBPF (zero-code).** The `sensor` reconstructs the service map and L4 flows
-   from kernel events — no propagation headers required for the **map**.
+1. **eBPF (zero-code).** The `sensor` reconstructs L4 flows from kernel events —
+   no propagation headers required for the **map**.
 2. **OTLP (full fidelity).** For full distributed traces with span attributes,
    propagate context with an OpenTelemetry SDK or auto-instrumentation and export
    OTLP to the gateway.
+
+:::note Service map today
+The service map's edges are currently **derived from trace spans** (cross-service
+Client/Server pairs). Kernel-level eBPF **flows** — which map even untraced
+services — arrive in **M3**. See [Feature status](/docs/status).
+:::
 
 :::info eBPF vs SDK — which do I need?
 The eBPF `sensor` gives you the **service map and RED metrics for free**. Add an

@@ -1,0 +1,46 @@
+---
+id: status
+title: État des fonctionnalités
+sidebar_label: État des fonctionnalités
+sidebar_position: 5
+description: Ce qui fonctionne dans avuru obs aujourd'hui et ce qui arrive bientôt.
+---
+
+import {StatusBadge} from '@site/src/components';
+
+# État des fonctionnalités
+
+Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
+avuru obs est en **pré-v0.1** et évolue vite — pour le plan, voir la
+[Feuille de route](/docs/roadmap), et pour les changements livrés le
+[Changelog](/changelog).
+
+## Disponible maintenant
+
+| Capacité | État | Depuis |
+|---|---|---|
+| Carte des services (arêtes d'appel **dérivées des traces**) | <StatusBadge status="shipped" label="Livré" /> | M1 |
+| Traces — recherche, filtres (tags, ordre, durée, statut), heatmap de latence, aperçu RED par opération | <StatusBadge status="shipped" label="Livré" /> | M1 |
+| Visualiseur de traces — chronologie, table des spans, flamegraph, statistiques, graphe, JSON | <StatusBadge status="shipped" label="Livré" /> | M4 |
+| Comparaison de traces — diff structurel de deux traces | <StatusBadge status="shipped" label="Livré" /> | M4 |
+| Logs — recherche plein texte, filtres sévérité/service, corrélation `trace_id` | <StatusBadge status="shipped" label="Livré" /> | M1 |
+| État du système — santé des composants, stockage, rétention, disque | <StatusBadge status="shipped" label="Livré" /> | M1 |
+
+## À venir
+
+| Capacité | État | Cible |
+|---|---|---|
+| Inventaire des services (RED par service) — API disponible, UI à venir | <StatusBadge status="in-progress" label="En cours" /> | M2 |
+| Agent eBPF complet + DaemonSet sensor par nœud | <StatusBadge status="planned" label="Prévu" /> | M2 |
+| Topologie via **flux** eBPF enrichissant la carte des services | <StatusBadge status="planned" label="Prévu" /> | M3 |
+| Tableau de bord des métriques RED | <StatusBadge status="planned" label="Prévu" /> | M3 |
+| Santé des nœuds / pods | <StatusBadge status="planned" label="Prévu" /> | M3 |
+| UI de profilage continu (flame graphs CPU) | <StatusBadge status="planned" label="Prévu" /> | M4 |
+| Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | M5 |
+| Authentification / multi-tenant (jointure déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+
+:::info La carte des services aujourd'hui
+Les arêtes de topologie sont pour l'instant **dérivées des spans de traces**
+(paires Client/Server inter-services). Les **flux** eBPF au niveau du noyau
+enrichiront la carte — y compris les services non tracés — en **M3**.
+:::

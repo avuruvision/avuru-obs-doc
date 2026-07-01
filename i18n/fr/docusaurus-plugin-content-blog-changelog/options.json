@@ -1,0 +1,14 @@
+{
+  "title": {
+    "message": "Changelog",
+    "description": "The title for the blog used in SEO"
+  },
+  "description": {
+    "message": "Nouveautés d'avuru obs — fonctionnalités, améliorations et correctifs.",
+    "description": "The description for the blog used in SEO"
+  },
+  "sidebar.title": {
+    "message": "Changements récents",
+    "description": "The label for the left sidebar"
+  }
+}

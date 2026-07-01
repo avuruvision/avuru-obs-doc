@@ -1,0 +1,18 @@
+---
+slug: logs-explorer
+title: "Explorateur de logs avec corrélation de traces"
+authors: [avuru]
+tags: [logs]
+date: 2026-06-18
+---
+
+Les logs sont interrogeables et reliés aux traces.
+
+{/* truncate */}
+
+- **Recherche plein texte** sur le corps du log, avec filtres **sévérité** et
+  **service** (tout piloté par l'URL).
+- **Corrélation de traces.** Le `trace_id` d'une ligne de log renvoie à sa trace,
+  et les spans d'une trace renvoient aux logs émis pendant cette requête
+  (`/api/v1/traces/{id}/logs`).
+- Pagination keyset pour un défilement sans trou sur de grandes fenêtres.

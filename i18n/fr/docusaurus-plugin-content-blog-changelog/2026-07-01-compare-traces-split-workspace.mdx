@@ -1,0 +1,27 @@
+---
+slug: compare-traces-split-workspace
+title: "Comparer des traces, espace scindé & panneau de span"
+authors: [avuru]
+tags: [traces, ui]
+date: 2026-07-01
+---
+
+L'explorateur de traces passe à une **disposition scindée de style SkyWalking** :
+la liste des traces reste à gauche tandis que le détail s'ouvre à droite, ce qui
+rend le passage d'une trace à l'autre immédiat. Cliquer sur un span ouvre
+désormais un **panneau latéral** (fini l'expansion en ligne), et un bouton
+**agrandir** bascule le tout en plein écran.
+
+{/* truncate */}
+
+- **Comparaison de traces (diff structurel).** Épinglez une seconde trace pour
+  aligner les deux arbres de spans — les spans ajoutés, supprimés, plus rapides
+  ou plus lents sont mis en évidence, pour déboguer « rapide vs lent » entre
+  services d'un coup d'œil.
+- **Espace scindé.** Rail de liste repliable ↔ détail de la trace ; la trace
+  sélectionnée, la vue, le span et la cible de comparaison sont dans l'URL
+  (partageable).
+- **Tiroir de détail de span.** Attributs, événements et statut s'affichent dans
+  un panneau dédié à côté du waterfall.
+- **Menus déroulants au thème.** Les sélecteurs Statut/Ordre suivent désormais le
+  thème de l'application au lieu de la fenêtre native du navigateur.

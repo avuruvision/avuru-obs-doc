@@ -33,12 +33,18 @@ The wedge is simple:
 
 ## The four signals
 
-| Signal | How it arrives | Where it lives |
-|---|---|---|
-| **Traces** | eBPF + OTLP | ClickHouse |
-| **Metrics** | RED + OTLP | ClickHouse |
-| **Logs** | collected, correlated by `trace_id` | ClickHouse |
-| **Profiling** | continuous (eBPF profiler) | ClickHouse |
+| Signal | How it arrives | Where it lives | Status |
+|---|---|---|---|
+| **Traces** | eBPF + OTLP | ClickHouse | Available |
+| **Logs** | collected, correlated by `trace_id` | ClickHouse | Available |
+| **Metrics** | RED + OTLP | ClickHouse | Planned · M3 |
+| **Profiling** | continuous (eBPF profiler) | ClickHouse | Planned · M4 |
+
+:::tip What works today
+Traces, logs, the service map and System Status are **live**; metrics, profiling,
+node health and eBPF flow topology are on the way. See
+**[Feature status](/docs/status)** for the full picture.
+:::
 
 ## The pieces
 

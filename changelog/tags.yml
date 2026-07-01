@@ -1,0 +1,29 @@
+traces:
+  label: Traces
+  permalink: /traces
+  description: Trace explorer & viewer
+
+service-map:
+  label: Service map
+  permalink: /service-map
+  description: Topology & dependencies
+
+logs:
+  label: Logs
+  permalink: /logs
+  description: Log search & correlation
+
+ui:
+  label: UI
+  permalink: /ui
+  description: UI & UX polish
+
+platform:
+  label: Platform
+  permalink: /platform
+  description: Backend, storage & operations
+
+docs:
+  label: Docs
+  permalink: /docs
+  description: Documentation

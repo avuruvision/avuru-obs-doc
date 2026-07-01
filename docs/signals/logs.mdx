@@ -15,6 +15,16 @@ the service logged during that request.
 - **Ingestion** — via OTLP logs or the collector's log receivers.
 - **Correlation** — by `trace_id` / `span_id` and resource attributes.
 
+## Explore logs
+
+The logs explorer is **live** today:
+
+- **Full-text search** over the log body, with **severity** and **service**
+  filters (all held in the URL for shareable views).
+- **Trace correlation** — a log row's `trace_id` links to its trace, and a
+  trace's spans link back to the logs emitted during that request.
+- Keyset pagination for gap-free scrolling through large time windows.
+
 :::note This page is expanding
 Parsing, structured-log fields and retention are being documented.
 :::

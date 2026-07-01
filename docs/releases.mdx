@@ -3,22 +3,51 @@ id: releases
 title: Releases
 sidebar_label: Releases
 sidebar_position: 7
-description: Changelog and release notes for avuru obs.
+description: Release timeline and notes for avuru obs.
 ---
+
+import {Timeline, ReleaseEntry} from '@site/src/components';
 
 # Releases
 
-avuru obs follows **semantic versioning**. Release notes are published on the
-engine repo and summarized here.
-
-- **Latest releases:** [github.com/avuruvision/avuru-obs/releases](https://github.com/avuruvision/avuru-obs/releases)
-- **Changelog:** the engine repo's `CHANGELOG.md`.
+avuru obs follows [semantic versioning](https://semver.org/) (`vX.Y.Z`). This page
+is the version-level timeline; for granular, dated changes see the
+[Changelog](/changelog), and for what's next see the [Roadmap](/docs/roadmap).
 
 :::note Pre-1.0
 The project is pre-v0.1. Minor bumps may include breaking changes; patch bumps
 are fixes only.
 :::
 
-:::note This page is expanding
-This page will be auto-generated from the changelog in a later iteration.
-:::
+<Timeline>
+
+<ReleaseEntry version="Unreleased" date="in development" status="in-progress">
+
+The `main` trunk. Notable work already landed (full detail in the
+[Changelog](/changelog)):
+
+- Trace explorer — full-window viewer (timeline, spans, flamegraph, statistics,
+  graph, JSON), split workspace, span panel and **trace comparison**.
+- Powerful trace filters — tags, ordering, hide-auxiliary-requests.
+- Service map — real **call edges** derived from traces.
+- Logs explorer with `trace_id` correlation.
+- System Status — component health, storage, retention and disk.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.1.0" date="planned" status="planned">
+
+The first tagged release. Target scope is the **wedge**: a fresh Kubernetes
+cluster reaches a live service map in under five minutes with zero app changes,
+plus the v0.1 signal tiers (service map + RED, trace explorer, logs, CPU
+profiling, infra metrics) and the OTLP drop-in migration promise. See the
+[Roadmap](/docs/roadmap) for the milestone breakdown.
+
+</ReleaseEntry>
+
+</Timeline>
+
+Once a version is cut, its entry links to the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases) and the
+matching [changelog](/changelog) items. Releases are cut per the engine repo's
+`RELEASING.md`.

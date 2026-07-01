@@ -9,3 +9,6 @@ export {default as HeroDashboard} from './HeroDashboard';
 export {default as FeatureGrid} from './FeatureGrid';
 export {default as StatBand} from './StatBand';
 export {default as BuiltOn} from './BuiltOn';
+export {default as StatusBadge} from './StatusBadge';
+export {default as MilestoneCard, MilestoneGrid} from './MilestoneCard';
+export {default as Timeline, ReleaseEntry} from './Timeline';

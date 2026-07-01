@@ -1,0 +1,21 @@
+---
+slug: service-map-call-edges
+title: "Carte des services : véritables arêtes d'appel depuis les traces"
+authors: [avuru]
+tags: [service-map]
+date: 2026-06-27
+---
+
+La carte des services passe de points isolés à une véritable topologie.
+
+{/* truncate */}
+
+- **Arêtes d'appel depuis les spans de traces.** Les arêtes appelant→appelé sont
+  dérivées des paires de spans Client/Server inter-services
+  (`/api/v1/service-map`), donc la carte montre de vraies dépendances dès
+  aujourd'hui — l'enrichissement par flux eBPF arrive dans un jalon ultérieur.
+- **Disposition lisible.** Le graphe tient compte de la taille des libellés, donc
+  les noms de services ne se chevauchent plus ; les arêtes indiquent le sens et le
+  volume d'appels, en rouge en cas d'erreur.
+- **Trafic auxiliaire exclu** du dimensionnement des nœuds et des arêtes par
+  défaut.
