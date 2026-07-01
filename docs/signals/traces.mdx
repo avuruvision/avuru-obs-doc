@@ -18,6 +18,23 @@ exporters — and stores them together in ClickHouse.
 - **Parent/child** — nesting that forms the waterfall.
 - **Span links** — relate spans across traces (e.g. batch/fan-in).
 
+## Explore traces
+
+The trace explorer is **live** today. From the Traces screen you can:
+
+- **Search & filter** by service, operation, status, **tags** (span attributes,
+  e.g. `http.status_code=500`), duration range, and **ordering** (newest, oldest,
+  slowest). Auxiliary traffic (health checks, `/actuator/*`, metrics scrapes) is
+  hidden by default.
+- **Latency heatmap** — a latency × time histogram; click a band to filter.
+- **Per-operation overview** — RED metrics (rate, errors, P50/P95/P99) per
+  `(service, operation)`.
+- **Open a trace** in a full-window viewer with six views — **timeline**
+  (waterfall), **spans table**, **flamegraph**, **statistics**, **trace graph**
+  and **JSON** — plus a span-detail side panel.
+- **Compare two traces** with a structural diff that highlights added, removed,
+  faster and slower spans.
+
 ## Sampling
 
 Head sampling is configured at the SDK or gateway. Tail-based sampling at the

@@ -125,6 +125,27 @@ const config: Config = {
         editUrl: EDIT_BASE,
       },
     ],
+    // Changelog → /changelog. A second blog instance (the preset blog stays at
+    // /blog for announcements) rendered as a reverse-chron feed of shipped
+    // changes, tagged by product area, with its own RSS/Atom.
+    [
+      '@docusaurus/plugin-content-blog',
+      {
+        id: 'changelog',
+        path: 'changelog',
+        routeBasePath: 'changelog',
+        blogTitle: 'Changelog',
+        blogDescription: "What's new in avuru obs — features, improvements and fixes.",
+        blogSidebarTitle: 'Recent changes',
+        blogSidebarCount: 'ALL',
+        showReadingTime: false,
+        editUrl: EDIT_BASE,
+        feedOptions: {type: ['rss', 'atom'], xslt: true},
+        onInlineTags: 'warn',
+        onInlineAuthors: 'warn',
+        onUntruncatedBlogPosts: 'ignore',
+      },
+    ],
   ],
 
   themeConfig: {
@@ -172,6 +193,17 @@ const config: Config = {
           label: 'Integrations',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
+        {
+          type: 'dropdown',
+          label: 'Project',
+          position: 'left',
+          items: [
+            {to: '/changelog', label: 'Changelog'},
+            {to: '/docs/roadmap', label: 'Roadmap'},
+            {to: '/docs/releases', label: 'Releases'},
+            {to: '/docs/status', label: 'Feature status'},
+          ],
+        },
         {type: 'localeDropdown', position: 'right'},
         {
           href: ENGINE_REPO,
@@ -197,6 +229,15 @@ const config: Config = {
             {label: 'Configuration', to: '/reference/configuration'},
             {label: 'API', to: '/reference/api'},
             {label: 'Integrations', to: '/integrations'},
+          ],
+        },
+        {
+          title: 'Project',
+          items: [
+            {label: 'Changelog', to: '/changelog'},
+            {label: 'Roadmap', to: '/docs/roadmap'},
+            {label: 'Releases', to: '/docs/releases'},
+            {label: 'Feature status', to: '/docs/status'},
           ],
         },
         {

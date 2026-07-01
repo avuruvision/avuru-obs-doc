@@ -1,0 +1,24 @@
+---
+slug: full-window-trace-explorer
+title: "Explorateur de traces plein écran avec six vues"
+authors: [avuru]
+tags: [traces]
+date: 2026-06-30
+---
+
+Ouvrez n'importe quelle trace dans un **explorateur plein écran** et basculez
+entre six vues à la Jaeger de la même trace — sans perdre le contexte.
+
+{/* truncate */}
+
+- **Chronologie** — le waterfall classique des spans.
+- **Table des spans** — une liste plate et triable (service, opération, type,
+  durée, temps propre, statut).
+- **Flamegraph** — un graphique en glaçons de l'arbre des spans par durée.
+- **Statistiques** — agrégats par service / par opération (nombre, total, temps
+  propre, % de la trace).
+- **Graphe de la trace** — un diagramme nœuds-liens de l'arbre d'appels.
+- **JSON** — la trace brute, copiable.
+
+Chaque vue est partageable via l'URL, et le tout est dérivé de l'API de traces
+existante — aucune collecte supplémentaire requise.

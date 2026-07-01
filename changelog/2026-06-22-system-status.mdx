@@ -1,0 +1,19 @@
+---
+slug: system-status
+title: "System Status: health, storage, retention & disk"
+authors: [avuru]
+tags: [platform]
+date: 2026-06-22
+---
+
+A new **System Status** tab (under Settings) gives operators an at-a-glance view
+of the backend's health.
+
+{/* truncate */}
+
+- **Component health** — hub, ClickHouse and ingestion, with last-data freshness.
+- **Storage per signal** — rows, on-disk size, compression ratio, data-since and
+  retention (days) for traces and logs.
+- **Disk capacity** — ClickHouse disk usage with a free/total bar.
+
+Served by `/api/v1/system/status`, so any client can surface the same numbers.

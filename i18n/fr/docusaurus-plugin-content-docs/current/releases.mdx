@@ -1,0 +1,56 @@
+---
+id: releases
+title: Versions
+sidebar_label: Versions
+sidebar_position: 7
+description: Chronologie des versions et notes de version d'avuru obs.
+---
+
+import {Timeline, ReleaseEntry} from '@site/src/components';
+
+# Versions
+
+avuru obs suit le [versionnage sémantique](https://semver.org/) (`vX.Y.Z`). Cette
+page est la chronologie au niveau des versions ; pour les changements datés et
+détaillés, voir le [Changelog](/changelog), et pour la suite la
+[Feuille de route](/docs/roadmap).
+
+:::note Pré-1.0
+Le projet est en pré-v0.1. Les incréments mineurs peuvent inclure des
+changements cassants ; les incréments de correctif ne sont que des corrections.
+:::
+
+<Timeline>
+
+<ReleaseEntry version="Non publié" date="en développement" status="in-progress" statusLabel="En cours">
+
+Le tronc `main`. Travaux notables déjà intégrés (détail complet dans le
+[Changelog](/changelog)) :
+
+- Explorateur de traces — visualiseur plein écran (chronologie, spans, flamegraph,
+  statistiques, graphe, JSON), espace scindé, panneau de span et **comparaison de
+  traces**.
+- Filtres de traces puissants — tags, tri, masquage des requêtes auxiliaires.
+- Carte des services — véritables **arêtes d'appel** dérivées des traces.
+- Explorateur de logs avec corrélation `trace_id`.
+- État du système — santé des composants, stockage, rétention et disque.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.1.0" date="prévu" status="planned" statusLabel="Prévu">
+
+La première version taguée. La portée cible est le **coin** : un cluster
+Kubernetes neuf atteint une carte des services en direct en moins de cinq minutes
+sans changement applicatif, plus les niveaux de signaux v0.1 (carte des services
++ RED, explorateur de traces, logs, profilage CPU, métriques d'infra) et la
+promesse de migration OTLP « drop-in ». Voir la [Feuille de route](/docs/roadmap)
+pour le détail des jalons.
+
+</ReleaseEntry>
+
+</Timeline>
+
+Une fois une version taguée, son entrée renverra vers la
+[version GitHub](https://github.com/avuruvision/avuru-obs/releases) et les
+éléments correspondants du [Changelog](/changelog). Les versions sont coupées
+selon le `RELEASING.md` du dépôt moteur.

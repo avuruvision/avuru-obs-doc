@@ -622,3 +622,87 @@
   .featCard, .featLink, .stat, .bentoCard, .builtOnItem { transition: none; }
   .featCard:hover, .bentoCard:hover { transform: none; }
 }
+
+/* --- Status badge (roadmap / releases / feature-status) --- */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--ifm-font-family-monospace);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.statusBadge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.statusShipped { color: #27c93f; background: rgba(39, 201, 63, 0.14); border-color: rgba(39, 201, 63, 0.25); }
+.statusProgress { color: #e0a000; background: rgba(255, 189, 46, 0.14); border-color: rgba(255, 189, 46, 0.25); }
+.statusPlanned { color: var(--avuru-muted); background: rgba(127, 127, 127, 0.12); border-color: var(--avuru-border); }
+
+/* --- Milestone cards (roadmap) --- */
+.msGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 1.4rem 0;
+}
+.msCard {
+  border: 1px solid var(--avuru-border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  background: var(--ifm-background-surface-color);
+}
+.msHead { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.msTag {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--avuru-accent);
+  border: 1px solid var(--avuru-border);
+  border-radius: 8px;
+  padding: 2px 8px;
+}
+.msTitle { font-weight: 700; font-size: 1.02rem; margin: 0; flex: 1; }
+.msBody { font-size: 0.9rem; }
+.msBody ul { margin: 0; padding-left: 1.1rem; }
+.msBody :last-child { margin-bottom: 0; }
+
+/* --- Release timeline --- */
+.timeline { position: relative; margin: 1.4rem 0; padding-left: 26px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--avuru-border);
+}
+.release { position: relative; margin-bottom: 26px; }
+.release:last-child { margin-bottom: 0; }
+.release::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ifm-background-surface-color);
+  border: 2px solid var(--avuru-accent);
+}
+.releaseHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.releaseVersion { font-family: var(--ifm-font-family-monospace); font-weight: 800; font-size: 1.05rem; }
+.releaseDate { font-size: 0.82rem; color: var(--avuru-muted); }
+.releaseBody { margin-top: 6px; font-size: 0.92rem; }
+.releaseBody ul { margin: 6px 0 0; padding-left: 1.1rem; }
+.releaseBody :last-child { margin-bottom: 0; }

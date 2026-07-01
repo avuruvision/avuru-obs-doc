@@ -1,0 +1,18 @@
+---
+slug: logs-explorer
+title: "Logs explorer with trace correlation"
+authors: [avuru]
+tags: [logs]
+date: 2026-06-18
+---
+
+Logs are searchable and wired to traces.
+
+{/* truncate */}
+
+- **Full-text search** over the log body, with **severity** and **service**
+  filters (all URL-driven).
+- **Trace correlation.** A log row's `trace_id` links straight to its trace, and
+  a trace's spans link to the logs emitted during that request
+  (`/api/v1/traces/{id}/logs`).
+- Keyset pagination for gap-free scrolling through large windows.

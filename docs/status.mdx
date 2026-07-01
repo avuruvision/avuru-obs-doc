@@ -1,0 +1,45 @@
+---
+id: status
+title: Feature status
+sidebar_label: Feature status
+sidebar_position: 5
+description: What works in avuru obs today versus what's on the way.
+---
+
+import {StatusBadge} from '@site/src/components';
+
+# Feature status
+
+A snapshot of what's live today versus what's coming. avuru obs is **pre-v0.1**
+and moving fast — for the plan see the [Roadmap](/docs/roadmap), and for shipped
+changes the [Changelog](/changelog).
+
+## Available now
+
+| Capability | Status | Since |
+|---|---|---|
+| Service map (call edges **derived from traces**) | <StatusBadge status="shipped" /> | M1 |
+| Traces — search, filters (tags, order, duration, status), latency heatmap, per-operation RED overview | <StatusBadge status="shipped" /> | M1 |
+| Trace viewer — timeline, spans table, flamegraph, statistics, trace graph, JSON | <StatusBadge status="shipped" /> | M4 |
+| Trace comparison — structural diff of two traces | <StatusBadge status="shipped" /> | M4 |
+| Logs — full-text search, severity/service filters, `trace_id` correlation | <StatusBadge status="shipped" /> | M1 |
+| System Status — component health, storage, retention, disk | <StatusBadge status="shipped" /> | M1 |
+
+## Coming
+
+| Capability | Status | Target |
+|---|---|---|
+| Service inventory (RED per service) — API live, UI pending | <StatusBadge status="in-progress" /> | M2 |
+| Full eBPF agent + per-node sensor DaemonSet | <StatusBadge status="planned" /> | M2 |
+| eBPF **flow** topology enriching the service map | <StatusBadge status="planned" /> | M3 |
+| RED metrics dashboard | <StatusBadge status="planned" /> | M3 |
+| Node / pod health | <StatusBadge status="planned" /> | M3 |
+| Continuous profiling UI (CPU flame graphs) | <StatusBadge status="planned" /> | M4 |
+| Configuration / OpAMP controls in the UI | <StatusBadge status="planned" /> | M5 |
+| Auth / multi-tenant (seam already in place) | <StatusBadge status="planned" /> | v0.2 |
+
+:::info Service map today
+Topology edges are currently **derived from trace spans** (cross-service
+Client/Server pairs). Kernel-level eBPF **flows** will enrich the map — including
+services that aren't traced — in **M3**.
+:::

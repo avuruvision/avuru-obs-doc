@@ -34,12 +34,19 @@ Le pari est simple :
 
 ## Les quatre signaux
 
-| Signal | Comment il arrive | Où il vit |
-|---|---|---|
-| **Traces** | eBPF + OTLP | ClickHouse |
-| **Métriques** | RED + OTLP | ClickHouse |
-| **Logs** | collectés, corrélés par `trace_id` | ClickHouse |
-| **Profilage** | continu (profileur eBPF) | ClickHouse |
+| Signal | Comment il arrive | Où il vit | État |
+|---|---|---|---|
+| **Traces** | eBPF + OTLP | ClickHouse | Disponible |
+| **Logs** | collectés, corrélés par `trace_id` | ClickHouse | Disponible |
+| **Métriques** | RED + OTLP | ClickHouse | Prévu · M3 |
+| **Profilage** | continu (profileur eBPF) | ClickHouse | Prévu · M4 |
+
+:::tip Ce qui fonctionne aujourd'hui
+Les traces, les logs, la carte des services et l'État du système sont **en
+direct** ; les métriques, le profilage, la santé des nœuds et la topologie par
+flux eBPF arrivent. Voir **[État des fonctionnalités](/docs/status)** pour le
+tableau complet.
+:::
 
 ## Les composants
 

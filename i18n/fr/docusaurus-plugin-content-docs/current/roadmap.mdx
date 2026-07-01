@@ -1,0 +1,106 @@
+---
+id: roadmap
+title: Feuille de route
+sidebar_label: Feuille de route
+sidebar_position: 6
+description: Où va avuru obs — le coin v0.1, les jalons M1–M5, et au-delà.
+---
+
+import {MilestoneGrid, MilestoneCard, StatusBadge} from '@site/src/components';
+
+# Feuille de route
+
+Où va avuru obs. Ceci est **indicatif, pas un engagement** — la portée et l'ordre
+évoluent au fil de nos apprentissages. Le détail technique de référence vit dans
+le [`ROADMAP.md`](https://github.com/avuruvision/avuru-obs/blob/main/ROADMAP.md)
+du dépôt moteur ; cette page en est le résumé lisible. Pour ce qui fonctionne
+aujourd'hui, voir l'[État des fonctionnalités](/docs/status) ; pour ce qui a été
+livré, le [Changelog](/changelog).
+
+## Étoile polaire
+
+:::tip Le coin
+Un cluster Kubernetes neuf → **carte des services en direct en moins de cinq
+minutes**, zéro changement applicatif. Chaque jalon est jugé à cette aune, et
+c'est vérifié par une porte d'intégration continue.
+:::
+
+## v0.1 — le coin (première version taguée)
+
+Les niveaux de signaux livrés pour `0.1` :
+
+| Niveau | Signal | État |
+|---|---|---|
+| **Complet** | Carte des services + métriques RED ; explorateur de traces (waterfall, recherche) | <StatusBadge status="shipped" label="Livré" /> explorateur · <StatusBadge status="in-progress" label="En cours" /> UI RED |
+| **Basique** | Logs (collecte, recherche plein texte, corrélation `trace_id`) | <StatusBadge status="shipped" label="Livré" /> |
+| **Léger** | Profilage continu (flame graphs CPU par service) | <StatusBadge status="planned" label="Prévu" /> |
+| **Support** | Métriques d'infra (CPU/mémoire/réseau des nœuds/pods) | <StatusBadge status="planned" label="Prévu" /> |
+
+Plus la promesse forte : un **remplaçant OTLP « drop-in »** — les applications
+déjà instrumentées migrent en changeant seulement l'endpoint d'export, sans
+changement de SDK ni de code.
+
+## Jalons vers v0.1
+
+<MilestoneGrid>
+
+<MilestoneCard tag="M1" title="Stack locale & ingestion" status="in-progress" statusLabel="En cours">
+
+- Stack `make dev` (ClickHouse + collecteur + app de démo)
+- Ingestion OTLP de bout en bout ; premier test e2e « drop-in »
+- Explorateur de traces, logs, carte des services & État du système **en direct**
+- Génération de code `proto/` (buf) — en cours
+
+</MilestoneCard>
+
+<MilestoneCard tag="M2" title="Backend OTLP déployable" status="planned" statusLabel="Prévu">
+
+- Installation Helm ; gateway → ClickHouse → hub dans le cluster
+- Build complet de l'agent eBPF (aya) remplaçant l'échafaudage M0
+- UI d'inventaire des services (RED par service)
+
+</MilestoneCard>
+
+<MilestoneCard tag="M3" title="Profondeur & corrélation des signaux" status="planned" statusLabel="Prévu">
+
+- Métriques d'infra & tableaux santé nœuds/pods
+- Tableau de bord des métriques RED (API déjà disponible)
+- Table des **flux** eBPF — topologie de la carte depuis le noyau
+
+</MilestoneCard>
+
+<MilestoneCard tag="M4" title="Profondeur de l'UI" status="in-progress" statusLabel="En cours">
+
+- Waterfall + flamegraph, table des spans, statistiques, graphe — **en direct**
+- Comparaison de traces (diff structurel) — **en direct**
+- UI de profilage continu — à venir
+
+</MilestoneCard>
+
+<MilestoneCard tag="M5" title="Build gateway & porte TTV" status="planned" statusLabel="Prévu">
+
+- Distribution collecteur minimale construite via OCB
+- Porte « time-to-value » sur kind imposant le coin des moins de 5 min
+- Contrôles Configuration / OpAMP dans l'UI
+
+</MilestoneCard>
+
+</MilestoneGrid>
+
+## Au-delà de v0.1 (indicatif)
+
+- **v0.2 — auth :** OIDC derrière l'interface de fournisseur d'auth du `hub`
+  (v0.1 livre un mot de passe admin local). La jointure entreprise — fournisseur
+  d'auth, colonne `tenant`, objets de politique de rétention — est intégrée dès
+  v0.1, donc cela arrive sans réécriture.
+- **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
+  qu'un client léger. Une source de données **Grafana** et une **CLI** sont
+  prévues.
+- **Réévaluation du stockage :** ClickHouse reste derrière l'interface
+  `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
+
+## Comment cette feuille de route change
+
+Ouvrez une issue ou une discussion pour proposer un changement de cap ; les
+éléments plus importants passent par une Avuru Enhancement Proposal avant
+implémentation. Les modifications passent par une pull request classique.
