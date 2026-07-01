@@ -49,6 +49,17 @@ const config: Config = {
       },
     },
     {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},
+    // Explicit dimensions + alt help WhatsApp/LinkedIn render the large preview.
+    {tagName: 'meta', attributes: {property: 'og:image:width', content: '1200'}},
+    {tagName: 'meta', attributes: {property: 'og:image:height', content: '630'}},
+    {tagName: 'meta', attributes: {property: 'og:image:type', content: 'image/png'}},
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:image:alt',
+        content: 'avuru obs — open-source observability & APM',
+      },
+    },
   ],
 
   markdown: {
@@ -149,7 +160,10 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    // Branded Open Graph / Twitter card (1200×630) shown when a link is shared
+    // on WhatsApp, Slack, X, LinkedIn, etc. Docusaurus turns this into an
+    // absolute og:image + twitter:image; width/height/alt are added in headTags.
+    image: 'img/avuru-social-card.png',
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,
