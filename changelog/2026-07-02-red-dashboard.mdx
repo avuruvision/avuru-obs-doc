@@ -1,0 +1,21 @@
+---
+slug: red-dashboard
+title: "RED metrics dashboard, straight from your spans"
+authors: [avuru]
+tags: [ui, traces]
+date: 2026-07-02
+---
+
+The **Metrics** screen is live: request rate, error percentage and latency
+percentiles over time for the busiest services of the window — derived from
+the same spans the trace explorer uses, so there is nothing extra to
+instrument or operate.
+
+{/* truncate */}
+
+- **Per-service cards.** Rate, errors and p50/p95/p99 duration charts over the
+  selected window; filter to one service or let the backend pick the busiest.
+- **Same filters everywhere.** Global time range, auxiliary-traffic toggle,
+  URL-shareable state — and every card links back to the service's traces.
+- **API first.** `GET /api/v1/metrics/red` serves the bucketed series to any
+  client, not just the UI.

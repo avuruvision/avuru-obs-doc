@@ -31,10 +31,10 @@ Les niveaux de signaux livrés pour `0.1` :
 
 | Niveau | Signal | État |
 |---|---|---|
-| **Complet** | Carte des services + métriques RED ; explorateur de traces (waterfall, recherche) | <StatusBadge status="shipped" label="Livré" /> explorateur · <StatusBadge status="in-progress" label="En cours" /> UI RED |
+| **Complet** | Carte des services + métriques RED ; explorateur de traces (waterfall, recherche) | <StatusBadge status="shipped" label="Livré" /> |
 | **Basique** | Logs (collecte, recherche plein texte, corrélation `trace_id`) | <StatusBadge status="shipped" label="Livré" /> |
 | **Léger** | Profilage continu (flame graphs CPU par service) | <StatusBadge status="planned" label="Prévu" /> |
-| **Support** | Métriques d'infra (CPU/mémoire/réseau des nœuds/pods) | <StatusBadge status="planned" label="Prévu" /> |
+| **Support** | Métriques d'infra (CPU/mémoire/réseau des nœuds/pods) | <StatusBadge status="shipped" label="Livré" /> |
 
 Plus la promesse forte : un **remplaçant OTLP « drop-in »** — les applications
 déjà instrumentées migrent en changeant seulement l'endpoint d'export, sans
@@ -61,10 +61,10 @@ changement de SDK ni de code.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M3" title="Profondeur & corrélation des signaux" status="planned" statusLabel="Prévu">
+<MilestoneCard tag="M3" title="Profondeur & corrélation des signaux" status="shipped" statusLabel="Livré">
 
-- Métriques d'infra & tableaux santé nœuds/pods
-- Tableau de bord des métriques RED (API déjà disponible)
+- Métriques d'infra & tableaux santé nœuds/pods — **en direct**
+- Tableau de bord des métriques RED — **en direct**
 
 </MilestoneCard>
 

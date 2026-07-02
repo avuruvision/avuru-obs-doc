@@ -30,10 +30,10 @@ The signal tiers we ship for `0.1`:
 
 | Tier | Signal | Status |
 |---|---|---|
-| **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> trace explorer · <StatusBadge status="in-progress" /> RED UI |
+| **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> |
 | **Basic** | Logs (collection, full-text search, `trace_id` correlation) | <StatusBadge status="shipped" /> |
 | **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="planned" /> |
-| **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="planned" /> |
+| **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="shipped" /> |
 
 Plus the hard promise: an **OTLP drop-in replacement** — already-instrumented apps
 migrate by changing only the exporter endpoint, no SDK or code changes.
@@ -59,10 +59,10 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M3" title="Signal depth & correlation" status="planned">
+<MilestoneCard tag="M3" title="Signal depth & correlation" status="shipped">
 
-- Infra metrics & node/pod health dashboards
-- RED metrics dashboard (API already live)
+- Infra metrics & node/pod health dashboards — **live**
+- RED metrics dashboard — **live**
 
 </MilestoneCard>
 

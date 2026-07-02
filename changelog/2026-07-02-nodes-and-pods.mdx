@@ -1,0 +1,22 @@
+---
+slug: nodes-and-pods
+title: "Node & pod health: is it the app or the node?"
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-07-02
+---
+
+The **Nodes** screen is live: CPU, memory and network per node, with the
+busiest pods underneath — collected by the sensor's node agent (kubeletstats),
+stored in the same ClickHouse as everything else.
+
+{/* truncate */}
+
+- **Per-node utilization.** Latest CPU (cores) and memory with inline trend
+  sparklines, network rx/tx rates over the selected window, and pod counts.
+- **Busiest pods.** Click a node to scope the pod list; each pod shows its
+  namespace, owning workload (deployment/statefulset/daemonset), CPU and
+  memory.
+- **One storage, one retention.** Metrics land in dedicated ClickHouse tables
+  with their own retention knob (`retention.metrics`, default 7 days) — no
+  separate metrics system to operate.

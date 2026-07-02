@@ -33,6 +33,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/traces/{traceId}` | Full span tree for one trace (attributes, events, links). |
 | `GET /api/v1/traces/{traceId}/logs` | Logs correlated to a trace. |
 | `GET /api/v1/logs` | Search logs (filters + keyset pagination). |
+| `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
+| `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
+| `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |
 
 ## Trace search
 
@@ -53,7 +56,6 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 `severity`, `q` (full-text), `limit` and `cursor`.
 
 :::note Planned
-Remote configuration (**OpAMP**) and streaming (**WebSocket**) surfaces exist in
-the hub and will be documented as their UIs land. Protobuf contracts are shared
-across Rust ↔ Go ↔ TypeScript (`proto/` in the engine repo).
+Remote configuration (**OpAMP**) and streaming (**WebSocket**) surfaces land
+with v0.2 and will be documented as their UIs arrive.
 :::

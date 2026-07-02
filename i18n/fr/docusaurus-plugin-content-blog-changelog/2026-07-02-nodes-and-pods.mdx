@@ -1,0 +1,24 @@
+---
+slug: nodes-and-pods
+title: "Santé des nœuds & pods : l'appli ou le nœud ?"
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-07-02
+---
+
+L'écran **Nodes** est disponible : CPU, mémoire et réseau par nœud, avec les
+pods les plus actifs en dessous — collectés par l'agent de nœud du sensor
+(kubeletstats), stockés dans le même ClickHouse que tout le reste.
+
+{/* truncate */}
+
+- **Utilisation par nœud.** CPU (cœurs) et mémoire les plus récents avec des
+  sparklines de tendance, débits réseau rx/tx sur la fenêtre sélectionnée, et
+  nombre de pods.
+- **Pods les plus actifs.** Cliquez un nœud pour restreindre la liste ; chaque
+  pod affiche son namespace, son workload propriétaire
+  (deployment/statefulset/daemonset), son CPU et sa mémoire.
+- **Un seul stockage, une seule rétention.** Les métriques atterrissent dans
+  des tables ClickHouse dédiées avec leur propre rétention
+  (`retention.metrics`, 7 jours par défaut) — aucun système de métriques
+  séparé à opérer.

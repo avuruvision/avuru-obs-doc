@@ -1,0 +1,23 @@
+---
+slug: red-dashboard
+title: "Tableau de bord RED, directement depuis vos spans"
+authors: [avuru]
+tags: [ui, traces]
+date: 2026-07-02
+---
+
+L'écran **Metrics** est disponible : débit de requêtes, pourcentage d'erreurs
+et percentiles de latence dans le temps pour les services les plus actifs de
+la fenêtre — dérivés des mêmes spans que l'explorateur de traces, donc rien de
+plus à instrumenter ni à opérer.
+
+{/* truncate */}
+
+- **Cartes par service.** Graphiques débit, erreurs et durée p50/p95/p99 sur
+  la fenêtre sélectionnée ; filtrez un service ou laissez le backend choisir
+  les plus actifs.
+- **Les mêmes filtres partout.** Plage de temps globale, bouton requêtes
+  auxiliaires, état partageable par URL — et chaque carte renvoie vers les
+  traces du service.
+- **API d'abord.** `GET /api/v1/metrics/red` sert les séries agrégées à
+  n'importe quel client, pas seulement à l'UI.
