@@ -1,0 +1,23 @@
+---
+slug: services-inventory
+title: "Inventaire des services : chaque service, le RED en un coup d'œil"
+authors: [avuru]
+tags: [ui]
+date: 2026-07-02
+---
+
+L'écran **Services** est disponible : chaque service vu dans la fenêtre
+sélectionnée — découvert zéro-code sur Kubernetes ou envoyant de l'OTLP
+directement — avec son débit, son pourcentage d'erreurs et ses percentiles de
+latence dans une table triable.
+
+{/* truncate */}
+
+- **RED par service.** Débit de requêtes, % d'erreurs (badge si non nul) et
+  p50/p95/p99, calculés depuis les mêmes spans que l'explorateur de traces.
+- **Exploration.** Cliquez une ligne pour ouvrir les traces du service, déjà
+  filtrées ; ou basculez vers la vue topologique des mêmes services sur la
+  carte.
+- **Filtres cohérents.** La plage de temps globale et le bouton « requêtes
+  auxiliaires » fonctionnent ici comme partout ailleurs, et l'état vit dans
+  l'URL — une vue filtrée se partage.

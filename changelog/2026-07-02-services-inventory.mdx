@@ -1,0 +1,21 @@
+---
+slug: services-inventory
+title: "Service inventory: every service, RED at a glance"
+authors: [avuru]
+tags: [ui]
+date: 2026-07-02
+---
+
+The **Services** screen is live: every service seen in the selected window —
+auto-discovered zero-code on Kubernetes or sending OTLP directly — with its
+rate, error percentage and latency percentiles in one sortable table.
+
+{/* truncate */}
+
+- **RED per service.** Request rate, error % (badge when non-zero) and
+  p50/p95/p99, computed from the same span data the trace explorer uses.
+- **Drill-down.** Click a row to open that service's traces, already filtered;
+  or jump to the topology view of the same services on the service map.
+- **Consistent filters.** The global time range and the auxiliary-traffic
+  toggle work here like everywhere else, and the state lives in the URL — a
+  filtered view is shareable.
