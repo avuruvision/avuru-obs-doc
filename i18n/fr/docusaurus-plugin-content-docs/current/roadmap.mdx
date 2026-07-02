@@ -33,7 +33,7 @@ Les niveaux de signaux livrés pour `0.1` :
 |---|---|---|
 | **Complet** | Carte des services + métriques RED ; explorateur de traces (waterfall, recherche) | <StatusBadge status="shipped" label="Livré" /> |
 | **Basique** | Logs (collecte, recherche plein texte, corrélation `trace_id`) | <StatusBadge status="shipped" label="Livré" /> |
-| **Léger** | Profilage continu (flame graphs CPU par service) | <StatusBadge status="planned" label="Prévu" /> |
+| **Léger** | Profilage continu (flame graphs CPU par service) | <StatusBadge status="shipped" label="Livré" /> |
 | **Support** | Métriques d'infra (CPU/mémoire/réseau des nœuds/pods) | <StatusBadge status="shipped" label="Livré" /> |
 
 Plus la promesse forte : un **remplaçant OTLP « drop-in »** — les applications
@@ -44,12 +44,12 @@ changement de SDK ni de code.
 
 <MilestoneGrid>
 
-<MilestoneCard tag="M1" title="Stack locale & ingestion" status="in-progress" statusLabel="En cours">
+<MilestoneCard tag="M1" title="Stack locale & ingestion" status="shipped" statusLabel="Livré">
 
 - Stack `make dev` (ClickHouse + collecteur + app de démo)
 - Ingestion OTLP de bout en bout ; premier test e2e « drop-in »
 - Explorateur de traces, logs, carte des services & État du système **en direct**
-- Génération de code `proto/` (buf) — en cours
+- Génération de code `proto/` (buf) déplacée en v0.2 avec le traceur de flux
 
 </MilestoneCard>
 
@@ -68,11 +68,11 @@ changement de SDK ni de code.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M4" title="Profondeur de l'UI" status="in-progress" statusLabel="En cours">
+<MilestoneCard tag="M4" title="Profondeur de l'UI" status="shipped" statusLabel="Livré">
 
 - Waterfall + flamegraph, table des spans, statistiques, graphe — **en direct**
 - Comparaison de traces (diff structurel) — **en direct**
-- UI de profilage continu — à venir
+- UI de profilage continu (flame graphs par service) — **en direct**
 
 </MilestoneCard>
 

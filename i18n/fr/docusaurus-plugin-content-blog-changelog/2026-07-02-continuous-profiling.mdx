@@ -1,0 +1,24 @@
+---
+slug: continuous-profiling
+title: "Profilage CPU continu : des flame graphs, en permanence"
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-07-02
+---
+
+L'écran **Profiling** est disponible : des flame graphs CPU à l'échelle du
+cluster, échantillonnés par eBPF sans changement applicatif et stockés dans le
+même ClickHouse que vos traces, logs et métriques.
+
+{/* truncate */}
+
+- **Échantillonnage permanent.** Le conteneur profiler du sensor (OpenTelemetry
+  eBPF profiler, version épinglée) échantillonne chaque processus de chaque
+  nœud à ~20 Hz — réglable via `sensor.profiler.samplesPerSecond`.
+- **Flame graphs par service.** Choisissez un service profilé, lisez son
+  icicle agrégé sur la fenêtre sélectionnée, cliquez une frame pour zoomer
+  dans ce sous-arbre.
+- **Stockage efficace.** Les piles sont dédupliquées (stockées une fois,
+  référencées par hash) avec leur propre rétention (`retention.profiles`,
+  3 jours par défaut). Le format alpha OTLP Profiles est isolé derrière un
+  seul adaptateur dans le hub, pour contenir l'évolution upstream.

@@ -32,7 +32,7 @@ The signal tiers we ship for `0.1`:
 |---|---|---|
 | **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> |
 | **Basic** | Logs (collection, full-text search, `trace_id` correlation) | <StatusBadge status="shipped" /> |
-| **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="planned" /> |
+| **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="shipped" /> |
 | **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="shipped" /> |
 
 Plus the hard promise: an **OTLP drop-in replacement** — already-instrumented apps
@@ -42,12 +42,12 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 <MilestoneGrid>
 
-<MilestoneCard tag="M1" title="Local stack & ingestion" status="in-progress">
+<MilestoneCard tag="M1" title="Local stack & ingestion" status="shipped">
 
 - `make dev` compose stack (ClickHouse + collector + demo app)
 - OTLP ingest end-to-end; first drop-in e2e test
 - Trace explorer, logs, service map & System Status **live**
-- `proto/` codegen (buf) — in progress
+- `proto/` codegen (buf) moved to v0.2 with the flow tracer
 
 </MilestoneCard>
 
@@ -66,11 +66,11 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M4" title="UI depth" status="in-progress">
+<MilestoneCard tag="M4" title="UI depth" status="shipped">
 
 - Trace waterfall + flamegraph, spans table, statistics, trace graph — **live**
 - Trace comparison (structural diff) — **live**
-- Continuous profiling UI — planned
+- Continuous profiling UI (per-service flame graphs) — **live**
 
 </MilestoneCard>
 

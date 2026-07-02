@@ -3,21 +3,29 @@ id: profiling
 title: Profiling
 sidebar_label: Profiling
 sidebar_position: 4
-description: Continuous, eBPF-based profiling correlated with traces.
+description: Continuous, eBPF-based CPU profiling with per-service flame graphs.
 ---
 
 # Profiling
 
-Continuous profiling samples CPU (and, over time, heap) and attributes the cost
-back to your code — so you can answer "which function burned the time in this
-slow span?".
+Continuous profiling samples CPU stacks and attributes the cost back to your
+code — so you can answer "which function burned the time in this slow span?".
 
-- **Source** — the OpenTelemetry eBPF profiler in the `sensor` pod.
-- **Correlation** — by resource attributes and time window with traces.
+- **Source** — the OpenTelemetry eBPF profiler container in the `sensor`
+  DaemonSet (kernel ≥ 5.8 with BTF), sampling cluster-wide at ~20 Hz by
+  default (`sensor.profiler.samplesPerSecond`).
+- **Storage** — deduplicated stacks + samples in ClickHouse, with their own
+  retention knob (`retention.profiles`, default 3 days).
+- **UI** — the **Profiling** screen: pick a profiled service, read its
+  aggregated flame graph for the selected window; click a frame to zoom.
 
-:::info Planned — M4
-Continuous profiling is **not yet available** in the UI. The OpenTelemetry eBPF
-profiler runs in the `sensor`, but the storage schema and flame-graph UI land in
-**M4**, isolated behind an adapter and expected to change. See the
-[Roadmap](/docs/roadmap) and [Feature status](/docs/status).
-:::
+## Tier limits (v0.1 — the "Lite" tier)
+
+- **CPU only.** Heap/allocation profiling is not collected.
+- **Alpha signal.** OTLP Profiles is an alpha wire format: ingestion is
+  isolated behind the hub's `profilesadapter` seam and the profiler image is
+  version-pinned; expect upstream changes.
+- **Attribution.** Services are attributed by `service.name` when present,
+  falling back to workload and executable names — zero-code processes appear
+  under their process name.
+- Switch it off with `sensor.profiler.enabled=false`.

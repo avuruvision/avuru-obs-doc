@@ -36,6 +36,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
 | `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
 | `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |
+| `GET /api/v1/profiles/services` | Services with CPU profiling samples in the window, busiest first. |
+| `GET /api/v1/profiles/flamegraph` | One service's aggregated flame graph (`service` required) — inclusive values, self at leaves. |
+| `POST /v1development/profiles` | **OTLP profiles ingest** (protobuf) — the sensor's profiler exports here. Deliberately outside `/api/v1`: it is the otlphttp exporter's default profiles path, and a documented profiles-only exception to "the hub is never in the telemetry byte-path" until the ClickHouse exporter supports profiles. |
 
 ## Trace search
 
