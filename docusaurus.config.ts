@@ -62,6 +62,16 @@ const config: Config = {
     },
   ],
 
+  // Privacy-friendly Umami analytics (shared across avurutech.com, valife, etc.).
+  // Injected site-wide into <head>; `defer` keeps it off the critical path.
+  scripts: [
+    {
+      src: 'https://analytics.luxavuru.com/script.js',
+      defer: true,
+      'data-website-id': '52e5a1de-737a-4217-9e5b-b0561afa8044',
+    },
+  ],
+
   markdown: {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
