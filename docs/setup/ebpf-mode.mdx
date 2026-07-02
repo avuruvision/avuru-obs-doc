@@ -3,34 +3,55 @@ id: ebpf-mode
 title: eBPF mode (zero-code)
 sidebar_label: eBPF mode
 sidebar_position: 4
-description: Zero-code instrumentation — the sensor discovers services and flows from kernel events.
+description: Zero-code instrumentation — the per-node sensor traces every service and collects every log with no app changes.
 ---
 
 # eBPF mode (zero-code)
 
-The **`sensor`** is an eBPF DaemonSet that attaches to kernel probes
-(`tcp_connect`, `tcp_close`, …) to reconstruct your service map and L4 flows —
-**without touching application code**.
+The **`sensor`** is a per-node DaemonSet, installed by the Helm chart and **on
+by default**, that observes every service on the cluster **without touching
+application code**:
+
+| Container | What it does |
+|---|---|
+| `obi` | OpenTelemetry eBPF Instrumentation — zero-code **traces + RED metrics** for every HTTP/gRPC service |
+| `otel-agent` | Node collector — **zero-config log collection** (tails every container's stdout/stderr, adds Kubernetes metadata, derives the service name from the workload) |
 
 ## What you get for free
 
-- Service map (who talks to whom)
+- Service map (who talks to whom — edges derived from zero-code traces)
 - RED metrics (Rate, Errors, Duration) per service
-- L4 flow records
+- Logs for every pod, correlated to traces where a `trace_id` is present
+
+Kernel-level **L4 flow records** (protocols beyond what eBPF instrumentation
+parses) come with the custom flow tracer in **v0.2**.
 
 ## Requirements
 
-- Linux kernel **≥ 5.8 with BTF** for full functionality.
-- The DaemonSet runs with the capabilities needed to load eBPF programs (see
+- Linux kernel **≥ 5.8 with BTF** for the eBPF containers. A preflight
+  initContainer checks each node and **warns loudly but never blocks** — on
+  unsupported nodes, log collection keeps working while zero-code tracing is
+  unavailable.
+- The OBI container runs `privileged` by default for reliability across
+  container runtimes. Set `sensor.obi.privileged=false` to use a
+  least-privilege capability set instead (kernel ≥ 5.11; see
   [Security](/docs/operations/security)).
+
+## Tuning (Helm values)
+
+| Value | Default | Effect |
+|---|---|---|
+| `sensor.enabled` | `true` | The whole DaemonSet on/off |
+| `sensor.obi.enabled` | `true` | Zero-code traces + RED on/off |
+| `sensor.obi.privileged` | `true` | Privileged vs capability-set security context |
+| `sensor.agent.logs.enabled` | `true` | stdout/stderr log collection on/off |
+| `sensor.nodeSelector` / `sensor.tolerations` | — | Node placement |
+
+The platform's own namespace is always excluded from collection, and HTTP route
+cardinality is bounded by heuristic route grouping.
 
 ## When to add OTLP
 
 eBPF can't see *inside* a process. For DB statements, business attributes and
 custom spans, add an OTLP SDK and use the [OTLP bridge](/docs/setup/otel-bridge).
 eBPF and OTLP spans share the same storage and service identity.
-
-:::note This page is expanding
-Probe list, kernel-compatibility matrix, and the multi-container `sensor` pod
-layout (agent + OBI + collector + profiler) are being documented.
-:::

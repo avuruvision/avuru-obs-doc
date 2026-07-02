@@ -24,22 +24,24 @@ changes the [Changelog](/changelog).
 | Trace comparison — structural diff of two traces | <StatusBadge status="shipped" /> | M4 |
 | Logs — full-text search, severity/service filters, `trace_id` correlation | <StatusBadge status="shipped" /> | M1 |
 | System Status — component health, storage, retention, disk | <StatusBadge status="shipped" /> | M1 |
+| Sensor DaemonSet — **zero-code** eBPF traces + RED (OBI), **zero-config** log collection | <StatusBadge status="shipped" /> | M2 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
 | Service inventory (RED per service) — API live, UI pending | <StatusBadge status="in-progress" /> | M2 |
-| Full eBPF agent + per-node sensor DaemonSet | <StatusBadge status="planned" /> | M2 |
-| eBPF **flow** topology enriching the service map | <StatusBadge status="planned" /> | M3 |
 | RED metrics dashboard | <StatusBadge status="planned" /> | M3 |
 | Node / pod health | <StatusBadge status="planned" /> | M3 |
 | Continuous profiling UI (CPU flame graphs) | <StatusBadge status="planned" /> | M4 |
-| Configuration / OpAMP controls in the UI | <StatusBadge status="planned" /> | M5 |
+| eBPF **flow** topology enriching the service map (custom L4 tracer) | <StatusBadge status="planned" /> | v0.2 |
+| Configuration / OpAMP controls in the UI | <StatusBadge status="planned" /> | v0.2 |
 | Auth / multi-tenant (seam already in place) | <StatusBadge status="planned" /> | v0.2 |
 
 :::info Service map today
-Topology edges are currently **derived from trace spans** (cross-service
-Client/Server pairs). Kernel-level eBPF **flows** will enrich the map — including
-services that aren't traced — in **M3**.
+Topology edges are **derived from trace spans** (cross-service Client/Server
+pairs) — and with the sensor DaemonSet, every HTTP/gRPC service is traced
+zero-code, so uninstrumented apps appear too. Kernel-level L4 **flows** (for
+protocols beyond what eBPF instrumentation parses) will further enrich the map
+in **v0.2**.
 :::

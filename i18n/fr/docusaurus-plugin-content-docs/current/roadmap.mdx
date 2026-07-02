@@ -53,10 +53,10 @@ changement de SDK ni de code.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M2" title="Backend OTLP déployable" status="planned" statusLabel="Prévu">
+<MilestoneCard tag="M2" title="Backend OTLP déployable" status="in-progress" statusLabel="En cours">
 
-- Installation Helm ; gateway → ClickHouse → hub dans le cluster
-- Build complet de l'agent eBPF (aya) remplaçant l'échafaudage M0
+- Installation Helm ; gateway → ClickHouse → hub dans le cluster — **en direct**
+- DaemonSet sensor : traces + RED eBPF zéro-code (OBI), logs zéro-config — **en direct**
 - UI d'inventaire des services (RED par service)
 
 </MilestoneCard>
@@ -65,7 +65,6 @@ changement de SDK ni de code.
 
 - Métriques d'infra & tableaux santé nœuds/pods
 - Tableau de bord des métriques RED (API déjà disponible)
-- Table des **flux** eBPF — topologie de la carte depuis le noyau
 
 </MilestoneCard>
 
@@ -81,7 +80,6 @@ changement de SDK ni de code.
 
 - Distribution collecteur minimale construite via OCB
 - Porte « time-to-value » sur kind imposant le coin des moins de 5 min
-- Contrôles Configuration / OpAMP dans l'UI
 
 </MilestoneCard>
 
@@ -93,6 +91,12 @@ changement de SDK ni de code.
   (v0.1 livre un mot de passe admin local). La jointure entreprise — fournisseur
   d'auth, colonne `tenant`, objets de politique de rétention — est intégrée dès
   v0.1, donc cela arrive sans réécriture.
+- **v0.2 — topologie par flux noyau :** le traceur de flux L4 eBPF maison (Rust)
+  et sa table de flux, enrichissant la carte des services au-delà des protocoles
+  que l'instrumentation zéro-code analyse aujourd'hui.
+- **v0.2 — configuration à distance :** le serveur OpAMP du hub et les contrôles
+  Configuration / OpAMP dans l'UI (en v0.1, la configuration jour-2 passe par
+  Helm).
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
   qu'un client léger. Une source de données **Grafana** et une **CLI** sont
   prévues.

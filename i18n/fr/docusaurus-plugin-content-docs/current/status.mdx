@@ -25,22 +25,24 @@ avuru obs est en **pré-v0.1** et évolue vite — pour le plan, voir la
 | Comparaison de traces — diff structurel de deux traces | <StatusBadge status="shipped" label="Livré" /> | M4 |
 | Logs — recherche plein texte, filtres sévérité/service, corrélation `trace_id` | <StatusBadge status="shipped" label="Livré" /> | M1 |
 | État du système — santé des composants, stockage, rétention, disque | <StatusBadge status="shipped" label="Livré" /> | M1 |
+| DaemonSet sensor — traces + RED eBPF **zéro-code** (OBI), collecte de logs **zéro-config** | <StatusBadge status="shipped" label="Livré" /> | M2 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
 | Inventaire des services (RED par service) — API disponible, UI à venir | <StatusBadge status="in-progress" label="En cours" /> | M2 |
-| Agent eBPF complet + DaemonSet sensor par nœud | <StatusBadge status="planned" label="Prévu" /> | M2 |
-| Topologie via **flux** eBPF enrichissant la carte des services | <StatusBadge status="planned" label="Prévu" /> | M3 |
 | Tableau de bord des métriques RED | <StatusBadge status="planned" label="Prévu" /> | M3 |
 | Santé des nœuds / pods | <StatusBadge status="planned" label="Prévu" /> | M3 |
 | UI de profilage continu (flame graphs CPU) | <StatusBadge status="planned" label="Prévu" /> | M4 |
-| Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | M5 |
+| Topologie via **flux** eBPF enrichissant la carte des services (traceur L4 maison) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+| Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Authentification / multi-tenant (jointure déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 
 :::info La carte des services aujourd'hui
-Les arêtes de topologie sont pour l'instant **dérivées des spans de traces**
-(paires Client/Server inter-services). Les **flux** eBPF au niveau du noyau
-enrichiront la carte — y compris les services non tracés — en **M3**.
+Les arêtes de topologie sont **dérivées des spans de traces** (paires
+Client/Server inter-services) — et avec le DaemonSet sensor, chaque service
+HTTP/gRPC est tracé zéro-code : les applications non instrumentées apparaissent
+aussi. Les **flux** L4 au niveau du noyau (pour les protocoles au-delà de ce que
+l'instrumentation eBPF analyse) enrichiront encore la carte en **v0.2**.
 :::

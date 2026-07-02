@@ -51,10 +51,10 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 </MilestoneCard>
 
-<MilestoneCard tag="M2" title="Deployable OTLP backend" status="planned">
+<MilestoneCard tag="M2" title="Deployable OTLP backend" status="in-progress">
 
-- Helm install path; gateway → ClickHouse → hub in-cluster
-- Full eBPF agent build (aya) replacing the M0 scaffold
+- Helm install path; gateway → ClickHouse → hub in-cluster — **live**
+- Sensor DaemonSet: zero-code eBPF traces + RED (OBI), zero-config logs — **live**
 - Service inventory UI (RED per service)
 
 </MilestoneCard>
@@ -63,7 +63,6 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 - Infra metrics & node/pod health dashboards
 - RED metrics dashboard (API already live)
-- eBPF **flows** table — service-map topology from the kernel
 
 </MilestoneCard>
 
@@ -79,7 +78,6 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 - OCB-built minimal collector distro
 - kind-based time-to-value gate enforcing the sub-5-minute wedge
-- Configuration / OpAMP controls in the UI
 
 </MilestoneCard>
 
@@ -91,6 +89,11 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
   ships a local admin password). The enterprise seam — auth provider, `tenant`
   column, retention policy objects — is built in from v0.1, so this lands without
   a rewrite.
+- **v0.2 — kernel flow topology:** the custom Rust eBPF L4 flow tracer and its
+  flows table, enriching the service map beyond the protocols zero-code
+  instrumentation parses today.
+- **v0.2 — remote configuration:** the hub's OpAMP server and Configuration /
+  OpAMP controls in the UI (day-2 config is Helm-driven in v0.1).
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`

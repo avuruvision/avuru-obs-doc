@@ -1,0 +1,29 @@
+---
+slug: sensor-zero-code
+title: "Zéro changement applicatif : le DaemonSet sensor arrive"
+authors: [avuru]
+tags: [platform, service-map, logs]
+date: 2026-07-02
+---
+
+L'installation du chart Helm déploie désormais un **sensor par nœud** qui
+observe chaque service du cluster — traces eBPF, métriques RED et collecte des
+logs, **sans SDK, sans sidecar, sans changement applicatif**.
+
+{/* truncate */}
+
+- **Traces + RED zéro-code (eBPF).** Le sensor exécute OpenTelemetry eBPF
+  Instrumentation (image upstream épinglée) sur chaque nœud : chaque service
+  HTTP/gRPC obtient automatiquement ses spans et ses métriques
+  débit/erreurs/latence, et la [carte des services](/docs/signals/traces)
+  s'allume à partir de ces traces — la promesse des moins de cinq minutes,
+  sans aucune instrumentation.
+- **Logs zéro-config.** Un collecteur de nœud suit le stdout/stderr de chaque
+  conteneur, l'enrichit des métadonnées Kubernetes et dérive le nom du service
+  depuis le workload — l'[explorateur de logs](/docs/signals/logs) fonctionne
+  donc immédiatement, même pour des applications qui ignorent tout d'OTLP.
+- **Sûr par défaut.** Un préflight noyau (≥ 5.8 avec BTF requis) avertit
+  bruyamment mais ne bloque jamais ; le namespace de la plateforme est exclu de
+  la collecte ; tout est débrayable (`sensor.enabled`, `sensor.obi.enabled`,
+  `sensor.agent.logs.enabled`) et la cardinalité des routes est bornée par un
+  regroupement heuristique.

@@ -1,0 +1,28 @@
+---
+slug: sensor-zero-code
+title: "Zero app changes: the sensor DaemonSet lands"
+authors: [avuru]
+tags: [platform, service-map, logs]
+date: 2026-07-02
+---
+
+Installing the Helm chart now deploys a **per-node sensor** that observes every
+service on the cluster — eBPF traces, RED metrics and log collection with **no
+SDK, no sidecar, no app changes**.
+
+{/* truncate */}
+
+- **Zero-code traces + RED (eBPF).** The sensor runs OpenTelemetry eBPF
+  Instrumentation (pinned upstream image) on each node: every HTTP/gRPC service
+  gets spans and rate/error/duration metrics automatically, and the
+  [service map](/docs/signals/traces) lights up from those traces — the
+  under-five-minutes promise with zero instrumentation.
+- **Zero-config logs.** A node collector tails every container's stdout/stderr,
+  enriches it with Kubernetes metadata, and derives the service name from the
+  workload — so the [Logs explorer](/docs/signals/logs) works out of the box,
+  even for apps that never heard of OTLP.
+- **Safe by default.** A kernel preflight (needs ≥ 5.8 with BTF) warns loudly
+  but never blocks; the platform's own namespace is excluded from collection;
+  everything is switchable (`sensor.enabled`, `sensor.obi.enabled`,
+  `sensor.agent.logs.enabled`) and route cardinality is bounded by heuristic
+  route grouping.
