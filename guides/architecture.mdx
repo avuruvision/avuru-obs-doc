@@ -3,52 +3,113 @@ id: architecture
 title: Architecture
 sidebar_label: Architecture
 sidebar_position: 2
-description: The avuru obs data flow — sensor, gateway, ClickHouse, hub and UI.
+description: The avuru obs data flow — sensor, gateway, ClickHouse, hub and UI — with the telemetry, query and config paths.
 ---
 
-import {ArchitectureDiagram} from '@site/src/components';
+import {ArchitectureTopology} from '@site/src/components';
 
 # Architecture
 
-avuru obs is a few components, each with one job. Click any node to open its docs.
+avuru obs is a handful of components, each with one job. Telemetry flows in from
+the left, **every signal lands in one ClickHouse engine**, and the `hub` serves
+it back to the UI. Configuration flows the other way, over OpAMP.
 
-<ArchitectureDiagram />
+<ArchitectureTopology />
+
+## The components
+
+| Component | Role | Interfaces | Docs |
+|---|---|---|---|
+| **`sensor`** | eBPF DaemonSet on every node — reconstructs the service map and captures flows, traces, RED, logs and profiles | exports **OTLP** | [eBPF mode](/docs/setup/ebpf-mode) |
+| **`gateway`** | Minimal OpenTelemetry Collector distribution — receives OTLP, filters, and writes to ClickHouse | OTLP **`:4318`** / **`:4317`** | [OTLP bridge](/docs/setup/otel-bridge) |
+| **`hub`** | A single Go binary — REST `/api/v1`, WebSocket streaming and the OpAMP config plane | REST / WS · SQL | [API reference](/reference/api) |
+| **`ui`** | Static SPA served from its own pod — calls the hub API | HTTP | — |
+| **ClickHouse** | One columnar engine storing **every** signal | SQL | [Scaling](/docs/operations/scaling) |
 
 ## Data flow
+
+```mermaid
+flowchart LR
+  sensor["sensor — eBPF DaemonSet"] -- "OTLP :4318/:4317" --> gateway["gateway — OTel Collector"]
+  gateway -- "write" --> ch[("ClickHouse — all signals")]
+  ui["ui — static SPA"] -- "REST / WS" --> hub["hub — Go API + OpAMP"]
+  hub -- "SQL" --> ch
+  hub -. "OpAMP config" .-> gateway
+```
+
+Three paths run through the system:
 
 1. **Telemetry path** — the `sensor` (eBPF + OTLP) ships signals to the
    `gateway`, which writes them to **ClickHouse**.
 2. **Query path** — the `ui` and external clients call the `hub` REST API, which
-   queries ClickHouse with SQL.
+   queries ClickHouse with SQL and streams live updates over WebSocket.
 3. **Config path** — agents and collectors register with the `hub` and receive
    remote configuration over **OpAMP**.
 
-```
-sensor DaemonSet  (eBPF: flows · traces · RED · logs · profiles)
-     │ OTLP
-     ▼
-  gateway  (minimal OTel Collector) ──► ClickHouse  (all signals)
-                                           ▲ SQL
-  hub  (Go: REST/WS API + OpAMP)  ◄────────┘   ◄──  UI  (static SPA, own pod)
+:::note What's shipping today
+Traces, logs and the service map are **live**. RED **metrics** (M3) and
+continuous **profiling** (M4) are on the [roadmap](/docs/roadmap) — the diagrams
+show the full target model. See [Feature status](/docs/status).
+:::
+
+## Cross-signal correlation
+
+Storing every signal in the **same** ClickHouse cluster is what makes a pivot
+from trace → logs → metrics → profile cheap: it's another query, not another
+system. Signals line up on a shared key.
+
+```mermaid
+flowchart LR
+  key["shared key<br/>trace_id · service.name<br/>k8s.namespace · k8s.pod"]
+  key --- tr["traces"]
+  key --- lo["logs"]
+  key --- me["metrics · RED"]
+  key --- pr["profiles"]
 ```
 
-## Components
+## Deployment topology (Kubernetes)
 
-| Component | Repo path | Stack | Responsibility |
-|---|---|---|---|
-| `sensor` | `sensor/` | DaemonSet | eBPF agent + OBI + collector + profiler |
-| `agent` | `agent/` | Rust (aya) | L4 flow tracer feeding the service map |
-| `gateway` | `gateway/` | OCB / OTel | Minimal collector distribution |
-| `hub` | `hub/` | Go | REST/WS API + OpAMP config plane |
-| `ui` | `ui/` | Next.js | Static SPA, served from its own pod |
-| storage | — | ClickHouse | One engine for **all** signals |
+The `sensor` runs as a DaemonSet — one pod per node — while the `gateway`,
+`hub`, `ui` and ClickHouse run as workloads in the services namespace.
+
+```mermaid
+flowchart TB
+  subgraph n1["Node A"]
+    s1["sensor pod (DaemonSet)"]
+  end
+  subgraph n2["Node B"]
+    s2["sensor pod (DaemonSet)"]
+  end
+  subgraph svc["avuru-services namespace"]
+    gw["gateway (Deployment)"]
+    hub["hub (Deployment)"]
+    ui["ui (Deployment)"]
+    ch[("ClickHouse (StatefulSet)")]
+  end
+  s1 -- OTLP --> gw
+  s2 -- OTLP --> gw
+  gw --> ch
+  hub --> ch
+  ui --> hub
+```
+
+## Life of a trace
+
+1. A request hits one of your services. The node-local `sensor` sees the
+   `tcp_connect()` / `tcp_close()` and the spans, with **no code change**.
+2. The `sensor` exports the trace over OTLP to the `gateway`.
+3. The `gateway` writes it to ClickHouse, tagged with `trace_id` and resource
+   attributes (`service.name`, `k8s.pod.name`, …).
+4. You open the trace in the `ui`; the `hub` reads it from ClickHouse over SQL
+   and, because logs share the same `trace_id`, offers the correlated logs in the
+   same view.
 
 ## Why one engine
 
 Storing traces, metrics, logs and profiles in the **same** ClickHouse cluster is
 what makes cross-signal correlation cheap: shared `trace_id` and resource
 attributes mean a pivot from trace → logs → metrics → profile is just another
-query, not another system.
+query, not another system to run, size and back up.
 
 ## Design decisions
 

@@ -1,0 +1,67 @@
+---
+title: "avuru obs vs. the Grafana stack"
+sidebar_label: vs Grafana stack
+description: How avuru obs compares to the Grafana LGTM stack (Loki, Grafana, Tempo, Mimir) — one engine and one UI instead of four systems — and how to migrate over OTLP.
+keywords:
+  - Grafana alternative
+  - Grafana LGTM alternative
+  - Loki alternative
+  - Tempo alternative
+  - Mimir alternative
+  - migrate from Grafana stack
+---
+
+# avuru obs vs. the Grafana stack
+
+The Grafana **LGTM** stack — **L**oki (logs), **G**rafana (dashboards),
+**T**empo (traces), **M**imir (metrics), plus Pyroscope for profiling — is
+powerful and flexible, with a huge dashboarding ecosystem. The trade-off is that
+you **assemble and operate several systems**, each with its own store to size,
+scale and back up. avuru obs collapses that into **one engine and one UI**.
+
+## At a glance
+
+| | Grafana stack (LGTM) | avuru obs |
+|---|---|---|
+| **Components** | Loki + Tempo + Mimir + Grafana (+ Pyroscope) | One `hub` + `gateway` + ClickHouse + UI |
+| **Stores to operate** | One per signal | **One** (ClickHouse, all signals) |
+| **Instrumentation** | Agents/SDKs per signal (Alloy, OTel) | **eBPF auto-discovery** + OTLP |
+| **Correlation** | Configured across data sources | Built in — same store, shared keys |
+| **Dashboards** | Best-in-class, huge ecosystem | Purpose-built UI (less flexible today) |
+| **Ingest** | OTLP, Prometheus, Loki push, etc. | Native **OTLP** (`:4318`/`:4317`) |
+| **License** | AGPLv3 (Grafana) / Apache-2.0 (components) | Apache-2.0 |
+
+## Why teams switch
+
+- **One system instead of four.** Sizing, upgrading and backing up a single
+  ClickHouse cluster is far less work than operating Loki, Tempo and Mimir
+  separately. See [Architecture](/guides/architecture).
+- **Correlation without wiring.** Traces, logs (and soon metrics/profiles) share
+  a store, so a trace → logs pivot is a query — not a cross-data-source link you
+  configure and maintain.
+- **The map is free.** eBPF discovery gives you a live service map with no agent
+  config per signal.
+
+## How to migrate
+
+The Grafana stack is OTLP-friendly, so you can move incrementally:
+
+1. Install avuru obs alongside your stack.
+2. Add the avuru `gateway` as an OTLP exporter in **Grafana Alloy** / your OTel
+   Collector, keeping your existing exporters so both receive data.
+3. Validate traces and logs in avuru obs, then peel off Loki/Tempo (and Mimir
+   once [metrics](/docs/status) land) as you're ready.
+
+See the [OTLP bridge guide](/docs/setup/otel-bridge) for collector settings.
+
+## When the Grafana stack is the better fit
+
+- You rely on **Grafana's dashboarding** flexibility and plugin ecosystem.
+- You need mature, independently scalable metrics (Mimir) **today** — avuru's
+  metrics are RED-focused and still landing ([M3](/docs/status)).
+- You've already invested in operating the stack and it meets your needs.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds), dual-export from Alloy,
+and compare the correlated view against your current data sources.
+:::

@@ -1,0 +1,66 @@
+---
+title: "avuru obs vs. Jaeger"
+sidebar_label: vs Jaeger
+description: How avuru obs compares to Jaeger for distributed tracing — eBPF auto-discovery, logs and metrics in one store — and how to migrate over OTLP.
+keywords:
+  - Jaeger alternative
+  - Jaeger vs avuru obs
+  - migrate from Jaeger
+  - distributed tracing
+  - OpenTelemetry tracing backend
+---
+
+# avuru obs vs. Jaeger
+
+[Jaeger](https://www.jaegertracing.io/) is a mature, CNCF-graduated distributed
+tracing system. It's a great choice and widely deployed. The difference is
+**scope**: Jaeger focuses on traces, while avuru obs treats tracing as one signal
+among four that share a single store — and adds an **eBPF service map that needs
+no instrumentation**.
+
+## At a glance
+
+| | Jaeger | avuru obs |
+|---|---|---|
+| **Primary scope** | Distributed tracing | Traces, logs, metrics, profiling |
+| **Instrumentation** | OTel/Jaeger SDKs (manual spans) | **eBPF auto-discovery** + optional OTLP spans |
+| **Storage** | Cassandra, Elasticsearch, Badger, etc. | Single **ClickHouse** engine for all signals |
+| **Cross-signal correlation** | External (wire up separate tools) | Built in — shared `trace_id` + resource attributes |
+| **Ingest** | OTLP, Jaeger protocols | Native **OTLP** (`:4318`/`:4317`) |
+| **Deploy** | Collector + query + storage | One Helm chart |
+| **License** | Apache-2.0 (CNCF) | Apache-2.0 |
+
+## Why teams switch
+
+- **Get a service map without instrumenting anything.** Jaeger shows the traces
+  your SDKs emit; avuru's `sensor` reconstructs the topology from the kernel, so
+  even un-instrumented services appear. See [Architecture](/guides/architecture).
+- **Traces don't live alone.** Pivot from a slow span to the correlated logs (and
+  soon metrics/profiles) in the same query, instead of stitching Jaeger to a
+  separate logging stack.
+- **One thing to operate.** No separate trace-storage cluster to size and back
+  up — every signal is in ClickHouse.
+
+## How to migrate
+
+Jaeger already speaks OTLP, so this is a one-line change:
+
+1. Install avuru obs next to Jaeger.
+2. Point your OTLP exporter (or the OTel Collector feeding Jaeger) at the avuru
+   `gateway` on `:4318`/`:4317`. Keep the Jaeger exporter too, to **dual-write**
+   while you validate.
+3. Confirm traces land in avuru obs, then retire the Jaeger pipeline.
+
+See the [OTLP bridge guide](/docs/setup/otel-bridge) for exact exporter settings.
+
+## When Jaeger is the better fit
+
+- You need **only** tracing and already operate Jaeger happily.
+- You depend on a specific Jaeger storage backend or its mature, battle-tested
+  ecosystem and integrations.
+- You're not on Linux/Kubernetes where eBPF adds the most value.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds) and dual-export one
+service — you'll see the eBPF map appear next to your existing Jaeger traces.
+:::

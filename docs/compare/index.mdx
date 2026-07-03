@@ -1,0 +1,67 @@
+---
+id: compare-overview
+title: "avuru obs vs. the alternatives"
+sidebar_label: Overview
+description: How avuru obs compares to Jaeger, the Grafana stack, Prometheus and Datadog — and how to migrate from each over OTLP.
+keywords:
+  - observability comparison
+  - Datadog alternative
+  - Grafana alternative
+  - Jaeger alternative
+  - Prometheus alternative
+  - self-hosted observability
+---
+
+# avuru obs vs. the alternatives
+
+Most teams already run *something* for telemetry. This section is an honest look
+at how **avuru obs** compares to the tools you're most likely replacing — and how
+to migrate from each without a rewrite.
+
+The short version of the pitch:
+
+- **One engine, not four.** Traces, logs, metrics and continuous profiling land
+  in the same **ClickHouse** store, so cross-signal correlation is just another
+  query. See [Architecture](/guides/architecture).
+- **eBPF auto-discovery.** A kernel-level `sensor` reconstructs your service map
+  with **no SDKs and no code changes** — install the chart and the map lights up.
+- **OpenTelemetry-native.** Standard **OTLP** in and out. Whatever you run today
+  almost certainly already speaks OTLP, so migration is usually a one-line
+  exporter change. See the [OTLP bridge](/docs/setup/otel-bridge).
+- **Self-hosted, Apache-2.0.** Your telemetry never leaves your infrastructure,
+  and cost tracks your cluster — not per-host or per-GB billing.
+
+:::note Where avuru obs is today
+avuru obs is pre-v0.1. **Traces, logs and the service map are live**; **metrics
+(RED)** and **continuous profiling** are on the roadmap (M3/M4). The comparisons
+below say plainly what's shipping versus planned — see
+[Feature status](/docs/status).
+:::
+
+## At a glance
+
+| You run today | Category | What avuru obs changes | Read |
+|---|---|---|---|
+| **Jaeger** | Distributed tracing | Adds logs (+ metrics/profiling) in one store; eBPF map with no SDK | [vs Jaeger](/docs/compare/jaeger) |
+| **Grafana stack (Loki/Tempo/Mimir)** | Assembled OSS stack | One engine and one UI instead of four systems to operate | [vs the Grafana stack](/docs/compare/grafana-stack) |
+| **Prometheus** | Metrics | Auto **RED** metrics correlated with traces & logs | [vs Prometheus](/docs/compare/prometheus) |
+| **Datadog / New Relic** | Commercial SaaS APM | Self-hosted, no proprietary agents, no per-host bill | [vs Datadog](/docs/compare/datadog) |
+
+## How migration works, in general
+
+Because avuru obs is a **drop-in OTLP backend**, migrating from any
+OpenTelemetry-compatible source is the same three moves:
+
+1. Install avuru obs (`helm install`) alongside what you run today.
+2. Repoint your OTLP exporter (or OTel Collector / Grafana Alloy) at the avuru
+   `gateway` — `:4318` (HTTP) or `:4317` (gRPC). You can **dual-export** and run
+   both in parallel while you validate.
+3. Once the data looks right, cut over and decommission the old backend.
+
+Full steps live in the [OTLP bridge guide](/docs/setup/otel-bridge). Each page
+below adds the specifics for that tool.
+
+:::tip Ready to try it?
+The fastest way to compare is side by side — [install in 30
+seconds](/docs/getting-started/30-seconds) and point one service at it.
+:::

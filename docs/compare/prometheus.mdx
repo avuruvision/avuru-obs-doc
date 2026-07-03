@@ -1,0 +1,65 @@
+---
+title: "avuru obs vs. Prometheus"
+sidebar_label: vs Prometheus
+description: How avuru obs compares to Prometheus for metrics — automatic RED metrics correlated with traces and logs — and how the two fit together.
+keywords:
+  - Prometheus alternative
+  - Prometheus vs avuru obs
+  - RED metrics
+  - metrics observability
+  - migrate from Prometheus
+---
+
+# avuru obs vs. Prometheus
+
+[Prometheus](https://prometheus.io/) is the de-facto standard for metrics —
+pull-based scraping, PromQL, alerting and an enormous exporter ecosystem. It is
+excellent at what it does. avuru obs takes a different angle: **RED metrics
+derived automatically** and stored **next to your traces and logs** for
+correlation, rather than as a separate metrics silo.
+
+:::note Honest status
+Metrics (RED) are on the avuru obs roadmap ([M3](/docs/status)). If metrics are
+your primary need **today**, Prometheus remains the stronger choice — and the two
+run well together (see below).
+:::
+
+## At a glance
+
+| | Prometheus | avuru obs |
+|---|---|---|
+| **Scope** | Metrics | Traces, logs, metrics, profiling |
+| **Collection** | Pull / scrape (+ exporters) | **eBPF** RED + OTLP push |
+| **Query** | PromQL | Correlated queries across signals |
+| **Long-term storage** | Add Thanos / Mimir / Cortex | Built into ClickHouse |
+| **High cardinality** | Can get expensive | Columnar store designed for it |
+| **Correlation with traces/logs** | External | Native — shared `trace_id` |
+| **License** | Apache-2.0 | Apache-2.0 |
+
+## Why teams look at avuru obs
+
+- **RED without scrape configs.** Rate, errors and duration come from eBPF
+  automatically, so you get golden-signal metrics per service with no exporter
+  wiring. See [Architecture](/guides/architecture).
+- **Metrics that link to the trace.** A latency spike pivots straight to the
+  slow traces and their logs, because everything is one store.
+- **One engine for retention.** No separate long-term-storage layer to bolt on.
+
+## How they fit together
+
+You don't have to choose immediately. Prometheus can **remote-write** into an
+OTLP pipeline, and avuru obs ingests OTLP — so you can feed existing Prometheus
+metrics into avuru while you evaluate, and keep PromQL where you need it. See the
+[OTLP bridge guide](/docs/setup/otel-bridge).
+
+## When Prometheus is the better fit
+
+- You live in **PromQL** and Alertmanager and rely on that ecosystem.
+- You need the breadth of the **exporter** catalog for infra/third-party metrics.
+- You need mature, independently scalable metrics **today** rather than on the
+  [roadmap](/docs/status).
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds) — the eBPF RED metrics
+show up with zero scrape configuration.
+:::

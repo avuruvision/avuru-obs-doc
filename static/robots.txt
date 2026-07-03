@@ -6,3 +6,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://avuruobs.io/sitemap.xml
+Sitemap: https://avuruobs.io/fr/sitemap.xml

@@ -72,11 +72,15 @@ const config: Config = {
     },
   ],
 
+  // Mermaid diagrams (architecture, data-flow) rendered client-side, themed to
+  // the brand palette in themeConfig.mermaid below.
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
   },
+  themes: ['@docusaurus/theme-mermaid'],
 
   // English is canonical; French falls back to English for untranslated pages.
   i18n: {
@@ -174,6 +178,19 @@ const config: Config = {
     // on WhatsApp, Slack, X, LinkedIn, etc. Docusaurus turns this into an
     // absolute og:image + twitter:image; width/height/alt are added in headTags.
     image: 'img/avuru-social-card.png',
+    // Mermaid uses the built-in light/dark bases; a few themeVariables pull the
+    // accent + font toward the avuru brand (teal/cyan, JetBrains Mono).
+    mermaid: {
+      theme: {light: 'neutral', dark: 'dark'},
+      options: {
+        themeVariables: {
+          primaryColor: '#0a9e74',
+          primaryBorderColor: '#34d399',
+          lineColor: '#22d3ee',
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+        },
+      },
+    },
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,
@@ -216,6 +233,7 @@ const config: Config = {
           position: 'left',
           label: 'Integrations',
         },
+        {to: '/docs/compare', label: 'Compare', position: 'left'},
         {to: '/blog', label: 'Blog', position: 'left'},
         {
           type: 'dropdown',
@@ -245,6 +263,7 @@ const config: Config = {
             {label: 'Introduction', to: '/docs/intro'},
             {label: '30 seconds', to: '/docs/getting-started/30-seconds'},
             {label: 'Architecture', to: '/guides/architecture'},
+            {label: 'Compare', to: '/docs/compare'},
           ],
         },
         {

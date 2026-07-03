@@ -12,8 +12,10 @@ Continuous profiling samples CPU stacks and attributes the cost back to your
 code — so you can answer "which function burned the time in this slow span?".
 
 - **Source** — the OpenTelemetry eBPF profiler container in the `sensor`
-  DaemonSet (kernel ≥ 5.8 with BTF), sampling cluster-wide at ~20 Hz by
-  default (`sensor.profiler.samplesPerSecond`).
+  DaemonSet (kernel ≥ 5.8 with BTF), sampling cluster-wide at ~20 Hz
+  (`sensor.profiler.samplesPerSecond`). **Opt-in for v0.1**: enable with
+  `sensor.profiler.enabled=true` — the upstream alpha loader does not support
+  every kernel yet, and an unsupported node would block the install.
 - **Storage** — deduplicated stacks + samples in ClickHouse, with their own
   retention knob (`retention.profiles`, default 3 days).
 - **UI** — the **Profiling** screen: pick a profiled service, read its
@@ -28,4 +30,4 @@ code — so you can answer "which function burned the time in this slow span?".
 - **Attribution.** Services are attributed by `service.name` when present,
   falling back to workload and executable names — zero-code processes appear
   under their process name.
-- Switch it off with `sensor.profiler.enabled=false`.
+- Off by default; switch it on with `sensor.profiler.enabled=true`.

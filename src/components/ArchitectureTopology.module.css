@@ -1,0 +1,66 @@
+/* Brand-themed SVG architecture topology. Colours come from the design tokens in
+   custom.css so the diagram tracks light/dark mode automatically. */
+.wrap {
+  width: 100%;
+  margin: 8px 0 4px;
+  border: 1px solid var(--avuru-border);
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 120% at 80% 0%, rgba(52, 211, 153, 0.06), transparent 60%),
+    var(--ifm-background-surface-color);
+  padding: 8px;
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Node boxes */
+.box {
+  fill: var(--ifm-background-color);
+  stroke: var(--avuru-border);
+  stroke-width: 1.4;
+}
+.box.store {
+  stroke: var(--avuru-accent);
+  fill: color-mix(in srgb, var(--avuru-accent) 8%, var(--ifm-background-color));
+}
+
+/* Labels */
+.title {
+  fill: var(--ifm-font-color-base);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 15px;
+}
+.sub {
+  fill: var(--avuru-muted);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+}
+
+/* Edges */
+.edge {
+  stroke: var(--avuru-muted);
+  stroke-width: 1.6;
+  fill: none;
+}
+.edge.accent {
+  stroke: var(--avuru-accent);
+}
+.edge.dashed {
+  stroke-dasharray: 5 4;
+  opacity: 0.85;
+}
+.arrowFill {
+  fill: var(--avuru-muted);
+}
+.arrowFillAccent {
+  fill: var(--avuru-accent);
+}
+.edgeLabel {
+  fill: var(--avuru-muted);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+}

@@ -32,6 +32,24 @@ const STRUCTURED_DATA = {
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
 
+/** schema.org Organization — enables a richer Google knowledge panel. */
+const ORGANIZATION_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Avuru Obs',
+  url: 'https://avuruobs.io',
+  logo: 'https://avuruobs.io/img/logo.svg',
+  sameAs: ['https://github.com/avuruvision'],
+};
+
+/** schema.org WebSite — declares the canonical site to search engines. */
+const WEBSITE_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Avuru Obs',
+  url: 'https://avuruobs.io',
+};
+
 function AltPoint({
   title,
   text,
@@ -170,6 +188,8 @@ export default function Home(): React.ReactElement {
       })}>
       <Head>
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORGANIZATION_DATA)}</script>
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_DATA)}</script>
       </Head>
       <Hero />
 
