@@ -30,10 +30,10 @@ The signal tiers we ship for `0.1`:
 
 | Tier | Signal | Status |
 |---|---|---|
-| **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> trace explorer · <StatusBadge status="in-progress" /> RED UI |
+| **Full** | Service map + RED metrics; trace explorer (waterfall, search) | <StatusBadge status="shipped" /> |
 | **Basic** | Logs (collection, full-text search, `trace_id` correlation) | <StatusBadge status="shipped" /> |
-| **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="planned" /> |
-| **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="planned" /> |
+| **Lite** | Continuous profiling (per-service CPU flame graphs) | <StatusBadge status="shipped" /> |
+| **Supporting** | Infra metrics (node/pod CPU, memory, network) | <StatusBadge status="shipped" /> |
 
 Plus the hard promise: an **OTLP drop-in replacement** — already-instrumented apps
 migrate by changing only the exporter endpoint, no SDK or code changes.
@@ -42,44 +42,42 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 <MilestoneGrid>
 
-<MilestoneCard tag="M1" title="Local stack & ingestion" status="in-progress">
+<MilestoneCard tag="M1" title="Local stack & ingestion" status="shipped">
 
 - `make dev` compose stack (ClickHouse + collector + demo app)
 - OTLP ingest end-to-end; first drop-in e2e test
 - Trace explorer, logs, service map & System Status **live**
-- `proto/` codegen (buf) — in progress
+- `proto/` codegen (buf) moved to v0.2 with the flow tracer
 
 </MilestoneCard>
 
-<MilestoneCard tag="M2" title="Deployable OTLP backend" status="planned">
+<MilestoneCard tag="M2" title="Deployable OTLP backend" status="shipped">
 
-- Helm install path; gateway → ClickHouse → hub in-cluster
-- Full eBPF agent build (aya) replacing the M0 scaffold
-- Service inventory UI (RED per service)
-
-</MilestoneCard>
-
-<MilestoneCard tag="M3" title="Signal depth & correlation" status="planned">
-
-- Infra metrics & node/pod health dashboards
-- RED metrics dashboard (API already live)
-- eBPF **flows** table — service-map topology from the kernel
+- Helm install path; gateway → ClickHouse → hub in-cluster — **live**
+- Sensor DaemonSet: zero-code eBPF traces + RED (OBI), zero-config logs — **live**
+- Service inventory UI (RED per service) — **live**
 
 </MilestoneCard>
 
-<MilestoneCard tag="M4" title="UI depth" status="in-progress">
+<MilestoneCard tag="M3" title="Signal depth & correlation" status="shipped">
+
+- Infra metrics & node/pod health dashboards — **live**
+- RED metrics dashboard — **live**
+
+</MilestoneCard>
+
+<MilestoneCard tag="M4" title="UI depth" status="shipped">
 
 - Trace waterfall + flamegraph, spans table, statistics, trace graph — **live**
 - Trace comparison (structural diff) — **live**
-- Continuous profiling UI — planned
+- Continuous profiling UI (per-service flame graphs) — **live**
 
 </MilestoneCard>
 
-<MilestoneCard tag="M5" title="Gateway build & TTV gate" status="planned">
+<MilestoneCard tag="M5" title="Gateway build & TTV gate" status="shipped">
 
-- OCB-built minimal collector distro
-- kind-based time-to-value gate enforcing the sub-5-minute wedge
-- Configuration / OpAMP controls in the UI
+- OCB-built minimal collector distro — **live**
+- kind-based time-to-value gate enforcing the sub-5-minute wedge — **live**
 
 </MilestoneCard>
 
@@ -91,6 +89,11 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
   ships a local admin password). The enterprise seam — auth provider, `tenant`
   column, retention policy objects — is built in from v0.1, so this lands without
   a rewrite.
+- **v0.2 — kernel flow topology:** the custom Rust eBPF L4 flow tracer and its
+  flows table, enriching the service map beyond the protocols zero-code
+  instrumentation parses today.
+- **v0.2 — remote configuration:** the hub's OpAMP server and Configuration /
+  OpAMP controls in the UI (day-2 config is Helm-driven in v0.1).
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`

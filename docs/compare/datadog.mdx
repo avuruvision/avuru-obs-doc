@@ -1,0 +1,67 @@
+---
+title: "avuru obs vs. Datadog & New Relic"
+sidebar_label: vs Datadog
+description: How avuru obs compares to Datadog and New Relic — a self-hosted, Apache-2.0, OTLP-native alternative with no proprietary agents or per-host billing.
+keywords:
+  - Datadog alternative
+  - New Relic alternative
+  - self-hosted Datadog alternative
+  - open source APM
+  - Datadog vs avuru obs
+  - migrate from Datadog
+---
+
+# avuru obs vs. Datadog & New Relic
+
+[Datadog](https://www.datadoghq.com/) and [New Relic](https://newrelic.com/) are
+mature, feature-rich hosted APM platforms. If you want turnkey SaaS with a vast
+feature catalog and zero infrastructure to run, they deliver. avuru obs is the
+**self-hosted, open-source** counter-position: own your data, avoid per-host
+billing, and stay on open standards.
+
+## At a glance
+
+| | Datadog / New Relic | avuru obs |
+|---|---|---|
+| **Model** | Hosted SaaS | Self-hosted (your cluster) |
+| **Agent** | Proprietary agent | **eBPF** `sensor` + native OTLP |
+| **Data location** | Vendor cloud | **Your infrastructure** |
+| **Pricing** | Per-host / per-GB / per-seat | Infrastructure cost only |
+| **Lock-in** | Proprietary formats & agents | OpenTelemetry in and out |
+| **License** | Commercial | Apache-2.0 |
+| **Breadth** | Very broad (APM, RUM, security, synthetics…) | Focused: traces, logs, metrics, profiling |
+
+## Why teams switch
+
+- **Own your telemetry.** Everything stays in your cluster — no data egress to a
+  vendor, which also simplifies compliance.
+- **Predictable cost.** Spend tracks your own infrastructure instead of a
+  per-host or per-GB meter that scales with traffic. 
+- **No proprietary agents.** The eBPF `sensor` needs no code changes, and
+  ingestion is standard **OTLP**, so you're never locked into one vendor's SDK.
+  See [Architecture](/guides/architecture).
+
+## How to migrate
+
+Both Datadog and New Relic can export via OpenTelemetry, and most teams already
+run an OTel Collector:
+
+1. Install avuru obs in your cluster.
+2. Add the avuru `gateway` (`:4318`/`:4317`) as an OTLP exporter in your
+   Collector, alongside the vendor exporter, to run both in parallel.
+3. Validate coverage in avuru obs, then scale down the paid plan.
+
+See the [OTLP bridge guide](/docs/setup/otel-bridge) for exporter settings.
+
+## When Datadog or New Relic is the better fit
+
+- You want **fully managed** SaaS with no infrastructure to operate.
+- You need breadth avuru obs doesn't cover yet — RUM, synthetics, security
+  monitoring, or their large turnkey integration catalog.
+- You want vendor support contracts and SLAs today. avuru obs is pre-v0.1 and
+  self-supported — check [Feature status](/docs/status) before committing.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds) and point one service's
+Collector at avuru obs — no new agent, no code change.
+:::

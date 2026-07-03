@@ -1,0 +1,24 @@
+---
+slug: wedge-gate
+title: "The five-minute promise, enforced in CI"
+description: "The five-minute 'zero to live service map' promise, now enforced in CI so it keeps holding release after release."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-02
+---
+
+Our north star — a fresh Kubernetes cluster showing a **live service map in
+under five minutes, zero app changes** — is now a hard CI gate, and the
+gateway ships as a purpose-built minimal collector.
+
+{/* truncate */}
+
+- **The wedge gate.** Every change now runs a kind cluster through the real
+  path: Helm install, a deliberately **uninstrumented** three-service demo
+  (nginx + busybox — no SDK, no env vars), then a hard assertion that the
+  zero-code service map, call edges included, appears within 300 seconds.
+  Node metrics are asserted on the same clock.
+- **Minimal gateway distro.** The gateway is now built with the OpenTelemetry
+  Collector Builder from a manifest containing only what the pipeline uses —
+  smaller image, smaller surface. The stock contrib collector remains a
+  drop-in override.

@@ -1,0 +1,26 @@
+---
+slug: wedge-gate
+title: "La promesse des cinq minutes, imposée par la CI"
+description: "La promesse des cinq minutes (« zéro à une carte des services en direct »), désormais vérifiée en CI pour qu’elle tienne à chaque version."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-02
+---
+
+Notre étoile polaire — un cluster Kubernetes neuf affichant une **carte des
+services en direct en moins de cinq minutes, zéro changement applicatif** —
+est désormais une porte CI stricte, et la gateway est distribuée comme un
+collecteur minimal construit sur mesure.
+
+{/* truncate */}
+
+- **La porte du coin.** Chaque changement traverse désormais un cluster kind
+  par le vrai chemin : installation Helm, une démo de trois services
+  volontairement **non instrumentée** (nginx + busybox — pas de SDK, pas de
+  variables d'environnement), puis une assertion stricte : la carte des
+  services zéro-code, arêtes d'appel comprises, apparaît en moins de
+  300 secondes. Les métriques de nœuds sont vérifiées sur la même horloge.
+- **Distribution gateway minimale.** La gateway est construite avec
+  l'OpenTelemetry Collector Builder depuis un manifeste ne contenant que ce
+  que le pipeline utilise — image plus petite, surface plus petite. Le
+  collecteur contrib standard reste utilisable en remplacement direct.
