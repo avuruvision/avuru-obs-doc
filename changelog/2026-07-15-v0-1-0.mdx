@@ -1,0 +1,40 @@
+---
+slug: v0-1-0
+title: "v0.1.0 is out: zero to a live service map in five minutes"
+description: "The first tagged release ships the wedge — zero-code observability live in under five minutes — plus projects, collection controls and a deeper trace inspect."
+authors: [avuru]
+tags: [platform, traces, ui]
+date: 2026-07-15
+---
+
+avuru obs **v0.1.0** is tagged: install the Helm chart on a fresh Kubernetes
+cluster and watch a live service map appear in under five minutes, zero app
+changes — a promise enforced in CI, not a demo.
+
+{/* truncate */}
+
+- **The wedge, shipped and gated.** One `helm install` deploys the full stack —
+  hub, UI, gateway, ClickHouse and the per-node sensor. eBPF instruments every
+  HTTP/gRPC service with no SDKs and no env vars; CI reruns the
+  cluster-to-service-map path on every change with a hard 300-second budget.
+- **Four signal tiers.** Traces (Full): explorer, heatmap, six trace views and
+  structural diff. Logs (Basic): zero-config stdout/stderr with `trace_id`
+  correlation. Continuous CPU profiling (Lite, opt-in): flame graphs at ~20 Hz.
+  Infra metrics (Supporting): node & pod health from kubeletstats.
+- **Projects.** Config-defined or auto-discovered environments with a sidebar
+  switcher, shareable `?project=` links and per-project caches
+  ([API](/reference/api)).
+- **Collection controls.** Turn collection off per signal, namespace, pod label
+  or node label — and see per-node sensor freshness in Settings → Collection.
+- **Deeper trace inspect.** Resizable span detail with copyable attributes,
+  per-span tree view, derived span status, service perspective from inside a
+  trace, span-id lookup and filter autocomplete.
+- **Drop-in OTLP.** Already instrumented? Point your exporters at the gateway
+  and keep everything.
+
+See the full notes on the
+[Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.1.0).
+The trunk is now `0.2.0-SNAPSHOT` — next up on the
+[Roadmap](/docs/roadmap): the eBPF flow tracer and the runtime collection
+control plane.
