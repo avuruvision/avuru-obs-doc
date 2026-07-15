@@ -15,8 +15,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 - **Base path** — `/api/v1`.
 - **Time range** — most query endpoints accept `start` and `end` (RFC3339);
   omitted, they default to the **last 15 minutes**.
-- **Tenancy** — single-tenant by default; an `X-Avuru-Tenant` header selects a
-  tenant (enterprise seam).
+- **Projects (tenancy)** — every data endpoint is project-scoped: the
+  `X-Avuru-Tenant` header selects a project, omitted requests read the
+  `default` project. `GET /api/v1/projects` lists what exists.
 
 ## Endpoints
 
@@ -24,6 +25,7 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 |---|---|
 | `GET /healthz` | Liveness probe (always `200`, even during a ClickHouse outage). |
 | `GET /api/v1/status` | Hub build info + ClickHouse reachability. |
+| `GET /api/v1/projects` | Project list: `default`, config-defined projects (`projects` chart value / `AVURUOPS_PROJECTS`) and tenants auto-discovered from data. |
 | `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. |
 | `GET /api/v1/services` | Services with RED aggregates over the window. |
 | `GET /api/v1/service-map` | Service nodes **plus call edges** (caller→callee, derived from trace spans). |
@@ -32,10 +34,12 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/traces/heatmap` | Latency × time histogram (sparse cells) over root spans. |
 | `GET /api/v1/traces/{traceId}` | Full span tree for one trace (attributes, events, links). |
 | `GET /api/v1/traces/{traceId}/logs` | Logs correlated to a trace. |
+| `GET /api/v1/spans/{spanId}` | Resolve a span id to its containing trace (`404` if unknown) — powers the span-id search. |
 | `GET /api/v1/logs` | Search logs (filters + keyset pagination). |
 | `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
 | `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
 | `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |
+| `GET /api/v1/agents` | Sensor inventory: per-node telemetry freshness per signal — `windowSec` (default `600`) bounds "fresh". |
 | `GET /api/v1/profiles/services` | Services with CPU profiling samples in the window, busiest first. |
 | `GET /api/v1/profiles/flamegraph` | One service's aggregated flame graph (`service` required) — inclusive values, self at leaves. |
 | `POST /v1development/profiles` | **OTLP profiles ingest** (protobuf) — the sensor's profiler exports here. Deliberately outside `/api/v1`: it is the otlphttp exporter's default profiles path, and a documented profiles-only exception to "the hub is never in the telemetry byte-path" until the ClickHouse exporter supports profiles. |
@@ -46,7 +50,7 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 
 | Param | Meaning |
 |---|---|
-| `service`, `operation` | Filter by root service / operation. |
+| `service`, `operation` | Filter by service / operation. `service` matches traces the service **participates in**, not only the ones it roots. |
 | `status` | `ok` or `error`. |
 | `tags` | Span-attribute equality, comma-separated: `http.status_code=500,http.method=GET`. |
 | `order` | `newest` (default), `oldest`, or `slowest`. |

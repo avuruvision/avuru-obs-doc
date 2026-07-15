@@ -1,0 +1,44 @@
+---
+slug: v0-1-0
+title: "La v0.1.0 est là : de zéro à une carte des services en cinq minutes"
+description: "La première version taguée livre le coin — observabilité sans code applicatif en moins de cinq minutes — plus les projets, les contrôles de collecte et une inspection de traces approfondie."
+authors: [avuru]
+tags: [platform, traces, ui]
+date: 2026-07-15
+---
+
+avuru obs **v0.1.0** est taguée : installez le chart Helm sur un cluster
+Kubernetes neuf et regardez une carte des services en direct apparaître en
+moins de cinq minutes, sans changement applicatif — une promesse garantie par
+la CI, pas une démo.
+
+{/* truncate */}
+
+- **Le coin, livré et verrouillé.** Un seul `helm install` déploie toute la
+  pile — hub, UI, gateway, ClickHouse et le sensor par nœud. eBPF instrumente
+  chaque service HTTP/gRPC sans SDK ni variable d'environnement ; la CI rejoue
+  le parcours cluster-vers-carte-des-services à chaque changement avec un
+  budget dur de 300 secondes.
+- **Quatre niveaux de signaux.** Traces (complet) : explorateur, heatmap, six
+  vues de trace et diff structurel. Logs (basique) : stdout/stderr sans
+  configuration avec corrélation `trace_id`. Profilage CPU continu (allégé,
+  sur option) : flame graphs à ~20 Hz. Métriques d'infra (support) : santé des
+  nœuds et pods via kubeletstats.
+- **Projets.** Environnements définis par configuration ou découverts depuis
+  les données, avec un sélecteur dans la barre latérale, des liens `?project=`
+  partageables et des caches par projet ([API](/reference/api)).
+- **Contrôles de collecte.** Désactivez la collecte par signal, namespace,
+  label de pod ou label de nœud — et suivez la fraîcheur des sensors par nœud
+  dans Réglages → Collecte.
+- **Inspection de traces approfondie.** Panneau de span redimensionnable avec
+  attributs copiables, vue en arbre par span, statut de span dérivé,
+  perspective service depuis l'intérieur d'une trace, recherche par
+  identifiant de span et autocomplétion des filtres.
+- **OTLP « drop-in ».** Déjà instrumenté ? Pointez vos exporteurs vers la
+  gateway et gardez tout.
+
+Retrouvez les notes complètes sur la page [Versions](/docs/releases) et la
+[version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.1.0).
+Le tronc est désormais en `0.2.0-SNAPSHOT` — au programme de la
+[Feuille de route](/docs/roadmap) : le traceur de flux eBPF et le plan de
+contrôle de collecte à chaud.

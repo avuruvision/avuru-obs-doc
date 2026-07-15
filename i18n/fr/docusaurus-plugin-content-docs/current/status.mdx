@@ -11,9 +11,9 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs est en **pré-v0.1** et évolue vite — pour le plan, voir la
-[Feuille de route](/docs/roadmap), et pour les changements livrés le
-[Changelog](/changelog).
+avuru obs [**v0.1.0** est publiée](/docs/releases) et le tronc évolue vite —
+pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
+changements livrés le [Changelog](/changelog).
 
 ## Disponible maintenant
 
@@ -30,6 +30,8 @@ avuru obs est en **pré-v0.1** et évolue vite — pour le plan, voir la
 | Tableau de bord RED — graphiques débit/erreurs/durée par service | <StatusBadge status="shipped" label="Livré" /> | M3 |
 | Santé des nœuds / pods — CPU, mémoire, réseau par nœud & pod (kubeletstats) | <StatusBadge status="shipped" label="Livré" /> | M3 |
 | Profilage continu — flame graphs CPU par service (expérimental, opt-in) | <StatusBadge status="shipped" label="Livré" /> | M4 |
+| Projets — portée par environnement, sélecteur dans la barre latérale, liens `?project=` partageables | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
+| Contrôles de collecte — par signal/namespace/pod/nœud, avec inventaire des agents par nœud | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
 
 ## À venir
 
@@ -37,7 +39,7 @@ avuru obs est en **pré-v0.1** et évolue vite — pour le plan, voir la
 |---|---|---|
 | Topologie via **flux** eBPF enrichissant la carte des services (traceur L4 maison) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
-| Authentification / multi-tenant (jointure déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+| Authentification / OIDC (les projets sont livrés en v0.1 ; la jointure d'auth est déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires
