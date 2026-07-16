@@ -1,0 +1,63 @@
+---
+id: modules
+title: Modules
+sidebar_label: Modules
+sidebar_position: 6
+description: Choose which signal families your install runs — traces, logs, metrics, profiling.
+---
+
+# Modules
+
+A **module** is one signal family, switched on or off as a whole. Turning a
+module off skips its storage schema, its API, its collection, and its screen in
+the UI — so a traces-only install carries none of the storage or CPU weight of
+logs or profiling.
+
+Everything is on by default. You only ever turn modules **off**, and the
+service map still lights up in minutes either way.
+
+## The modules
+
+| Module | Covers | Switch |
+|---|---|---|
+| **core** | Service map, traces, and RED metrics | Always on — this is the wedge |
+| **logs** | Log collection, search, and trace correlation | `modules.logs.enabled` |
+| **infra-metrics** | Node and pod metrics, the sensor inventory | `modules.infraMetrics.enabled` |
+| **profiling** | Continuous CPU profiling and flame graphs | `modules.profiling.enabled` |
+
+RED metrics are derived from your traces, not from the metrics tables, so the
+**Metrics** view is part of core and stays available even with `infra-metrics`
+off.
+
+## Turn a module off
+
+```bash
+# Traces + service map only — lighter storage, same 5-minute start.
+helm upgrade --install avuruops deploy/helm/avuruops \
+  --set modules.logs.enabled=false \
+  --set modules.infraMetrics.enabled=false \
+  --set modules.profiling.enabled=false
+```
+
+In Docker Compose, set the `AVURUOPS_MODULES` environment variable on the
+migrate and hub services to the comma-separated list you want (for example
+`core,logs`). An empty or unset value means every module.
+
+## What happens when a module is off
+
+- **Storage** — its tables are never created, so it consumes no disk or write
+  CPU. A module never creates materialized-view overhead you aren't using.
+- **API** — its endpoints return `404`. Clients discover the active set from
+  `GET /api/v1/capabilities`.
+- **Collection** — the sensor stops gathering that signal. A module is the
+  master switch over the per-signal collection knobs: with `profiling` off, the
+  profiler collects nothing even if its own toggle is on.
+- **UI** — its sidebar entry disappears, and navigating straight to its page
+  shows how to enable it instead of an error.
+
+## Turning a module back on
+
+Set its value to `true` and run `helm upgrade` again. The schema migrator is
+idempotent: it applies the newly-active module's tables on the next run, and
+your existing data is untouched. Turning a module **off** leaves its tables in
+place — no data is dropped — it simply stops managing them.
