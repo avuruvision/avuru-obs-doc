@@ -1,0 +1,120 @@
+---
+title: "avuru obs vs. Sentry"
+sidebar_label: vs Sentry
+description: Comment avuru obs se compare à Sentry pour le suivi des erreurs — des problèmes dérivés de l'OTLP que vous envoyez déjà, un DSN Sentry prêt à l'emploi, et des erreurs corrélées aux traces, logs, métriques et profils dans un unique magasin ClickHouse. Auto-hébergé, sans tarification par événement.
+keywords:
+  - Sentry alternative
+  - Sentry vs avuru obs
+  - open source error tracking
+  - alternative à Sentry
+  - suivi des erreurs auto-hébergé
+  - DSN SDK Sentry
+  - migration depuis Sentry
+---
+
+# avuru obs vs. Sentry
+
+[Sentry](https://sentry.io/) est la plateforme de suivi des erreurs de référence —
+une expérience développeur remarquable, un vaste écosystème de SDK, et des
+fonctionnalités qu'avuru obs ne cherche pas à égaler (relecture de session, santé
+des releases, dé-minification via source maps, alerting riche). Sentry est
+auto-hébergeable, mais la pile auto-hébergée est lourde : Postgres, Redis, Kafka,
+des workers et son propre ClickHouse derrière Snuba.
+
+avuru obs aborde les erreurs par l'autre bout. Plutôt que de demander à chaque
+application d'embarquer un SDK Sentry, il **dérive les problèmes de la télémétrie
+OTLP que vous envoyez déjà** — et il **parle aussi le protocole Sentry via un
+DSN**, de sorte que les SDK navigateur et serveur que vous exécutez déjà pointent
+vers lui grâce à un seul changement de configuration. Dans les deux cas, les
+erreurs se retrouvent à côté des traces, logs, métriques et profils qui les
+expliquent, dans un **unique magasin ClickHouse**.
+
+## En un coup d'œil
+
+| | Sentry | avuru obs |
+|---|---|---|
+| **Portée principale** | Suivi des erreurs et des performances | Traces, logs, métriques, profilage — **les erreurs en sont dérivées** |
+| **Capture des erreurs** | Un SDK Sentry par langage/runtime | **Dérivée de l'OTLP/eBPF que vous envoyez déjà** + DSN Sentry prêt à l'emploi |
+| **Stockage** | Postgres + Redis + Kafka + ClickHouse (Snuba) + workers | Un seul moteur **ClickHouse** pour tous les signaux |
+| **Corrélation** | Erreurs ↔ traces dans Sentry ; les autres signaux ailleurs | Problème → **trace** d'origine, plus logs, métriques et profils dans un seul magasin |
+| **Ingestion** | Protocole d'enveloppe Sentry (DSN) | **OTLP** natif (`:4318`/`:4317`) **+ protocole Sentry** (`:4319`) |
+| **Tarification** | Quotas par événement (SaaS) ou pile auto-hébergée complète | Coût d'infrastructure uniquement — **aucun compteur par événement** |
+| **Déploiement** | Pile auto-hébergée multi-conteneurs (docker-compose) | Un seul chart Helm |
+| **Licence** | Source-available (FSL, bascule vers Apache-2.0 après 2 ans) | AGPL-3.0 |
+
+## Pourquoi les équipes choisissent avuru obs
+
+- **Des erreurs backend sans aucun SDK.** Les exceptions parviennent déjà à avuru
+  obs via eBPF et OTLP — événements `exception` de span, spans en erreur et logs
+  ERROR/FATAL. ClickHouse les regroupe en **problèmes** dédupliqués (trace
+  d'exception, première/dernière apparition, nombre d'occurrences, état de triage)
+  au moment de l'insertion. Rien à installer dans l'application. Voir
+  [Architecture](/guides/architecture).
+- **Chaque problème renvoie à sa trace.** Comme les erreurs partagent le
+  `trace_id` avec le reste de votre télémétrie, vous passez d'un problème
+  directement à la trace, aux logs et aux métriques qui l'entourent — sans changer
+  d'outil.
+- **Gardez vos SDK Sentry, abandonnez la facture SaaS.** La gateway exécute un
+  récepteur au protocole Sentry : vos SDK navigateur et serveur existants
+  fonctionnent en repointant simplement le DSN. C'est ainsi que vous capturez les
+  **erreurs navigateur** — le seul signal que l'eBPF ne peut pas atteindre.
+- **Aucune tarification par événement.** Le coût suit votre propre cluster, et non
+  un quota d'événements qui explose précisément au moment où un incident vous fait
+  envoyer le plus d'événements.
+- **Auto-hébergé, un seul magasin.** Vos données d'erreur ne quittent jamais votre
+  infrastructure, et il n'y a qu'un seul ClickHouse à dimensionner et à sauvegarder
+  — pas un Postgres, un Redis, un Kafka et un Snuba.
+
+## Comment migrer
+
+Vous ne réécrivez rien — vous repointez un DSN et, pour les services backend, vous
+n'avez souvent même pas besoin de DSN.
+
+1. **Installez avuru obs** dans votre cluster (`helm install`), à côté de Sentry.
+2. **Activez le récepteur Sentry** sur la gateway. C'est un sous-drapeau opt-in (il
+   ouvre une surface réseau), à l'écoute sur `:4319` pour les points d'entrée
+   enveloppe et store historique de Sentry.
+3. **Repointez le DSN.** Remplacez le DSN de votre SDK Sentry par celui de la
+   gateway avuru obs :
+
+   ```
+   http://<key>@<gateway-host>:4319/<project_id>
+   ```
+
+   Le SDK en déduit son point d'entrée `/api/<project_id>/envelope/` et
+   s'authentifie avec `<key>` — aucune modification de code au-delà de la valeur de
+   configuration.
+4. **Pour les SDK navigateur**, exposez `:4319` via votre ingress et autorisez le
+   **CORS** depuis les origines de votre application, afin que le POST d'enveloppe
+   cross-origin du navigateur aboutisse.
+5. **Les services backend n'ont besoin de rien de plus.** Leurs exceptions arrivent
+   déjà via OTLP/eBPF et deviennent des problèmes d'elles-mêmes — le repointage du
+   DSN sert surtout au frontend et à toute donnée SDK que vous souhaitez conserver
+   telle quelle.
+
+Faites tourner les deux en parallèle le temps de valider, puis désactivez
+l'abonnement Sentry. Voir le [guide du pont OTLP](/docs/setup/otel-bridge) pour le
+côté exportateur.
+
+:::note État actuel du suivi des erreurs
+Le suivi des erreurs est un module récent d'avuru obs. **La dérivation depuis votre
+télémétrie existante est active par défaut** ; le **port d'ingestion Sentry est
+opt-in**. La dé-minification des frames JS (upload de source maps), le suivi des
+releases et l'alerting sur les problèmes nouveaux ou en hausse ne sont pas encore
+là — consultez l'[État des fonctionnalités](/docs/status) avant de basculer.
+:::
+
+## Quand Sentry reste le meilleur choix
+
+- Vous dépendez de fonctionnalités qu'avuru obs ne couvre pas : **relecture de
+  session**, **santé des releases**, **dé-minification via source maps**,
+  surveillance uptime/cron, ou des workflows riches d'**alerting et d'assignation**.
+- Vous voulez un **SaaS entièrement géré**, avec support et SLA dès aujourd'hui.
+- Vos erreurs sont massivement **frontend** et vous comptez de bout en bout sur les
+  traces dé-minifiées soignées de Sentry et son UX de triage.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds), repointez le DSN d'un
+projet vers `:4319`, et regardez ses problèmes apparaître à côté des traces qui les
+ont provoqués — sans compteur par événement en marche.
+:::

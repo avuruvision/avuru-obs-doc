@@ -1,0 +1,89 @@
+---
+title: "avuru obs vs DeepFlow"
+sidebar_label: vs DeepFlow
+description: Comparaison entre avuru obs et DeepFlow — deux plateformes d'observabilité fondées sur eBPF et ClickHouse — avec une interface intégrée, le suivi natif des erreurs et l'ingestion via SDK Sentry.
+keywords:
+  - DeepFlow alternative
+  - DeepFlow vs avuru obs
+  - eBPF observability
+  - open source error tracking
+  - Sentry alternative
+  - self-hosted observability
+---
+
+# avuru obs vs DeepFlow
+
+[DeepFlow](https://deepflow.io/) est une plateforme d'observabilité eBPF mûre et
+poussée, développée par Yunshan Networks. Elle partage beaucoup d'ADN avec
+avuru obs : toutes deux collectent la télémétrie **sans code, avec eBPF**, et
+toutes deux stockent chaque signal dans **ClickHouse**. Les différences tiennent
+au **packaging et au périmètre** : avuru obs livre une interface intégrée
+complète et ajoute le suivi des erreurs, tandis que DeepFlow apporte une analyse
+protocolaire et réseau plus fine dans l'agent, ainsi qu'un cœur sous licence
+permissive Apache-2.0.
+
+## En un coup d'œil
+
+| | DeepFlow | avuru obs |
+|---|---|---|
+| **Collecte** | Agent **eBPF** (+ cBPF), sans code | **eBPF** sans code via **OBI** en amont |
+| **Stockage** | ClickHouse (+ tags SmartEncoding) | Moteur **ClickHouse** unique pour tous les signaux |
+| **Interface** | Grafana + apps Grafana DeepFlow (CE) | **Interface intégrée complète** (carte, traces, logs, RED) |
+| **Analyse protocolaire** | Décodeurs L7 riches dans l'agent + plugins Wasm | S'appuie sur **OBI** pour l'analyse des protocoles |
+| **Suivi des erreurs** | Pas de fonctionnalité dédiée | **Suivi natif des erreurs** + ingestion SDK Sentry |
+| **Ingestion** | OTLP, plus son propre pipeline d'agent | **OTLP** natif (`:4318`/`:4317`) |
+| **Déploiement** | Agent + serveur + ClickHouse + MySQL + Grafana | Un seul chart Helm |
+| **Licence** | Apache-2.0 (cœur) | AGPL-3.0 |
+
+## Pourquoi les équipes choisissent avuru obs
+
+- **Une interface fournie d'office.** L'édition communautaire de DeepFlow affiche
+  ses données via Grafana et les apps Grafana de DeepFlow ; c'est à vous
+  d'assembler et d'entretenir cette couche. avuru obs livre sa propre carte des
+  services, son visualiseur de traces, son flamegraph, sa comparaison de traces,
+  ses logs et ses tableaux de bord RED — sans Grafana à câbler. Voir
+  [Architecture](/guides/architecture).
+- **Les erreurs sont un signal de premier plan.** avuru obs ajoute un suivi natif
+  des erreurs avec une **ingestion compatible SDK Sentry** : les SDK que vos
+  applications utilisent déjà peuvent envoyer les exceptions directement dans le
+  même magasin que vos traces et vos logs. DeepFlow se concentre sur les
+  métriques, le tracing, les journaux de flux et le profilage eBPF, sans produit
+  dédié au suivi des erreurs.
+- **Moins de pièces mobiles.** DeepFlow fait tourner un agent, un serveur,
+  ClickHouse, une base de métadonnées MySQL et Grafana. avuru obs se résume à un
+  seul chart Helm au-dessus d'un unique magasin ClickHouse.
+
+## Comment les faire cohabiter
+
+DeepFlow peut exporter en **OTLP**, et avuru obs est un backend nativement OTLP :
+vous n'avez donc pas à choisir à l'aveugle.
+
+1. Installez avuru obs à côté de DeepFlow.
+2. Pointez l'export OTLP de DeepFlow (ou votre collecteur OTel commun) vers la
+   `gateway` d'avuru sur `:4318`/`:4317`, tout en laissant tourner le pipeline
+   propre à DeepFlow.
+3. Comparez la vue corrélée et l'interface intégrée avec les tableaux de bord
+   Grafana de DeepFlow, puis décidez de ce à quoi chaque outil excelle.
+
+Voir le [guide du pont OTLP](/docs/setup/otel-bridge) pour les réglages
+d'export.
+
+## Quand DeepFlow est le meilleur choix
+
+- Vous voulez l'**observabilité réseau poussée** de DeepFlow et son large
+  éventail de décodeurs de protocoles L7 dans l'agent — avuru obs s'appuie sur
+  OBI et couvre moins de protocoles à ce jour.
+- Vous préférez une licence **permissive Apache-2.0** au copyleft AGPL-3.0
+  d'avuru obs.
+- Vous êtes à l'aise pour construire vos vues dans **Grafana** et voulez sa
+  souplesse de tableaux de bord, ou vous vous appuyez sur l'AutoTagging et le
+  SmartEncoding de DeepFlow à grande échelle.
+- Vous avez besoin d'une plateforme large et éprouvée **dès aujourd'hui** —
+  avuru obs est jeune et certaines capacités arrivent encore. Consultez l'[état
+  des fonctionnalités](/docs/status) avant de vous engager.
+
+:::tip Essayez les deux côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds) et exportez un
+service en OTLP — vous verrez la carte intégrée, les traces et les logs corrélés
+dans une seule interface.
+:::

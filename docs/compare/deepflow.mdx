@@ -1,0 +1,81 @@
+---
+title: "avuru obs vs. DeepFlow"
+sidebar_label: vs DeepFlow
+description: How avuru obs compares to DeepFlow — two eBPF-and-ClickHouse observability platforms — with a first-party UI, native error tracking, and Sentry-SDK ingest.
+keywords:
+  - DeepFlow alternative
+  - DeepFlow vs avuru obs
+  - eBPF observability
+  - open source error tracking
+  - Sentry alternative
+  - self-hosted observability
+---
+
+# avuru obs vs. DeepFlow
+
+[DeepFlow](https://deepflow.io/) is a mature, deep eBPF observability platform
+from Yunshan Networks. It shares a lot of DNA with avuru obs: both collect
+telemetry **zero-code with eBPF** and both store every signal in **ClickHouse**.
+The differences are about **packaging and scope** — avuru obs ships a complete
+first-party UI and adds error tracking, while DeepFlow brings deeper in-agent
+protocol and network-flow analysis and a permissive Apache-2.0 core.
+
+## At a glance
+
+| | DeepFlow | avuru obs |
+|---|---|---|
+| **Collection** | Zero-code **eBPF** (+ cBPF) agent | Zero-code **eBPF** via upstream **OBI** |
+| **Storage** | ClickHouse (+ SmartEncoding tags) | Single **ClickHouse** engine for all signals |
+| **UI** | Grafana + DeepFlow Grafana apps (CE) | **Complete first-party UI** (map, traces, logs, RED) |
+| **Protocol parsing** | Broad in-agent L7 decoders + Wasm plugins | Leans on **OBI** for protocol parsing |
+| **Error tracking** | Not a dedicated feature | **Native error tracking** + Sentry-SDK ingest |
+| **Ingest** | OTLP, plus its own agent pipeline | Native **OTLP** (`:4318`/`:4317`) |
+| **Deploy** | Agent + server + ClickHouse + MySQL + Grafana | One Helm chart |
+| **License** | Apache-2.0 (core) | AGPL-3.0 |
+
+## Why teams choose avuru obs
+
+- **A UI in the box.** DeepFlow's community edition renders its data through
+  Grafana and DeepFlow's Grafana apps; you assemble and maintain that layer.
+  avuru obs ships its own service map, trace viewer, flamegraph, trace compare,
+  logs and RED dashboards — no Grafana to wire up. See
+  [Architecture](/guides/architecture).
+- **Errors are a first-class signal.** avuru obs adds native error tracking with
+  **Sentry-SDK-compatible ingest**, so the SDKs your apps already use can send
+  exceptions straight into the same store as your traces and logs. DeepFlow
+  focuses on eBPF metrics, tracing, flow logs and profiling and has no dedicated
+  error-tracking product.
+- **Fewer moving parts.** DeepFlow runs an agent, a server, ClickHouse, a MySQL
+  metadata database and Grafana. avuru obs is one Helm chart over a single
+  ClickHouse store.
+
+## How they coexist
+
+DeepFlow can export over **OTLP**, and avuru obs is an OTLP-native backend, so
+you don't have to choose blind:
+
+1. Install avuru obs alongside DeepFlow.
+2. Point DeepFlow's OTLP export (or your shared OTel Collector) at the avuru
+   `gateway` on `:4318`/`:4317`, keeping DeepFlow's own pipeline running.
+3. Compare the correlated view and the first-party UI against DeepFlow's Grafana
+   dashboards, then decide what each tool is best at.
+
+See the [OTLP bridge guide](/docs/setup/otel-bridge) for exporter settings.
+
+## When DeepFlow is the better fit
+
+- You want DeepFlow's **deep network-flow observability** and its broad set of
+  in-agent L7 protocol decoders — avuru obs leans on OBI and covers fewer
+  protocols today.
+- You prefer a **permissive Apache-2.0** license over avuru obs's copyleft
+  AGPL-3.0.
+- You're happy building views in **Grafana** and want its dashboarding
+  flexibility, or you rely on DeepFlow's AutoTagging and SmartEncoding at scale.
+- You need a broad, battle-tested platform **today** — avuru obs is young, and
+  some capabilities are still landing. Check [Feature status](/docs/status)
+  before committing.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds) and export one service
+over OTLP — you'll see the first-party map, traces and logs correlated in one UI.
+:::

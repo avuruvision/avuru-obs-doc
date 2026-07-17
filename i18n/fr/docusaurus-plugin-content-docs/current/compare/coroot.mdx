@@ -1,0 +1,102 @@
+---
+title: "avuru obs vs. Coroot"
+sidebar_label: vs Coroot
+description: Comment avuru obs se compare à Coroot — tous deux eBPF, ClickHouse et auto-hébergés — avec le suivi des erreurs en module de premier plan (ingestion via SDK Sentry) et un système de modules pour choisir vos signaux.
+keywords:
+  - alternative à Coroot
+  - Coroot vs avuru obs
+  - observabilité eBPF
+  - suivi des erreurs open source
+  - observabilité auto-hébergée
+---
+
+# avuru obs vs. Coroot
+
+[Coroot](https://coroot.com/) est l'outil le plus proche d'avuru obs, et c'est un
+très bon outil. Tous deux reposent sur l'**eBPF**, tous deux stockent la
+télémétrie dans **ClickHouse**, tous deux sont **auto-hébergés et open source**,
+et tous deux affichent une **carte des services sans instrumentation en quelques
+minutes** après l'installation. Si vous appréciez Coroot, vous retrouverez ici
+beaucoup de points communs.
+
+Les différences sont plus fines qu'avec les autres outils de cette section, et
+elles tiennent surtout à l'**accent mis** : la façon dont le stockage est
+organisé, la façon dont on choisit les signaux à activer, et le fait que le suivi
+des erreurs soit un signal de premier plan ou quelque chose que l'on déduit des
+logs et des traces.
+
+## En un coup d'œil
+
+| | Coroot | avuru obs |
+|---|---|---|
+| **Instrumentation zéro-code** | `node-agent` eBPF | `sensor` eBPF (OBI) |
+| **Carte des services en minutes** | Oui | Oui |
+| **Signaux** | Métriques, logs, traces, profilage, alertes SLO | Traces, métriques RED + infra, logs, profilage |
+| **Stockage** | TSDB compatible Prometheus pour les métriques **+** ClickHouse pour logs/traces/profils (les métriques peuvent aller dans ClickHouse) | **Un seul ClickHouse** pour tous les signaux |
+| **Suivi des erreurs** | Déduit des traces et des logs | **Module de premier plan** avec **ingestion via SDK Sentry** *(en cours d'arrivée)* |
+| **Choix des signaux** | Ensemble prédéfini | **Système de modules** — activer/désactiver des familles de signaux |
+| **Ingestion** | OTLP + `node-agent` | **OTLP** natif (`:4318`/`:4317`) + eBPF |
+| **Analyse de cause racine** | RCA assistée par IA + inspections prédéfinies | Requêtes corrélées (pas encore de RCA par IA) |
+| **Déploiement** | `node-agent` + `cluster-agent` + stockage | Un seul chart Helm |
+| **Licence** | Apache-2.0 (Community) ; édition Enterprise commerciale | AGPL-3.0 |
+
+## Pourquoi les équipes choisissent avuru obs
+
+- **Le suivi des erreurs comme module à part entière.** Coroot fait remonter les
+  défaillances via les traces, les logs et les alertes SLO. avuru obs ajoute un
+  **module de suivi des erreurs** dédié qui reçoit les événements directement
+  depuis les **SDK Sentry** — les exceptions sont donc regroupées en incidents de
+  premier plan, aux côtés des traces et des logs qui les expliquent, sans avoir à
+  faire tourner un Sentry ou un GlitchTip séparé.
+- **Un seul stockage, pas deux.** La topologie par défaut de Coroot associe une
+  base temporelle compatible Prometheus à ClickHouse (vous *pouvez* regrouper les
+  métriques dans ClickHouse). avuru obs conserve **tous les signaux dans un seul
+  ClickHouse** dès le départ : il n'y a qu'un stockage à dimensionner, à
+  sauvegarder et à corréler. Voir [Architecture](/guides/architecture).
+- **Choisissez vos signaux.** Un [système de modules](/docs/setup/modules) permet
+  de n'activer que ce dont vous avez besoin — traces + carte uniquement, ou en y
+  ajoutant logs, métriques d'infra et profilage. Désactiver un module ignore son
+  schéma, son API, sa collecte et son écran, si bien qu'une installation légère
+  le reste.
+
+:::note État en toute transparence
+Le **module de suivi des erreurs** et son ingestion via SDK Sentry sont **en
+cours d'arrivée** : ils sont en développement actif et ne font pas encore partie
+de la version **v0.1.0** publiée. Le [système de modules](/docs/setup/modules) et
+le stockage ClickHouse unique, eux, sont déjà disponibles. Suivez ce qui est en
+production sur [l'état des fonctionnalités](/docs/status) et le
+[Changelog](/changelog).
+:::
+
+## Comment les faire tourner côte à côte
+
+Les deux outils parlent OTLP et reconstruisent tous deux la topologie à partir de
+l'eBPF : vous pouvez donc évaluer avuru obs sans perturber Coroot.
+
+1. Installez avuru obs à côté de Coroot (`helm install`).
+2. Pointez vos exportateurs OTLP (ou votre OTel Collector) vers le `gateway`
+   d'avuru sur `:4318`/`:4317`, en conservant votre pipeline existant pour que les
+   deux reçoivent les données.
+3. Comparez les deux cartes sans instrumentation sur le même trafic, puis
+   décidez environnement par environnement.
+
+Voir le [guide du pont OTLP](/docs/setup/otel-bridge) pour les réglages des
+exportateurs.
+
+## Quand Coroot reste le meilleur choix
+
+- Vous voulez une **analyse de cause racine assistée par IA** et des inspections
+  prédéfinies dès aujourd'hui — avuru obs corrèle les signaux par des requêtes,
+  mais ne fait pas encore de RCA automatique.
+- Vous vous appuyez sur les **alertes basées sur des SLO** et les tableaux de bord
+  prêts à l'emploi de Coroot.
+- Vous exploitez déjà une base de métriques **compatible Prometheus** et vous
+  souhaitez que vos métriques y restent.
+- Vous avez besoin des tableaux de bord de bases de données du **cluster-agent**
+  de Coroot ou de son support Enterprise commercial.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds) et exportez un
+service en double — vous obtiendrez la même carte zéro-code que vous connaissez
+avec Coroot, dans un seul ClickHouse.
+:::

@@ -12,7 +12,7 @@ const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
 const config: Config = {
   title: 'Avuru Obs',
-  tagline: 'Open-source observability & APM — a self-hosted Datadog & Grafana alternative',
+  tagline: 'Open-source observability, APM & error tracking — a self-hosted Datadog, Grafana & Sentry alternative',
   // .ico is the broadly-compatible default (Safari ignores SVG favicons); the
   // crisp SVG + PNG + apple-touch variants are advertised via headTags below.
   favicon: 'img/favicon.ico',
@@ -45,7 +45,7 @@ const config: Config = {
       attributes: {
         name: 'keywords',
         content:
-          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP',
+          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP, Sentry alternative, GlitchTip alternative, open source error tracking, self-hosted error tracking, error monitoring, crash reporting, Coroot alternative',
       },
     },
     {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},
@@ -297,7 +297,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.vsLight,
       darkTheme: prismThemes.vsDark,
-      additionalLanguages: ['bash', 'yaml', 'go', 'rust', 'toml', 'json', 'docker'],
+      additionalLanguages: ['bash', 'yaml', 'go', 'json', 'docker'],
     },
   } satisfies Preset.ThemeConfig,
 };

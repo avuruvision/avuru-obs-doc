@@ -10,6 +10,11 @@ keywords:
   - Jaeger alternative
   - Prometheus alternative
   - self-hosted observability
+  - Sentry alternative
+  - GlitchTip alternative
+  - Coroot alternative
+  - DeepFlow alternative
+  - open source error tracking
 ---
 
 # avuru obs vs. the alternatives
@@ -23,8 +28,10 @@ The short version of the pitch:
 - **One engine, not four.** Traces, logs, metrics and continuous profiling land
   in the same **ClickHouse** store, so cross-signal correlation is just another
   query. See [Architecture](/guides/architecture).
-- **eBPF auto-discovery.** A kernel-level `sensor` reconstructs your service map
-  with **no SDKs and no code changes** — install the chart and the map lights up.
+- **eBPF auto-discovery.** The `sensor` runs upstream **OBI** for zero-code
+  traces, and your service map is **derived from those trace spans** — no SDKs
+  and no code changes. OBI's `network` feature covers un-instrumented edges;
+  install the chart and the map lights up.
 - **OpenTelemetry-native.** Standard **OTLP** in and out. Whatever you run today
   almost certainly already speaks OTLP, so migration is usually a one-line
   exporter change. See the [OTLP bridge](/docs/setup/otel-bridge).
@@ -46,6 +53,10 @@ below say plainly what's shipping versus planned — see
 | **Grafana stack (Loki/Tempo/Mimir)** | Assembled OSS stack | One engine and one UI instead of four systems to operate | [vs the Grafana stack](/docs/compare/grafana-stack) |
 | **Prometheus** | Metrics | Auto **RED** metrics correlated with traces & logs | [vs Prometheus](/docs/compare/prometheus) |
 | **Datadog / New Relic** | Commercial SaaS APM | Self-hosted, no proprietary agents, no per-host bill | [vs Datadog](/docs/compare/datadog) |
+| **Sentry** | Error tracking | Issues derived from the OTLP you already send, plus a drop-in Sentry SDK DSN — no per-event bill | [vs Sentry](/docs/compare/sentry) |
+| **GlitchTip** | Error tracking | Same Sentry ingest protocol, but errors unified with traces, logs & an eBPF map | [vs GlitchTip](/docs/compare/glitchtip) |
+| **DeepFlow** | eBPF + ClickHouse platform | Complete first-party UI and native error tracking on the same eBPF/ClickHouse base | [vs DeepFlow](/docs/compare/deepflow) |
+| **Coroot** | eBPF + ClickHouse platform | Single ClickHouse for every signal, plus error tracking as a first-class module | [vs Coroot](/docs/compare/coroot) |
 
 ## How migration works, in general
 

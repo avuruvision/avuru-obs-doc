@@ -1,0 +1,86 @@
+---
+title: "avuru obs vs. GlitchTip"
+sidebar_label: vs GlitchTip
+description: How avuru obs compares to GlitchTip for error tracking — the same Sentry ingest protocol, but with errors unified alongside traces, logs, metrics and an eBPF service map in one store — and how to migrate by repointing the DSN.
+keywords:
+  - GlitchTip alternative
+  - GlitchTip vs avuru obs
+  - open source error tracking
+  - Sentry alternative
+  - self-hosted error tracking
+  - migrate from GlitchTip
+---
+
+# avuru obs vs. GlitchTip
+
+[GlitchTip](https://glitchtip.com/) is an open-source, **Sentry-compatible**
+error tracker under the **MIT** license. It's lightweight, easy to self-host, and
+a solid choice if error tracking is all you need. The difference is **scope**:
+GlitchTip stores errors in PostgreSQL and stays focused on them, while avuru obs
+speaks the **same Sentry ingest protocol** and then unifies those errors with
+**traces, logs, metrics and an eBPF service map** in a single store.
+
+## At a glance
+
+| | GlitchTip | avuru obs |
+|---|---|---|
+| **Primary scope** | Error tracking (+ uptime checks) | Errors, traces, logs, metrics, profiling |
+| **Ingest** | Sentry protocol (DSN) | **Same Sentry protocol** (`:4319`) + native **OTLP** (`:4318`/`:4317`) |
+| **Instrumentation** | Sentry SDK per app | Sentry SDK **and** eBPF auto-discovery |
+| **Service map** | None | eBPF-derived, zero-code |
+| **Cross-signal correlation** | Errors only | Built in — errors sit next to traces & logs via shared `trace_id` |
+| **Storage** | PostgreSQL | Single **ClickHouse** engine for all signals |
+| **Deploy** | Django app + Postgres + Redis + workers | One Helm chart |
+| **License** | MIT | AGPL-3.0 |
+
+## Why teams switch
+
+- **Keep your SDKs, gain the rest.** avuru obs runs a **Sentry-protocol receiver**
+  on the gateway, so the Sentry SDKs already wired into your apps report to it
+  unchanged — and those same errors now correlate with traces and logs. See
+  [Architecture](/guides/architecture).
+- **Errors don't live alone.** Instead of a stack trace with no surrounding
+  context, pivot from an error to the trace that produced it and the logs around
+  it, because everything lands in the **same ClickHouse store**.
+- **A service map for free.** GlitchTip shows the errors your SDKs report; avuru's
+  `sensor` reconstructs your topology from the kernel with eBPF, so even
+  un-instrumented services show up on the map.
+- **One thing to operate.** No separate Postgres, Redis and Celery workers to size
+  and back up alongside the rest of your telemetry — every signal is in ClickHouse.
+
+## How to migrate
+
+Because avuru obs speaks the Sentry ingest protocol, migrating is a **DSN
+change** — no SDK swap:
+
+1. Install avuru obs alongside GlitchTip (`helm install`). The gateway's
+   Sentry-protocol receiver listens on **`:4319`**.
+2. Repoint each project's Sentry **DSN** from GlitchTip to the avuru gateway:
+
+   ```
+   http://<key>@<gateway-host>:4319/<project_id>
+   ```
+
+   The `<project_id>` is the trailing path segment of the DSN (the same `1` in
+   `.../api/1/envelope/`). Ingested events are tagged `avuru.error.source=sentry`
+   and flow into the hub's logs view.
+3. Confirm errors land in avuru obs, then retire GlitchTip.
+
+:::note Browser SDKs
+For **browser** (JavaScript) SDKs, the gateway must accept cross-origin requests:
+enable **CORS** for your app origins and expose port **`:4319`** through your
+**ingress**. Backend SDKs that report from inside the cluster need neither.
+:::
+
+## When GlitchTip is the better fit
+
+- You want **only** error tracking and prefer the smallest possible footprint.
+- You specifically want an **MIT**-licensed tool; avuru obs is **AGPL-3.0**.
+- You rely on GlitchTip features avuru obs doesn't cover yet — check
+  [Feature status](/docs/status) before committing.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds), point one project's
+DSN at `:4319`, and watch your existing Sentry errors appear next to their traces
+and logs.
+:::
