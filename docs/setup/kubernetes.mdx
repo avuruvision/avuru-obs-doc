@@ -3,7 +3,7 @@ id: kubernetes
 title: Kubernetes
 sidebar_label: Kubernetes
 sidebar_position: 1
-description: Install avuru obs on Kubernetes with the Helm chart.
+description: Install avuru obs on Kubernetes with the published Helm chart.
 ---
 
 import {InstallSelector} from '@site/src/components';
@@ -11,18 +11,43 @@ import {InstallSelector} from '@site/src/components';
 # Kubernetes
 
 The Helm chart is the flagship install. It deploys the `sensor` DaemonSet, the
-`gateway`, the `hub`, the `ui`, and ClickHouse.
+`gateway`, the `hub`, the `ui`, and ClickHouse. The chart is published to GHCR
+as an OCI artifact, so there is no repository to add.
 
 <InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
 
 ## Requirements
 
 - Kubernetes ≥ 1.26
+- Helm ≥ 3.8 (OCI support)
 - Linux nodes with **BTF** (kernel ≥ 5.8) for full eBPF; older kernels degrade
   gracefully (map + OTLP still work).
 - A default StorageClass for ClickHouse's PersistentVolume.
 
+## Install
+
+```bash
+helm install avuruops oci://ghcr.io/avuruvision/charts/avuruops \
+  --version <X.Y.Z> -n avuruops --create-namespace
+```
+
+Pick a published version from the
+[releases](https://github.com/avuruvision/avuru-obs/releases). Prefer a
+one-liner that resolves the latest release and waits for rollout? The installer
+runs only `helm` and `kubectl` against your current context — read it first, or
+pass `--dry-run` to print the exact command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/avuruvision/avuru-obs/main/deploy/install.sh | sh
+```
+
+The chart and every image are cosign-signed and built for `amd64` + `arm64`.
+Verify a release with the commands in the engine's
+[RELEASING guide](https://github.com/avuruvision/avuru-obs/blob/main/RELEASING.md#verifying-a-release).
+
 ## Point apps at the gateway
+
+Already exporting OTLP? Change only the endpoint — no SDK or code change:
 
 ```bash
 # OTLP/HTTP
@@ -33,11 +58,26 @@ http://avuruops-gateway:4317
 
 ## Open the UI
 
+The UI is its own deployable; `/api` is proxied to the hub from the same origin.
+
 ```bash
-kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+kubectl -n avuruops port-forward svc/avuruops-ui 8080:80
+# then browse http://localhost:8080/
 ```
 
-:::note This page is expanding
-Values reference, ingress, and resource sizing are being filled in. See
-[Configuration](/reference/configuration) for the full values list.
-:::
+In production, expose it through an ingress (`ingress.enabled=true`,
+`ingress.host=…`) behind your own auth (OIDC / oauth2-proxy).
+
+## Choose your signals
+
+Every signal family is a module you can switch off to run a leaner install —
+see [Modules](/docs/setup/modules). The service map, traces and RED core is
+always on.
+
+## Upgrading & sizing
+
+- **Upgrades** are `helm upgrade` with the same values; schema migrations are
+  additive, idempotent and forward-only. See [Upgrade](/docs/operations/upgrade).
+- **Sizing, retention and high availability** (small / medium / external-HA
+  ClickHouse) are covered in [Scaling &amp; retention](/docs/operations/scaling).
+- The full values list lives in the [Configuration reference](/reference/configuration).
