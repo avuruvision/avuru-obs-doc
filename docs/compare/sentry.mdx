@@ -1,0 +1,108 @@
+---
+title: "avuru obs vs. Sentry"
+sidebar_label: vs Sentry
+description: How avuru obs compares to Sentry for error tracking — issues derived from OTLP you already send, a drop-in Sentry SDK DSN, and errors correlated with traces, logs, metrics and profiles in one ClickHouse store. Self-hosted, no per-event pricing.
+keywords:
+  - Sentry alternative
+  - Sentry vs avuru obs
+  - open source error tracking
+  - self-hosted error tracking
+  - Sentry SDK DSN
+  - migrate from Sentry
+---
+
+# avuru obs vs. Sentry
+
+[Sentry](https://sentry.io/) is the de-facto error-tracking platform — a superb
+developer experience, a huge SDK ecosystem, and features avuru obs doesn't try to
+match (session replay, release health, source-map deminification, rich alerting).
+It's self-hostable, but the self-hosted stack is heavy: Postgres, Redis, Kafka,
+workers and its own ClickHouse behind Snuba.
+
+avuru obs comes at errors from the other direction. Instead of asking every app to
+ship a Sentry SDK, it **derives issues from the OTLP telemetry you already send** —
+and it **also speaks the Sentry protocol at a DSN**, so the browser and server
+SDKs you already run point at it with one config change. Either way, errors land
+next to the traces, logs, metrics and profiles that explain them, in **one
+ClickHouse store**.
+
+## At a glance
+
+| | Sentry | avuru obs |
+|---|---|---|
+| **Primary scope** | Error & performance monitoring | Traces, logs, metrics, profiling — **errors derived from them** |
+| **Error capture** | Sentry SDK per language/runtime | **Derived from OTLP/eBPF you already send** + drop-in Sentry SDK DSN |
+| **Storage** | Postgres + Redis + Kafka + ClickHouse (Snuba) + workers | Single **ClickHouse** engine for every signal |
+| **Correlation** | Errors ↔ traces inside Sentry; other signals live elsewhere | Issue → originating **trace**, plus logs, metrics & profiles in one store |
+| **Ingest** | Sentry envelope protocol (DSN) | Native **OTLP** (`:4318`/`:4317`) **+ Sentry protocol** (`:4319`) |
+| **Pricing** | Per-event quotas (SaaS) or run the full self-hosted stack | Infrastructure cost only — **no per-event meter** |
+| **Deploy** | Multi-container self-hosted stack (docker-compose) | One Helm chart |
+| **License** | Source-available (FSL, converts to Apache-2.0 after 2 years) | AGPL-3.0 |
+
+## Why teams choose avuru obs
+
+- **Backend errors with no SDK at all.** Exceptions already reach avuru obs via
+  eBPF and OTLP — span `exception` events, error spans and ERROR/FATAL logs.
+  ClickHouse groups them into deduplicated **issues** (stack trace, first/last
+  seen, occurrence count, triage state) at insert time. Nothing to install in the
+  app. See [Architecture](/guides/architecture).
+- **Every issue links back to its trace.** Because errors share `trace_id` with
+  the rest of your telemetry, you pivot from an issue straight to the trace, logs
+  and metrics around it — no context-switch to a separate tool.
+- **Keep your Sentry SDKs, drop the SaaS bill.** The gateway runs a
+  Sentry-protocol receiver, so your existing browser and server SDKs work by
+  repointing the DSN. This is how you capture **browser errors** — the one signal
+  eBPF can't reach.
+- **No per-event pricing.** Cost tracks your own cluster instead of an event quota
+  that spikes exactly when an incident makes you send the most events.
+- **Self-hosted, one store.** Your error data never leaves your infrastructure,
+  and there's a single ClickHouse to size and back up — not a Postgres, a Redis, a
+  Kafka and a Snuba cluster.
+
+## How to migrate
+
+You don't rewrite anything — you repoint a DSN and, for backend services, you
+often need no DSN at all.
+
+1. **Install avuru obs** in your cluster (`helm install`) alongside Sentry.
+2. **Enable the Sentry receiver** on the gateway. It's an opt-in sub-flag (it
+   opens a network surface), listening on `:4319` for the Sentry envelope and
+   legacy store endpoints.
+3. **Repoint the DSN.** Change your Sentry SDK's DSN to the avuru obs gateway:
+
+   ```
+   http://<key>@<gateway-host>:4319/<project_id>
+   ```
+
+   The SDK derives its `/api/<project_id>/envelope/` endpoint from that DSN and
+   authenticates with `<key>` — no code changes beyond the config value.
+4. **For browser SDKs**, expose `:4319` through your ingress and allow **CORS**
+   from your app's origins, so the browser's cross-origin envelope POST succeeds.
+5. **Backend services need nothing more.** Their exceptions already flow in over
+   OTLP/eBPF and become issues on their own — the DSN repoint is mainly for
+   frontend and any SDK data you still want verbatim.
+
+Run both in parallel while you validate, then turn off the Sentry plan. See the
+[OTLP bridge guide](/docs/setup/otel-bridge) for the exporter side.
+
+:::note Where error tracking is today
+Error tracking is a young module in avuru obs. **Derivation from your existing
+telemetry is on by default**; the **Sentry ingest port is opt-in**. Deminified JS
+frames (source-map upload), release tracking and alerting on new or spiking issues
+aren't here yet — check [Feature status](/docs/status) before you cut over.
+:::
+
+## When Sentry is the better fit
+
+- You depend on features avuru obs doesn't cover: **session replay**,
+  **release health**, **source-map deminification**, uptime/cron monitoring, or
+  rich **alerting and assignment** workflows.
+- You want **fully managed SaaS** with support and SLAs today.
+- Your errors are overwhelmingly **frontend** and you rely on Sentry's polished
+  deminified stack traces and issue-triage UX end to end.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds), repoint one project's
+DSN at `:4319`, and watch its issues appear next to the traces that caused them —
+no per-event meter running.
+:::

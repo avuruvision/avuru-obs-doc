@@ -1,0 +1,63 @@
+---
+slug: error-tracking
+title: "Your errors, finally next to your traces"
+description: "avuru obs now does error tracking — issues derived from the OTLP telemetry you already send, plus Sentry-SDK-compatible ingest, all correlated with traces and logs in one ClickHouse store."
+authors: [avuru]
+tags: [announcement]
+---
+
+Error tracking is the newest signal in **avuru obs**. It captures exceptions two
+ways — **derived automatically** from the OTLP telemetry you already send, and
+**ingested directly from Sentry SDKs** — then stores those errors right next to
+the traces and logs that explain them, in one ClickHouse engine.
+
+{/* truncate */}
+
+## Two ways to capture errors, no rewrite
+
+### Derived from telemetry you already send
+
+avuru obs reads the exceptions already flowing in over eBPF and OTLP — span
+`exception` events, error spans and ERROR/FATAL logs — and groups them into
+deduplicated **issues** at insert time in ClickHouse. For a backend service that
+already exports to avuru obs, error tracking needs **zero instrumentation**: no
+SDK, no code change, no extra agent.
+
+### Sentry-SDK-compatible ingest
+
+For the errors eBPF can't see — browser exceptions above all — the gateway runs
+a Sentry-protocol receiver. Point an existing Sentry SDK's **DSN** at the avuru
+obs gateway and its events flow into the same store. You keep the SDKs you
+already run and change a single config value.
+
+## One store, correlated by default
+
+Because every error shares a `trace_id` with the rest of your telemetry, an
+issue links straight back to the trace that produced it, the logs around it, and
+the metrics and profiles for that service — no jump to a separate tool. It's one
+ClickHouse to size, back up and query, instead of a separate error database
+bolted on beside your traces and logs.
+
+## Triage and regression detection
+
+Each issue carries what you need to triage it: a grouped stack trace, first- and
+last-seen timestamps, an occurrence count and a triage state. A resolved issue
+that reappears is flagged as a **regression**, so a fix that quietly breaks again
+doesn't slip back in unnoticed.
+
+## Where it is today
+
+Error tracking is the youngest module in avuru obs. Derivation from your existing
+telemetry runs by default; the Sentry ingest port is opt-in. Some things you'd
+expect from a mature error tracker — deminified JavaScript frames from source
+maps, release tracking and alerting on new or spiking issues — aren't here yet.
+Check [Feature status](/docs/status) for exactly what's live before you rely on
+it.
+
+## Learn more
+
+- [Errors signal](/docs/signals/errors) — how derivation and Sentry ingest work.
+- [avuru obs vs. Sentry](/docs/compare/sentry) — derived issues, DSN ingest and
+  no per-event meter.
+- [avuru obs vs. GlitchTip](/docs/compare/glitchtip) — the same Sentry protocol,
+  unified with your other signals.

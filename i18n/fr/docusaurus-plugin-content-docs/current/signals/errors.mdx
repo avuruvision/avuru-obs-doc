@@ -1,0 +1,101 @@
+---
+id: errors
+title: Erreurs
+sidebar_label: Erreurs
+sidebar_position: 5
+description: Les exceptions de votre télémétrie deviennent des problèmes dédupliqués et triables — dérivés en base ou ingérés depuis les SDK Sentry.
+---
+
+# Erreurs
+
+Les erreurs sont déjà dans votre télémétrie — enfouies dans les évènements
+`exception` des spans, les spans en erreur et les logs `ERROR`/`FATAL`. Le module
+de suivi des erreurs les fait remonter en **problèmes** de premier plan : la même
+exception, vue 4 000 fois depuis le déploiement de 14h02, avec sa pile d'appels
+et un lien vers une trace qui l'a rencontrée.
+
+## Problèmes
+
+Un **problème** regroupe les occurrences qui partagent une **empreinte** —
+`service` + type d'exception + les premières frames normalisées de la pile (avec
+repli sur le message quand il n'y a pas de pile). Les numéros de ligne et les
+adresses mémoire sont normalisés, si bien que l'empreinte reste stable entre les
+déploiements : le même bug ne se scinde pas en un nouveau problème à chaque
+version.
+
+Chaque problème porte :
+
+- **Une pile d'appels** — le site du plantage en haut, suivant les conventions
+  sémantiques OTel `exception.*`.
+- **Une chronologie des occurrences** — première vue, dernière vue, nombre total,
+  et un histogramme des occurrences sur la fenêtre.
+- **Un lien vers la trace d'origine** — pivotez de l'exception directement vers la
+  requête qui l'a produite (et de là vers ses logs et ses spans).
+- **Une source** — selon que l'occurrence vient d'un évènement de span, d'un span
+  en erreur, d'un log, ou d'un SDK Sentry.
+
+## Deux voies d'entrée
+
+Aucune des deux ne demande de modifier l'application.
+
+1. **Dérivée, en base (par défaut).** Des vues matérialisées ClickHouse
+   transforment l'OTLP que vous envoyez déjà — évènements d'exception des spans,
+   spans en erreur et logs `ERROR`/`FATAL` — en problèmes au moment de
+   l'insertion. Zéro instrumentation : si un service atteint déjà avuru obs, ses
+   exceptions se regroupent déjà en problèmes.
+2. **Ingestion via SDK Sentry (optionnelle).** Le gateway expose un récepteur au
+   protocole Sentry sur **`:4319`**. Pointez n'importe quel SDK Sentry vers avuru
+   obs en changeant son **DSN** — aucune réécriture, aucun nouvel agent. C'est le
+   seul signal que l'eBPF ne peut pas atteindre : les erreurs JavaScript du
+   navigateur. Voir l'[intégration SDK Sentry](/integrations/frameworks/sentry-sdk).
+
+Les évènements Sentry sont stockés sous forme d'enregistrements de log OTel : la
+**même** vue matérialisée des logs qui dérive les problèmes de vos logs `ERROR`
+en dérive aussi depuis les évènements Sentry — et ceux-ci apparaissent également
+dans l'[explorateur de logs](/docs/signals/logs).
+
+## Cycle de triage
+
+Chaque problème a un statut :
+
+- **Non résolu** — la valeur par défaut ; quelque chose à examiner.
+- **Résolu** — corrigé ; sort de la liste active.
+- **Ignoré** — connu et mis en sourdine ; ne réapparaîtra pas.
+
+La **détection de régression** est calculée à la lecture : un problème **résolu**
+qui enregistre une occurrence *après* sa résolution est signalé comme une
+régression — le bug que vous aviez clos la semaine dernière est de retour.
+
+## Configuration
+
+- **`modules.errorTracking.enabled`** — **activé** par défaut. La dérivation
+  apporte de la valeur gratuitement à partir de données que vous envoyez déjà,
+  elle est donc active d'emblée. Désactivez-la et les tables, l'API `/errors` et
+  l'entrée de menu disparaissent toutes.
+- **`gateway.sentry.enabled`** — **désactivé** par défaut. Le port d'ingestion
+  Sentry ouvre une surface réseau (`:4319`), il est donc opt-in. Il **nécessite
+  aussi le module logs** (`modules.logs.enabled`), car les évènements Sentry sont
+  stockés comme enregistrements de log. Les clients navigateur ont en plus besoin
+  que `:4319` soit exposé et que le CORS soit configuré pour leurs origines.
+- **`AVURUOPS_RETENTION_ERRORS_DAYS`** — durée de conservation des occurrences,
+  **30** jours par défaut.
+
+## Limites de la v1
+
+- **Une erreur peut apparaître en double.** Une même erreur logique à la fois
+  journalisée *et* enregistrée comme évènement d'exception de span produit deux
+  problèmes — sources différentes, empreintes différentes. La déduplication par
+  corrélation de trace à la lecture reste à venir.
+- **Pas de rattrapage.** La dérivation s'applique aux insertions après la
+  migration ; les erreurs antérieures à l'activation du module ne sont pas
+  reconstituées.
+- **Liens de trace orphelins.** Les erreurs sont conservées plus longtemps que
+  les traces par défaut : un ancien problème peut donc pointer vers une trace déjà
+  expirée — l'interface affiche alors un état « trace expirée ».
+
+:::note Cette page s'étoffe
+Les alertes sur les problèmes nouveaux ou en hausse, l'upload de source maps
+(frames JS désobfusquées) et les clés DSN par projet sont sur la feuille de
+route. Voir la [Feuille de route](/docs/roadmap) et l'[État des
+fonctionnalités](/docs/status).
+:::
