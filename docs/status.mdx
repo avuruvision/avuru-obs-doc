@@ -37,14 +37,14 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 
 | Capability | Status | Target |
 |---|---|---|
-| eBPF **flow** topology enriching the service map (custom L4 tracer) | <StatusBadge status="planned" /> | v0.2 |
+| Network **flow** enrichment via OBI's `network` feature (un-instrumented edges + per-edge health) | <StatusBadge status="planned" /> | v0.2 |
 | Configuration / OpAMP controls in the UI | <StatusBadge status="planned" /> | v0.2 |
 | Auth / OIDC (projects shipped in v0.1; the auth seam is already in place) | <StatusBadge status="planned" /> | v0.2 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server
 pairs) — and with the sensor DaemonSet, every HTTP/gRPC service is traced
-zero-code, so uninstrumented apps appear too. Kernel-level L4 **flows** (for
-protocols beyond what eBPF instrumentation parses) will further enrich the map
-in **v0.2**.
+zero-code, so uninstrumented apps appear too. OBI's built-in **`network`
+feature** further enriches the map with un-instrumented edges and per-edge
+network health when enabled.
 :::

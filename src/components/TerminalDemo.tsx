@@ -24,7 +24,7 @@ export default function TerminalDemo({
         <span className={styles.prompt}>$ </span>
         <span className={styles.out}>kubectl logs -n avuruops ds/avuruops-sensor -f</span>
         {'\n'}
-        <span className={styles.dim}>info  ebpf      attached kprobe tcp_connect / tcp_close</span>
+        <span className={styles.dim}>info  obi       zero-code tracing attached (http, grpc, sql)</span>
         {'\n'}
         <span className={styles.dim}>info  discovery found 7 services · 0 SDKs · 0 sidecars</span>
         {'\n'}

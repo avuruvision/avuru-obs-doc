@@ -20,7 +20,7 @@ it back to the UI. Configuration flows the other way, over OpAMP.
 
 | Component | Role | Interfaces | Docs |
 |---|---|---|---|
-| **`sensor`** | eBPF DaemonSet on every node — reconstructs the service map and captures flows, traces, RED, logs and profiles | exports **OTLP** | [eBPF mode](/docs/setup/ebpf-mode) |
+| **`sensor`** | eBPF DaemonSet on every node — runs OBI for zero-code traces + RED (plus OBI `network` flows), and collects logs and profiles | exports **OTLP** | [eBPF mode](/docs/setup/ebpf-mode) |
 | **`gateway`** | Minimal OpenTelemetry Collector distribution — receives OTLP, filters, and writes to ClickHouse | OTLP **`:4318`** / **`:4317`** | [OTLP bridge](/docs/setup/otel-bridge) |
 | **`hub`** | A single Go binary — REST `/api/v1`, WebSocket streaming and the OpAMP config plane | REST / WS · SQL | [API reference](/reference/api) |
 | **`ui`** | Static SPA served from its own pod — calls the hub API | HTTP | — |
@@ -95,8 +95,8 @@ flowchart TB
 
 ## Life of a trace
 
-1. A request hits one of your services. The node-local `sensor` sees the
-   `tcp_connect()` / `tcp_close()` and the spans, with **no code change**.
+1. A request hits one of your services. The node-local `sensor` observes it
+   zero-code via OBI and produces the spans, with **no code change**.
 2. The `sensor` exports the trace over OTLP to the `gateway`.
 3. The `gateway` writes it to ClickHouse, tagged with `trace_id` and resource
    attributes (`service.name`, `k8s.pod.name`, …).

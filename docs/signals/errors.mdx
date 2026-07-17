@@ -1,0 +1,93 @@
+---
+id: errors
+title: Errors
+sidebar_label: Errors
+sidebar_position: 5
+description: Exceptions in your telemetry become deduplicated, triageable issues — derived in-database or ingested from Sentry SDKs.
+---
+
+# Errors
+
+Errors are already in your telemetry — buried in span `exception` events, error
+spans and `ERROR`/`FATAL` logs. The error-tracking module surfaces them as
+first-class **issues**: the same exception, seen 4 000 times since the 14:02
+deploy, with a stack trace and a link to a trace that hit it.
+
+## Issues
+
+An **issue** is a group of occurrences that share a **fingerprint** — `service`
++ exception type + the normalized top stack frames (falling back to the message
+when there's no stack). Line numbers and memory addresses are normalized out, so
+the fingerprint stays stable across deploys and the same bug doesn't split into a
+new issue every release.
+
+Each issue carries:
+
+- **A stack trace** — the crash site on top, following OTel `exception.*`
+  semantic conventions.
+- **An occurrence timeline** — first seen, last seen, total count, and a
+  histogram of occurrences over the window.
+- **A link to the originating trace** — pivot from the exception straight to the
+  request that produced it (and from there to its logs and spans).
+- **A source** — whether the occurrence came from a span event, an error span,
+  a log, or a Sentry SDK.
+
+## Two ways in
+
+Neither path needs an application change.
+
+1. **Derived, in-database (default).** ClickHouse materialized views turn the
+   OTLP you already send — span exception events, error spans, and `ERROR`/
+   `FATAL` logs — into issues at insert time. Zero instrumentation: if a service
+   already reaches avuru obs, its exceptions already group into issues.
+2. **Sentry-SDK ingest (opt-in).** The gateway runs a Sentry-protocol receiver
+   on **`:4319`**. Point any Sentry SDK at avuru obs by changing its **DSN** —
+   no rewrite, no new agent. This is the one signal eBPF can't reach: browser
+   JavaScript errors. See the
+   [Sentry SDK integration](/integrations/frameworks/sentry-sdk).
+
+Sentry events are stored as OTel log records, so the **same** logs materialized
+view that derives issues from your `ERROR` logs derives them from Sentry events
+too — and they also show up in the [Logs explorer](/docs/signals/logs).
+
+## Triage lifecycle
+
+Every issue has a status:
+
+- **Unresolved** — the default; something to look at.
+- **Resolved** — fixed; drops out of the active list.
+- **Ignored** — known and muted; won't resurface.
+
+**Regression detection** is computed at read time: a **resolved** issue that
+records an occurrence *after* it was resolved is flagged as a regression — the
+bug you closed last week is back.
+
+## Configuration
+
+- **`modules.errorTracking.enabled`** — default **on**. Derivation is free value
+  from data you already send, so it's enabled out of the box. Turn it off and the
+  tables, the `/errors` API and the sidebar entry all disappear.
+- **`gateway.sentry.enabled`** — default **off**. The Sentry ingest port opens a
+  network surface (`:4319`), so it's opt-in. It **also needs the logs module**
+  (`modules.logs.enabled`), because Sentry events are stored as log records.
+  Browser clients additionally need `:4319` exposed and CORS configured for their
+  origins.
+- **`AVURUOPS_RETENTION_ERRORS_DAYS`** — how long occurrences are kept, default
+  **30** days.
+
+## v1 limitations
+
+- **An error may appear twice.** One logical error that is *both* logged and
+  recorded as a span exception event produces two issues — different sources,
+  different fingerprints. Read-time trace-correlation dedup is future work.
+- **No backfill.** Derivation runs on inserts after the migration; errors from
+  before the module was enabled aren't reconstructed.
+- **Dangling trace links.** Errors are retained longer than traces by default,
+  so an old issue can link to a trace that has already expired — the UI renders a
+  "trace expired" state.
+
+:::note This page is expanding
+Alerting on new and spiking issues, source-map upload (deminified JS frames) and
+per-project DSN keys are on the roadmap. See the [Roadmap](/docs/roadmap) and
+[Feature status](/docs/status).
+:::

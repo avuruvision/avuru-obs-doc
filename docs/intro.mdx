@@ -20,9 +20,11 @@ The wedge is simple:
 
 ## Why it's different
 
-- **eBPF auto-discovery.** A kernel-level `sensor` watches `tcp_connect()` /
-  `tcp_close()` and reconstructs your service map. No SDKs, no sidecars, no YAML
-  archaeology — install the chart and watch the map light up.
+- **eBPF auto-discovery.** The `sensor` runs upstream **OBI** (OpenTelemetry
+  eBPF Instrumentation) for zero-code traces, and your service map is **derived
+  from those trace spans**. OBI's built-in `network` feature fills in
+  un-instrumented edges. No SDKs, no sidecars, no YAML archaeology — install the
+  chart and watch the map light up.
 - **One engine.** Every signal lands in **ClickHouse**. One thing to size, back
   up and reason about — not four.
 - **OpenTelemetry-native.** Already instrumented? Point your OTLP exporters at
@@ -42,7 +44,7 @@ The wedge is simple:
 
 :::tip What works today
 Traces, logs, the service map and System Status are **live**; metrics, profiling,
-node health and eBPF flow topology are on the way. See
+node health and OBI network flow enrichment are on the way. See
 **[Feature status](/docs/status)** for the full picture.
 :::
 

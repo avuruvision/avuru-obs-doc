@@ -37,7 +37,7 @@ changements livrés le [Changelog](/changelog).
 
 | Capacité | État | Cible |
 |---|---|---|
-| Topologie via **flux** eBPF enrichissant la carte des services (traceur L4 maison) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+| Enrichissement par **flux** réseau via la fonctionnalité `network` d'OBI (arêtes non instrumentées + santé par arête) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Authentification / OIDC (les projets sont livrés en v0.1 ; la jointure d'auth est déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 
@@ -45,6 +45,7 @@ changements livrés le [Changelog](/changelog).
 Les arêtes de topologie sont **dérivées des spans de traces** (paires
 Client/Server inter-services) — et avec le DaemonSet sensor, chaque service
 HTTP/gRPC est tracé zéro-code : les applications non instrumentées apparaissent
-aussi. Les **flux** L4 au niveau du noyau (pour les protocoles au-delà de ce que
-l'instrumentation eBPF analyse) enrichiront encore la carte en **v0.2**.
+aussi. La fonctionnalité **`network`** intégrée d'OBI enrichit encore la carte
+avec les arêtes non instrumentées et la santé réseau par arête lorsqu'elle est
+activée.
 :::

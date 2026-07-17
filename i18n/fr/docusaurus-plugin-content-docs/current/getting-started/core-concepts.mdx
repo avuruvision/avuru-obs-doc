@@ -35,9 +35,9 @@ plusieurs services.
 
 avuru obs obtient le contexte de deux façons :
 
-1. **eBPF (sans code).** Le `sensor` reconstruit la carte des services et les flux
-   L4 à partir des évènements noyau — aucun en-tête de propagation requis pour la
-   **carte**.
+1. **eBPF (sans code).** Le `sensor` exécute **OBI** en amont pour capturer des
+   traces sans code, et la **carte** des services est dérivée de ces spans — aucun
+   en-tête de propagation requis.
 2. **OTLP (fidélité complète).** Pour des traces distribuées complètes avec
    attributs de span, propagez le contexte avec un SDK OpenTelemetry ou
    l'auto-instrumentation, et exportez en OTLP vers le gateway.

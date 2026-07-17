@@ -27,8 +27,10 @@ kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
 ```
 
 Ouvrez <strong>http://localhost:8080</strong>. En une minute ou deux, la
-**carte des services** se remplit toute seule — le `sensor` découvre les services
-à partir des évènements TCP du noyau, donc il n'y a **rien à instrumenter**.
+**carte des services** se remplit toute seule — le `sensor` trace chaque service
+HTTP/gRPC en zéro-code via OBI, donc il n'y a **rien à instrumenter**.
+(Les arêtes non instrumentées sont enrichies via la fonctionnalité `network`
+d'OBI.)
 
 ## 3. (Optionnel) Envoyer de l'OTLP
 

@@ -28,7 +28,7 @@ kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
 Open <strong>http://localhost:8080</strong>. Within a minute or two the
 **Service Map** populates itself — the `sensor` traces every HTTP/gRPC service
 with zero-code eBPF instrumentation, so there is **nothing to instrument**.
-(Kernel-level TCP flow enrichment arrives in v0.2.)
+(Un-instrumented edges are enriched via OBI's `network` feature.)
 
 ## 3. (Optional) Send OTLP
 

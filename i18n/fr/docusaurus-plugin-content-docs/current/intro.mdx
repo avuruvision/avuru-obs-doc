@@ -21,10 +21,11 @@ Le pari est simple :
 
 ## Pourquoi c'est différent
 
-- **Auto-découverte eBPF.** Un `sensor` au niveau du noyau observe
-  `tcp_connect()` / `tcp_close()` et reconstruit votre carte des services. Pas de
-  SDK, pas de sidecar, pas d'archéologie YAML — installez le chart et regardez la
-  carte s'allumer.
+- **Auto-découverte eBPF.** Le `sensor` exécute **OBI** en amont (OpenTelemetry
+  eBPF Instrumentation) pour des traces sans code, et votre carte des services est
+  **dérivée de ces spans de traces**. La fonctionnalité `network` intégrée d'OBI
+  complète les arêtes non instrumentées. Pas de SDK, pas de sidecar, pas
+  d'archéologie YAML — installez le chart et regardez la carte s'allumer.
 - **Un seul moteur.** Chaque signal atterrit dans **ClickHouse**. Une seule chose
   à dimensionner, sauvegarder et comprendre — pas quatre.
 - **Natif OpenTelemetry.** Déjà instrumenté ? Pointez vos exporteurs OTLP vers le
@@ -44,8 +45,8 @@ Le pari est simple :
 
 :::tip Ce qui fonctionne aujourd'hui
 Les traces, les logs, la carte des services et l'État du système sont **en
-direct** ; les métriques, le profilage, la santé des nœuds et la topologie par
-flux eBPF arrivent. Voir **[État des fonctionnalités](/docs/status)** pour le
+direct** ; les métriques, le profilage, la santé des nœuds et l'enrichissement par
+flux réseau OBI arrivent. Voir **[État des fonctionnalités](/docs/status)** pour le
 tableau complet.
 :::
 

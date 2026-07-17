@@ -1,0 +1,101 @@
+---
+title: Sentry SDK
+description: Point any Sentry SDK at avuru obs by changing its DSN — browser and server error reporting, no rewrite.
+sidebar_label: Sentry SDK
+sidebar_position: 3
+tags: [integration, errors, sentry, framework]
+support_level: community
+since_version: 0.2.0
+---
+
+import {InstallSelector, SupportMatrix} from '@site/src/components';
+
+# Sentry SDK
+
+The gateway runs a **Sentry-protocol receiver**. Any Sentry SDK —
+`@sentry/browser`, `@sentry/node`, or any other language SDK — reports to avuru
+obs when you change one thing: its **DSN**. No rewrite, no new agent, no
+avuru-specific SDK. Events become error [issues](/docs/signals/errors) and also
+land in the [Logs explorer](/docs/signals/logs).
+
+This is the one signal the eBPF `sensor` can't reach: **browser JavaScript
+errors**.
+
+## Quick start
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+Point the SDK at the gateway's Sentry ingest port (`:4319`) with a DSN of the
+shape `http://<key>@<gateway-host>:4319/<project_id>`:
+
+```js
+// Browser — @sentry/browser
+import * as Sentry from '@sentry/browser';
+
+Sentry.init({
+  dsn: 'http://public@avuruops-gateway:4319/1',
+});
+```
+
+```js
+// Node — @sentry/node
+const Sentry = require('@sentry/node');
+
+Sentry.init({
+  dsn: 'http://public@avuruops-gateway:4319/1',
+});
+```
+
+The `<key>` is accepted as-is in v1 (per-project DSN keys arrive with v0.2 auth).
+The `<project_id>` maps to a friendly `service_name` in the gateway's `sentry`
+config; anything unmapped lands under its project id.
+
+## Enable the receiver
+
+The Sentry port is **opt-in** — it opens a network surface:
+
+- Set `gateway.sentry.enabled=true` (Helm) or expose `4319:4319` (Compose).
+- It **also needs the logs module** (`modules.logs.enabled`) — Sentry events are
+  stored as OTel log records — and the `errorTracking` module (on by default) to
+  group them into issues.
+- **Browser clients** are cross-origin: expose `:4319` (ingress) and set
+  `gateway.sentry.allowedOrigins` so CORS allows your site's origin. The
+  receiver answers preflight requests and never 4xx's unknown item types (SDKs
+  retry).
+
+## Signals collected
+
+<SupportMatrix
+  signals={[
+    {signal: 'Errors', status: 'yes', notes: 'Exceptions → deduplicated issues'},
+    {signal: 'Logs', status: 'yes', notes: 'Every event stored as a log record'},
+    {signal: 'Traces', status: 'partial', notes: 'Trace context correlates; spans come from OTLP/eBPF'},
+    {signal: 'Metrics', status: 'no', notes: 'Use OTLP metrics'},
+    {signal: 'Profiling', status: 'no', notes: 'Use the eBPF profiler'},
+  ]}
+/>
+
+## How events map
+
+| Sentry | avuru obs |
+| --- | --- |
+| `level` (`fatal`, `error`, `warning`, …) | log **severity** (`FATAL`=21, `ERROR`, `WARN`, …) |
+| `exception` (type, value, stacktrace) | `exception.*` semconv → an **issue** by fingerprint |
+| `contexts.trace` (`trace_id`, `span_id`) | **trace correlation** — links the event to its trace |
+| project id (DSN path) | `service.name` (via the gateway's `sentry.projects` map) |
+
+Every event is tagged `avuru.error.source=sentry`, so you can tell SDK-reported
+errors from derived ones.
+
+## Verification
+
+```bash
+# Trigger a client-side error, then look in the avuru UI → Errors for the issue,
+# or query the API directly:
+curl -s "http://<hub-host>/api/v1/errors/issues?sort=last_seen" | jq '.[0]'
+```
+
+:::note This page is expanding
+A full browser + server worked example, and per-project DSN keys, are on the
+way. See [Errors](/docs/signals/errors) for the signal model.
+:::

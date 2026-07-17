@@ -1,0 +1,93 @@
+---
+title: "avuru obs vs. GlitchTip"
+sidebar_label: vs GlitchTip
+description: Comment avuru obs se compare à GlitchTip pour le suivi des erreurs — le même protocole d'ingestion Sentry, mais avec les erreurs unifiées avec les traces, les logs, les métriques et une carte des services eBPF dans un seul stockage — et comment migrer en repointant le DSN.
+keywords:
+  - GlitchTip alternative
+  - GlitchTip vs avuru obs
+  - open source error tracking
+  - suivi des erreurs open source
+  - alternative à Sentry
+  - migrer depuis GlitchTip
+---
+
+# avuru obs vs. GlitchTip
+
+[GlitchTip](https://glitchtip.com/) est un traqueur d'erreurs open source,
+**compatible Sentry**, sous licence **MIT**. Léger, facile à auto-héberger, c'est
+un bon choix si le suivi des erreurs vous suffit. La différence tient à la
+**portée** : GlitchTip stocke les erreurs dans PostgreSQL et s'y limite, tandis
+qu'avuru obs parle le **même protocole d'ingestion Sentry**, puis unifie ces
+erreurs avec les **traces, les logs, les métriques et une carte des services
+eBPF** dans un seul stockage.
+
+## En un coup d'œil
+
+| | GlitchTip | avuru obs |
+|---|---|---|
+| **Portée principale** | Suivi des erreurs (+ contrôles de disponibilité) | Erreurs, traces, logs, métriques, profilage |
+| **Ingestion** | Protocole Sentry (DSN) | **Même protocole Sentry** (`:4319`) + **OTLP** natif (`:4318`/`:4317`) |
+| **Instrumentation** | SDK Sentry par application | SDK Sentry **et** auto-découverte eBPF |
+| **Carte des services** | Aucune | Dérivée par eBPF, sans code |
+| **Corrélation inter-signaux** | Erreurs uniquement | Intégrée — les erreurs côtoient traces et logs via un `trace_id` partagé |
+| **Stockage** | PostgreSQL | Un seul moteur **ClickHouse** pour tous les signaux |
+| **Déploiement** | Application Django + Postgres + Redis + workers | Un seul chart Helm |
+| **Licence** | MIT | AGPL-3.0 |
+
+## Pourquoi les équipes migrent
+
+- **Gardez vos SDK, gagnez le reste.** avuru obs exécute un **récepteur du
+  protocole Sentry** sur le gateway : les SDK Sentry déjà câblés dans vos
+  applications lui remontent leurs erreurs sans modification — et ces mêmes
+  erreurs se corrèlent désormais avec les traces et les logs. Voir
+  [Architecture](/guides/architecture).
+- **Les erreurs ne vivent pas seules.** Au lieu d'une trace d'appel sans contexte
+  autour, passez d'une erreur à la trace qui l'a produite et aux logs qui
+  l'entourent, car tout atterrit dans le **même stockage ClickHouse**.
+- **Une carte des services offerte.** GlitchTip affiche les erreurs que vos SDK
+  remontent ; le `sensor` d'avuru reconstruit votre topologie depuis le noyau avec
+  eBPF, si bien que même les services non instrumentés apparaissent sur la carte.
+- **Une seule chose à exploiter.** Pas de Postgres, Redis et workers Celery
+  séparés à dimensionner et sauvegarder en marge du reste de votre télémétrie —
+  chaque signal est dans ClickHouse.
+
+## Comment migrer
+
+Comme avuru obs parle le protocole d'ingestion Sentry, migrer se résume à un
+**changement de DSN** — sans remplacer de SDK :
+
+1. Installez avuru obs à côté de GlitchTip (`helm install`). Le récepteur du
+   protocole Sentry du gateway écoute sur **`:4319`**.
+2. Repointez le **DSN** Sentry de chaque projet, de GlitchTip vers le gateway
+   avuru :
+
+   ```
+   http://<key>@<gateway-host>:4319/<project_id>
+   ```
+
+   Le `<project_id>` est le dernier segment du chemin du DSN (le même `1` que dans
+   `.../api/1/envelope/`). Les événements ingérés sont étiquetés
+   `avuru.error.source=sentry` et alimentent la vue logs du hub.
+3. Vérifiez que les erreurs arrivent dans avuru obs, puis retirez GlitchTip.
+
+:::note SDK navigateur
+Pour les SDK **navigateur** (JavaScript), le gateway doit accepter les requêtes
+cross-origin : activez **CORS** pour les origines de vos applications et exposez le
+port **`:4319`** via votre **ingress**. Les SDK côté serveur qui remontent depuis
+l'intérieur du cluster n'en ont pas besoin.
+:::
+
+## Quand GlitchTip reste le meilleur choix
+
+- Vous ne voulez **que** du suivi des erreurs et préférez l'empreinte la plus
+  réduite possible.
+- Vous tenez spécifiquement à un outil sous licence **MIT** ; avuru obs est sous
+  **AGPL-3.0**.
+- Vous dépendez de fonctionnalités de GlitchTip qu'avuru obs ne couvre pas encore
+  — consultez [État des fonctionnalités](/docs/status) avant de vous engager.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds), pointez le DSN d'un
+projet vers `:4319`, et regardez vos erreurs Sentry existantes apparaître à côté
+de leurs traces et de leurs logs.
+:::
