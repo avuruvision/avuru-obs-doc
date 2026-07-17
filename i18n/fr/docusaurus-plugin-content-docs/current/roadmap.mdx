@@ -49,7 +49,6 @@ changement de SDK ni de code.
 - Stack `make dev` (ClickHouse + collecteur + app de démo)
 - Ingestion OTLP de bout en bout ; premier test e2e « drop-in »
 - Explorateur de traces, logs, carte des services & État du système **en direct**
-- Génération de code `proto/` (buf) déplacée en v0.2 avec le traceur de flux
 
 </MilestoneCard>
 
@@ -91,9 +90,10 @@ changement de SDK ni de code.
   (v0.1 livre un mot de passe admin local). La jointure entreprise — fournisseur
   d'auth, colonne `tenant`, objets de politique de rétention — est intégrée dès
   v0.1, donc cela arrive sans réécriture.
-- **v0.2 — topologie par flux noyau :** le traceur de flux L4 eBPF maison (Rust)
-  et sa table de flux, enrichissant la carte des services au-delà des protocoles
-  que l'instrumentation zéro-code analyse aujourd'hui.
+- **v0.2 — enrichissement par flux réseau :** la fonctionnalité `network`
+  intégrée d'OBI enrichit la carte des services avec les arêtes non instrumentées
+  et la santé réseau par arête (octets aujourd'hui ; RTT et retransmissions plus
+  tard) — un réglage de configuration sur le sensor existant, sans agent maison.
 - **v0.2 — configuration à distance :** le serveur OpAMP du hub et les contrôles
   Configuration / OpAMP dans l'UI (en v0.1, la configuration jour-2 passe par
   Helm).

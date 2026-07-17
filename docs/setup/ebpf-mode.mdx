@@ -23,8 +23,8 @@ application code**:
 - RED metrics (Rate, Errors, Duration) per service
 - Logs for every pod, correlated to traces where a `trace_id` is present
 
-Kernel-level **L4 flow records** (protocols beyond what eBPF instrumentation
-parses) come with the custom flow tracer in **v0.2**.
+Per-edge **network flows** (bytes now; RTT and retransmits later) come from
+OBI's built-in **`network` feature**, enabled by config on the same sensor.
 
 ## Requirements
 
