@@ -1,0 +1,37 @@
+---
+slug: service-health
+title: "Santé des services : regroupez vos services et consolidez leur état"
+description: "Santé de groupe consolidée avec niveaux de criticité et propagation des dépendances — dérivée des traces que vous envoyez déjà, sans sonde."
+authors: [avuru]
+tags: [platform, service-map]
+date: 2026-07-18
+---
+
+Un nouveau tableau **Santé des services** consolide la santé RED de chaque
+service en un état de **groupe** — avec des niveaux de criticité et une règle :
+un service ne peut pas être au vert tant qu'une dépendance critique est au rouge.
+Le tout est **dérivé** des traces que vous envoyez déjà : aucun health check,
+aucune sonde, aucun stockage supplémentaire.
+
+{/* truncate */}
+
+- **État par service depuis le RED.** Chaque service est `healthy`, `degraded`,
+  `down` ou `idle` selon son budget d'erreurs et un objectif de latence p95 sur
+  la fenêtre sélectionnée — avec d'abord un filtre de trafic, pour qu'un service
+  peu sollicité soit *idle*, jamais *down*. Chaque état porte une raison en clair
+  (`taux d'erreurs 4,2 % ≥ budget 1 %`).
+- **Niveaux et groupes.** Classez les services en niveaux de criticité
+  (T0/T1/T2). Le regroupement est hybride : déclarez des groupes explicitement en
+  configuration, ou laissez les services se regrouper automatiquement par leur
+  namespace Kubernetes. Le tableau dispose les groupes en couloirs par niveau,
+  pour voir l'état le plus critique en premier.
+- **Propagation des dépendances.** Les dépendances proviennent de la carte des
+  services que vous avez déjà ; une arête est *critique* quand sa cible est un
+  service T0. Une dépendance critique en panne fait passer ses dépendants au
+  moins en *degraded* — et le panneau de détail montre la chaîne : « sain en
+  soi, dégradé parce que payments est down ».
+- **Configuration à chaud.** La classification par niveau et par seuil vit dans
+  une ConfigMap que le hub recharge à chaud — reclassez un service avec un
+  `kubectl edit`, sans redémarrage ni redéploiement. C'est un module optionnel
+  (`modules.serviceHealth.enabled`), activé par défaut car c'est de la valeur
+  gratuite tirée de données déjà collectées.
