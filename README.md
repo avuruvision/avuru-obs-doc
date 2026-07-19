@@ -5,7 +5,7 @@ Source for the **avuru obs** documentation site, built with
 via GitHub Actions (FTPS) on every push to `main`.
 
 > Engine repo: **[avuruvision/avuru-obs](https://github.com/avuruvision/avuru-obs)**
-> · License: **Apache-2.0**
+> · License: **AGPL-3.0**
 
 ## Develop
 

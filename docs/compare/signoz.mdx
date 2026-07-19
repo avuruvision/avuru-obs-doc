@@ -1,0 +1,65 @@
+---
+title: "avuru obs vs. SigNoz"
+sidebar_label: vs SigNoz
+description: How avuru obs compares to SigNoz — both OpenTelemetry-native on ClickHouse — with a zero-code eBPF service map, continuous profiling, and no open-core gating.
+keywords:
+  - SigNoz alternative
+  - SigNoz vs avuru obs
+  - migrate from SigNoz
+  - OpenTelemetry observability
+  - ClickHouse observability
+---
+
+# avuru obs vs. SigNoz
+
+[SigNoz](https://signoz.io/) is the closest tool to avuru obs on paper: both are
+**OpenTelemetry-native** and both store every signal in **ClickHouse**. It's a
+strong, actively developed platform. The differences are three: how services get
+onto the map (**eBPF vs. SDK instrumentation**), whether **continuous profiling**
+is a first-class signal, and where the **open-source line** is drawn.
+
+## At a glance
+
+| | SigNoz | avuru obs |
+|---|---|---|
+| **Primary scope** | Traces, logs, metrics, APM | Traces, logs, metrics, profiling |
+| **Instrumentation** | OpenTelemetry SDKs (manual) | **eBPF auto-discovery** (OBI) + optional OTLP spans |
+| **Storage** | ClickHouse | ClickHouse |
+| **Service map** | From instrumented spans | Derived from spans **+ eBPF** — even un-instrumented services appear |
+| **Continuous profiling** | Not a core signal | Built in (opt-in) as the 4th signal |
+| **Ingest** | Native **OTLP** | Native **OTLP** (`:4318`/`:4317`) |
+| **Deploy** | Multiple components | One Helm chart |
+| **License** | MIT core; SSO, RBAC & more gated behind commercial Enterprise | **AGPL-3.0 — nothing gated** |
+
+## Why teams look at avuru obs
+
+- **A map without instrumenting first.** SigNoz shows what your SDKs emit; avuru's
+  `sensor` runs upstream **OBI** to reconstruct topology from the kernel, so
+  un-instrumented services still appear. See [Architecture](/guides/architecture).
+- **Profiling in the box.** Continuous CPU profiling is the fourth signal in the
+  same ClickHouse store, correlated with traces — not a separate tool to add.
+- **No open-core line.** SSO/OIDC, RBAC and similar are avuru features, not an
+  Enterprise upsell. Everything ships under **AGPL-3.0**.
+
+## How to migrate
+
+You're already on OpenTelemetry, so this is a one-line change:
+
+1. Install avuru obs alongside SigNoz.
+2. Point your OTLP exporter (or OTel Collector) at the avuru `gateway` on
+   `:4318`/`:4317`. **Dual-export** to both while you validate.
+3. Confirm the data matches, then retire the SigNoz pipeline.
+
+See the [OTLP bridge guide](/docs/setup/otel-bridge) for exporter settings.
+
+## When SigNoz is the better fit
+
+- You want a **permissive MIT** core rather than avuru's copyleft **AGPL-3.0**.
+- You rely on its managed **Cloud**, its dashboards, or its broader APM feature
+  catalog today.
+- You don't run on Linux/Kubernetes, where the eBPF map adds the most value.
+
+:::tip Try it side by side
+[Install in 30 seconds](/docs/getting-started/30-seconds) and dual-export one
+service — the eBPF map appears next to the traces you already send SigNoz.
+:::

@@ -9,6 +9,8 @@ keywords:
   - Grafana alternative
   - Jaeger alternative
   - Prometheus alternative
+  - SigNoz alternative
+  - Apache SkyWalking alternative
   - self-hosted observability
   - Sentry alternative
   - GlitchTip alternative
@@ -35,7 +37,7 @@ The short version of the pitch:
 - **OpenTelemetry-native.** Standard **OTLP** in and out. Whatever you run today
   almost certainly already speaks OTLP, so migration is usually a one-line
   exporter change. See the [OTLP bridge](/docs/setup/otel-bridge).
-- **Self-hosted, Apache-2.0.** Your telemetry never leaves your infrastructure,
+- **Self-hosted, fully open source (AGPL-3.0).** Your telemetry never leaves your infrastructure,
   and cost tracks your cluster — not per-host or per-GB billing.
 
 :::note Where avuru obs is today
@@ -57,6 +59,8 @@ below say plainly what's shipping versus planned — see
 | **GlitchTip** | Error tracking | Same Sentry ingest protocol, but errors unified with traces, logs & an eBPF map | [vs GlitchTip](/docs/compare/glitchtip) |
 | **DeepFlow** | eBPF + ClickHouse platform | Complete first-party UI and native error tracking on the same eBPF/ClickHouse base | [vs DeepFlow](/docs/compare/deepflow) |
 | **Coroot** | eBPF + ClickHouse platform | Single ClickHouse for every signal, plus error tracking as a first-class module | [vs Coroot](/docs/compare/coroot) |
+| **SigNoz** | OTel + ClickHouse platform | Same OTel/ClickHouse base, plus a zero-code eBPF map, continuous profiling and no open-core gating | [vs SigNoz](/docs/compare/signoz) |
+| **Apache SkyWalking** | Language-agent APM | One ClickHouse and universal SQL instead of BanyanDB, plus a zero-code eBPF map | [vs SkyWalking](/docs/compare/skywalking) |
 
 ## How migration works, in general
 

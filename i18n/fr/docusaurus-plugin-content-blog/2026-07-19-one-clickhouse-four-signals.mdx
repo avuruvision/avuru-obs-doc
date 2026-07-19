@@ -1,0 +1,182 @@
+---
+slug: one-clickhouse-four-signals
+title: "Un seul ClickHouse, quatre signaux : le schéma derrière avuru obs"
+description: "Une visite du schéma de tables qui permet à avuru obs de garder traces, logs, métriques et profilage dans un seul moteur ClickHouse — et pourquoi cela fait de la corrélation inter-signaux une simple requête SQL."
+authors: [avuru]
+tags: [engineering]
+---
+
+Le pitch d'**avuru obs**, c'est que chaque signal vit dans un seul moteur. C'est
+facile à dire sur une page d'accueil. Ce billet en montre les dessous : les vraies
+tables ClickHouse, les colonnes qu'elles partagent, et pourquoi « un seul stockage »
+transforme la corrélation inter-signaux en une simple `JOIN` SQL plutôt qu'en un
+travail de câblage entre quatre systèmes.
+
+{/* truncate */}
+
+## Une base de données, un moteur
+
+Tout arrive dans une seule base de données ClickHouse, `otel`, et presque chaque
+table est un simple `MergeTree`. Pas de stockage par signal à dimensionner, scaler
+et sauvegarder séparément — traces, logs, métriques et profils sont des tables
+côte à côte, sur les mêmes disques, dans le même moteur de requêtes.
+
+Les tables de traces et de logs ne sont pas faites main. Leur contrat de colonnes
+est **figé à l'identique depuis l'exportateur ClickHouse du Collector
+OpenTelemetry** (épinglé en `0.154.0`), si bien que l'exportateur peut faire un
+`INSERT` avec une liste de colonnes explicite et que le `hub` d'avuru lit
+exactement la même forme. C'est la force discrète du choix d'OTLP : le schéma de
+stockage *est* le modèle de données OpenTelemetry, pas un ré-encodage
+propriétaire.
+
+## Les quatre signaux, table par table
+
+Les **traces** vivent dans `otel.otel_traces` :
+
+```sql
+CREATE TABLE otel.otel_traces
+(
+    Timestamp          DateTime64(9),
+    TraceId            String,
+    SpanId             String,
+    ParentSpanId       String,
+    SpanName           LowCardinality(String),
+    ServiceName        LowCardinality(String),
+    ResourceAttributes Map(LowCardinality(String), String),
+    SpanAttributes     Map(LowCardinality(String), String),
+    Duration           UInt64,
+    StatusCode         LowCardinality(String),
+    -- Events.*, Links.*, index de saut sur TraceId / attrs / Duration …
+)
+ENGINE = MergeTree
+PARTITION BY toDate(Timestamp)
+ORDER BY (Tenant, ServiceName, SpanName, toDateTime(Timestamp));
+```
+
+Une table compagne et une vue matérialisée maintiennent un index
+`TraceId → [début, fin]`, de sorte qu'« ouvrir cette trace » est une lecture
+bornée dans le temps plutôt qu'un scan. `TraceId` et `SpanId` portent des index de
+saut `bloom_filter` ; `Duration` reçoit un index `minmax`, si bien que « les spans
+plus lents que X » élague les granules tôt.
+
+Les **logs** vivent dans `otel.otel_logs`, et ils portent les mêmes colonnes
+`TraceId`, `SpanId` et `ServiceName` que les spans. Sur ClickHouse 26.x, le corps
+du log et les maps d'attributs reçoivent des index plein texte `text`, et les
+attributs de ressource Kubernetes courants (`k8s.namespace.name`, `k8s.pod.name`,
+…) sont matérialisés dans leurs propres colonnes pour que le filtrage par pod ou
+namespace reste bon marché.
+
+Les **métriques** sont cinq tables — `otel_metrics_gauge`, `_sum`, `_histogram`,
+`_exponential_histogram`, `_summary` — une par type de métrique OTLP. Les cinq sont
+créées même quand seules certaines servent, car avec un schéma fixe une table
+*manquante* signifie des insertions silencieusement perdues le jour où une nouvelle
+appli émet des histogrammes. Chaque ligne conserve un tableau `Exemplars.TraceId` /
+`Exemplars.SpanId` — le fil qui recoud un point de mesure à la trace exacte qui l'a
+produit.
+
+Le **profilage** — le signal le plus récent, en opt-in — est le seul schéma
+entièrement possédé par avuru, car OTLP Profiles est encore en alpha et
+l'exportateur ne le gère pas. Il utilise une répartition en deux tables pour que
+les stacks répétés ne coûtent presque rien :
+
+```sql
+-- Stacks uniques stockés une seule fois, indexés par un hash 64 bits.
+CREATE TABLE otel.profiling_stacks
+(
+    Tenant    LowCardinality(String),
+    StackHash UInt64,
+    Frames    Array(String),
+    LastSeen  DateTime DEFAULT now()
+)
+ENGINE = ReplacingMergeTree(LastSeen)
+ORDER BY (Tenant, StackHash);
+
+-- Les échantillons référencent un stack par hash au lieu de répéter les frames.
+CREATE TABLE otel.profiling_samples
+(
+    Timestamp   DateTime64(9),
+    Tenant      LowCardinality(String),
+    ServiceName LowCardinality(String),
+    SampleType  LowCardinality(String),
+    StackHash   UInt64,
+    Value       UInt64,
+    NodeName    LowCardinality(String),
+    PodName     String,
+    ContainerName LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY (Tenant, ServiceName, Timestamp);
+```
+
+## Les erreurs : un cinquième signal dérivé, pas ingéré
+
+Le suivi des erreurs n'est pas un pipeline séparé — c'est une **vue matérialisée**
+au-dessus de la table des logs. Tout enregistrement `ERROR`/`FATAL` (OTLP
+`SeverityNumber >= 17`) est projeté dans une table `error_events` au moment de
+l'insertion, avec une **empreinte** de stack trace calculée en SQL : on normalise
+les adresses hexadécimales et les numéros de ligne, on hache les premières frames,
+et on regroupe les plantages identiques en un seul incident. Les exceptions
+ingérées depuis un SDK compatible Sentry arrivent dans la même table de logs
+(étiquetées au niveau du gateway) et passent par la même vue — de sorte que les
+erreurs navigateur et les panics backend se dédupliquent ensemble, gratuitement,
+sans stockage supplémentaire.
+
+## Ce qui en fait *un seul* stockage
+
+Regardez les clés de tri et vous verrez les mêmes colonnes revenir :
+`ServiceName`, `Timestamp`, et surtout `TraceId`. Parce que chaque signal est
+indexé sur la ressource et l'identité de trace OpenTelemetry, la corrélation est
+une requête, pas une intégration :
+
+```sql
+-- D'un span lent directement aux logs qui l'expliquent.
+SELECT l.Timestamp, l.SeverityText, l.Body
+FROM otel.otel_logs AS l
+WHERE l.TraceId = {trace_id:String}
+ORDER BY l.Timestamp;
+```
+
+```sql
+-- Latence p99 par endpoint pour un service, sur la dernière heure.
+SELECT SpanName, quantile(0.99)(Duration) / 1e6 AS p99_ms
+FROM otel.otel_traces
+WHERE ServiceName = 'checkout'
+  AND Timestamp > now() - INTERVAL 1 HOUR
+GROUP BY SpanName
+ORDER BY p99_ms DESC;
+```
+
+L'exemplar d'un histogramme de latence porte le `TraceId` d'une requête
+représentative : un pic sur un tableau de bord renvoie donc directement à la trace
+qui le sous-tend — même stockage, une seule jointure. Aucun pont
+`trace_id`-vers-`trace_id` à configurer entre des systèmes séparés.
+
+Et tout tient dans **un seul langage de requête**. Pas de PromQL pour les
+métriques, un langage de logs pour les logs et un troisième dialecte pour les
+traces — c'est du SQL pour les quatre, sur des tables que vous pouvez inspecter avec
+`SHOW CREATE TABLE`.
+
+## Quelques choix délibérés
+
+- **Partitionner par jour, purger par partie.** Chaque table est
+  `PARTITION BY toDate(...)` avec `ttl_only_drop_parts = 1`, de sorte que la
+  rétention s'applique en supprimant des parties journalières entières (rapide)
+  plutôt que par des mutations TTL au niveau des lignes (lent). Les fenêtres de
+  rétention sont fixées au moment de la migration depuis l'environnement, pas gelées
+  dans le DDL.
+- **Le bon index pour la forme.** Filtres de Bloom pour les recherches
+  d'identifiants/attributs à forte cardinalité sur les traces et métriques ; index
+  `text` de ClickHouse pour la recherche plein texte dans les logs.
+- **Une couture multi-tenant gratuite en mono-tenant.** Chaque table place en tête
+  de sa clé de tri une colonne `Tenant` qui vaut `'default'` par défaut. Avec un
+  seul tenant, c'est une valeur constante unique — zéro coût de stockage et de tri —
+  mais la colonne dont un déploiement managé multi-tenant a besoin est déjà là.
+
+## Regardez les tables vous-même
+
+Rien de tout cela n'est caché : les migrations qui créent ces tables sont livrées
+dans le dépôt du moteur, et une instance en fonctionnement est à un
+`SHOW CREATE TABLE` de distance. Pour voir l'ensemble s'allumer via OTLP,
+[installez en 30 secondes](/docs/getting-started/30-seconds), parcourez
+l'[architecture](/guides/architecture), ou lisez comment avuru obs
+[se compare aux outils que vous utilisez déjà](/docs/compare).

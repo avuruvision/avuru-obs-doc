@@ -1,0 +1,69 @@
+---
+title: "avuru obs vs. SigNoz"
+sidebar_label: vs SigNoz
+description: Comment avuru obs se compare à SigNoz — tous deux natifs OpenTelemetry sur ClickHouse — avec une carte des services eBPF sans code, du profilage continu et aucune fonctionnalité bridée.
+keywords:
+  - alternative à SigNoz
+  - SigNoz vs avuru obs
+  - migrer depuis SigNoz
+  - observabilité OpenTelemetry
+  - observabilité ClickHouse
+---
+
+# avuru obs vs. SigNoz
+
+[SigNoz](https://signoz.io/) est l'outil le plus proche d'avuru obs sur le papier :
+tous deux sont **natifs OpenTelemetry** et stockent chaque signal dans
+**ClickHouse**. C'est une plateforme solide et activement développée. Trois
+différences : comment les services arrivent sur la carte (**eBPF vs.
+instrumentation par SDK**), si le **profilage continu** est un signal de premier
+plan, et où passe la **ligne open source**.
+
+## En un coup d'œil
+
+| | SigNoz | avuru obs |
+|---|---|---|
+| **Périmètre principal** | Traces, logs, métriques, APM | Traces, logs, métriques, profilage |
+| **Instrumentation** | SDK OpenTelemetry (manuelle) | **Découverte automatique eBPF** (OBI) + spans OTLP optionnels |
+| **Stockage** | ClickHouse | ClickHouse |
+| **Carte des services** | À partir des spans instrumentés | Dérivée des spans **+ eBPF** — même les services non instrumentés apparaissent |
+| **Profilage continu** | Pas un signal de base | Intégré (opt-in) comme 4ᵉ signal |
+| **Ingestion** | **OTLP** natif | **OTLP** natif (`:4318`/`:4317`) |
+| **Déploiement** | Plusieurs composants | Un seul chart Helm |
+| **Licence** | Cœur MIT ; SSO, RBAC et plus bridés derrière l'édition Enterprise commerciale | **AGPL-3.0 — rien n'est bridé** |
+
+## Pourquoi les équipes regardent avuru obs
+
+- **Une carte sans instrumenter d'abord.** SigNoz montre ce que vos SDK émettent ;
+  le `sensor` d'avuru exécute **OBI** en amont pour reconstruire la topologie
+  depuis le noyau, si bien que les services non instrumentés apparaissent aussi.
+  Voir [Architecture](/guides/architecture).
+- **Le profilage inclus.** Le profilage CPU continu est le quatrième signal, dans
+  le même ClickHouse, corrélé aux traces — pas un outil séparé à ajouter.
+- **Pas de ligne open-core.** SSO/OIDC, RBAC et consorts sont des fonctionnalités
+  d'avuru, pas un supplément Enterprise. Tout est livré sous **AGPL-3.0**.
+
+## Comment migrer
+
+Vous êtes déjà sur OpenTelemetry, c'est donc un changement d'une ligne :
+
+1. Installez avuru obs à côté de SigNoz.
+2. Pointez votre exportateur OTLP (ou le collecteur OTel) vers le `gateway`
+   d'avuru sur `:4318`/`:4317`. **Double-exportez** vers les deux le temps de
+   valider.
+3. Vérifiez que les données concordent, puis retirez le pipeline SigNoz.
+
+Voir le [guide du pont OTLP](/docs/setup/otel-bridge) pour les réglages d'export.
+
+## Quand SigNoz reste le meilleur choix
+
+- Vous voulez un cœur **MIT permissif** plutôt que la copyleft **AGPL-3.0**
+  d'avuru.
+- Vous vous appuyez sur son **Cloud** managé, ses tableaux de bord ou son
+  catalogue APM plus large aujourd'hui.
+- Vous n'êtes pas sur Linux/Kubernetes, là où la carte eBPF apporte le plus.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds) et double-exportez un
+service — la carte eBPF apparaît à côté des traces que vous envoyez déjà à SigNoz.
+:::

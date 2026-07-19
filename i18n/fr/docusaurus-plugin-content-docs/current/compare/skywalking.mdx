@@ -1,0 +1,74 @@
+---
+title: "avuru obs vs. Apache SkyWalking"
+sidebar_label: vs SkyWalking
+description: Comment avuru obs se compare à Apache SkyWalking — un seul ClickHouse et du SQL universel au lieu de BanyanDB, une stack plus légère et de l'OTLP natif — et comment migrer.
+keywords:
+  - alternative à SkyWalking
+  - Apache SkyWalking vs avuru obs
+  - migrer depuis SkyWalking
+  - alternative à BanyanDB
+  - APM OpenTelemetry
+---
+
+# avuru obs vs. Apache SkyWalking
+
+[Apache SkyWalking](https://skywalking.apache.org/) est un APM Apache de premier
+plan, mature, fort d'une décennie d'histoire, de plus de 10 agents de langage et
+d'un profileur eBPF (Rover). Il valide l'architecture qu'avuru suit — des agents
+en espace utilisateur en production, l'eBPF en complément. La différence tient au
+**moteur de stockage** et à la **surface d'exploitation** : SkyWalking stocke la
+télémétrie dans son propre **BanyanDB** ; avuru place chaque signal dans **un seul
+ClickHouse** que vous interrogez en SQL pur.
+
+## En un coup d'œil
+
+| | Apache SkyWalking | avuru obs |
+|---|---|---|
+| **Périmètre principal** | Traces, métriques, logs, profilage, alarmes | Traces, logs, métriques, profilage |
+| **Instrumentation** | Agents de langage (Java d'abord, 10+) + Rover eBPF | **Découverte automatique eBPF** (OBI) + OTLP optionnel |
+| **Stockage** | **BanyanDB** (sur mesure) ou ES/autres | **ClickHouse** unique pour tous les signaux |
+| **Requêtes** | OAL / requêtes BanyanDB, via l'UI | **SQL** pur sur ClickHouse |
+| **Ingestion** | Protocole natif + récepteur **OTLP** | **OTLP** natif (`:4318`/`:4317`) |
+| **Déploiement** | Backend OAP + stockage + UI | Un seul chart Helm |
+| **Licence** | Apache-2.0 (ASF) | AGPL-3.0 |
+
+## Pourquoi les équipes regardent avuru obs
+
+- **Un stockage que vous connaissez déjà.** BanyanDB est performant et conçu pour
+  l'observabilité, mais c'est un système de plus, sur mesure, à apprendre,
+  dimensionner et sauvegarder. avuru utilise **ClickHouse** — ubiquitaire, natif
+  SQL, et probablement déjà dans votre stack.
+- **Un moteur, un langage de requête.** Traces, logs, métriques et profils vivent
+  dans le même ClickHouse et répondent au même **SQL**, au lieu d'OAL plus un
+  chemin de requête propre au stockage.
+- **Carte sans code.** Le `sensor` d'avuru dérive la carte des services des spans
+  eBPF d'OBI — aucun déploiement d'agent par langage juste pour obtenir la
+  topologie.
+
+## Comment migrer
+
+L'OAP de SkyWalking peut **recevoir de l'OTLP**, et avuru aussi — donc si vous
+émettez déjà de l'OpenTelemetry, le pointer vers avuru est un changement d'une
+ligne :
+
+1. Installez avuru obs à côté de SkyWalking.
+2. Envoyez votre flux OTLP (ou repointez le collecteur OTel) vers le `gateway`
+   d'avuru sur `:4318`/`:4317`. Gardez SkyWalking en réception aussi, pour
+   **double-écrire** le temps de valider.
+3. Vérifiez la parité, puis démantelez le pipeline SkyWalking.
+
+Voir le [guide du pont OTLP](/docs/setup/otel-bridge).
+
+## Quand SkyWalking reste le meilleur choix
+
+- Vous dépendez de sa **variété d'agents de langage** ou de sa télémétrie de
+  service mesh (Envoy ALS), et de sa communauté large et mature.
+- Vous exploitez déjà **BanyanDB** sans souci et voulez son modèle APM natif.
+- Vous voulez une licence **Apache-2.0 permissive** plutôt que la copyleft
+  AGPL-3.0 d'avuru.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds) et double-exportez un
+service — vous verrez la carte eBPF dans avuru à côté de votre topologie
+SkyWalking.
+:::

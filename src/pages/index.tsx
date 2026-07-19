@@ -27,7 +27,7 @@ const STRUCTURED_DATA = {
   description:
     'Open-source, eBPF-native observability and APM platform — distributed tracing, metrics, logs and continuous profiling in one engine. A self-hosted alternative to Datadog, New Relic and the Grafana/Prometheus stack.',
   url: 'https://avuruobs.io',
-  license: 'https://www.apache.org/licenses/LICENSE-2.0',
+  license: 'https://www.gnu.org/licenses/agpl-3.0.html',
   isAccessibleForFree: true,
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
@@ -155,6 +155,11 @@ function Hero(): React.ReactElement {
           </Link>
           <Link
             className="button button--secondary button--lg"
+            to="/demo">
+            <Translate id="home.cta.demo">Live Demo</Translate>
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
             to="/docs/intro">
             <Translate id="home.cta.docs">Read the docs</Translate>
           </Link>
@@ -211,6 +216,31 @@ export default function Home(): React.ReactElement {
       </section>
 
       <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.dropin.title">Already sending OpenTelemetry?</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.dropin.lede">
+            Point your existing collectors at avuru obs and keep your
+            instrumentation. Logs, metrics and continuous profiling land next to
+            your traces — in one ClickHouse — with a one-line exporter change.
+          </Translate>
+        </p>
+        <div className={styles.ctaRow}>
+          <Link
+            className={`button button--lg ${styles.btnGrad}`}
+            to="/docs/setup/otel-bridge">
+            <Translate id="home.dropin.cta.bridge">OTLP bridge guide</Translate>
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/compare">
+            <Translate id="home.dropin.cta.compare">Compare &amp; migrate</Translate>
+          </Link>
+        </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
         <div className={styles.altPanel}>
           <h2 className={styles.sectionTitle}>
             <Translate id="home.alt.title">
@@ -231,7 +261,7 @@ export default function Home(): React.ReactElement {
             />
             <AltPoint
               title={<Translate id="home.alt.p2.t">Own your data</Translate>}
-              text={<Translate id="home.alt.p2.d">Self-hosted and Apache-2.0 — your telemetry never leaves your infrastructure.</Translate>}
+              text={<Translate id="home.alt.p2.d">Self-hosted and AGPL-3.0 — your telemetry never leaves your infrastructure.</Translate>}
             />
             <AltPoint
               title={<Translate id="home.alt.p3.t">No lock-in</Translate>}
@@ -272,7 +302,7 @@ export default function Home(): React.ReactElement {
         </h2>
         <p className={styles.sectionLede}>
           <Translate id="home.metrics.lede">
-            Apache-2.0 and self-hostable — own your telemetry, no per-host or
+            AGPL-3.0 and self-hostable — own your telemetry, no per-host or
             per-GB billing. Built in the open on GitHub.
           </Translate>
         </p>
