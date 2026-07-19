@@ -1,0 +1,33 @@
+---
+slug: one-command-install
+title: "Installer en une commande : un chart Helm publié et signé"
+description: "Le chart Helm et les images sont publiés sur GHCR, signés avec cosign et multi-arch — installez en une commande, sans clonage, et vérifiez la chaîne d'approvisionnement."
+authors: [avuru]
+tags: [platform, docs]
+date: 2026-07-17
+---
+
+Installer ne veut plus dire cloner le dépôt. Le chart Helm et chacune des images
+sont désormais **publiés sur GHCR** — signés avec cosign et compilés pour
+`amd64` + `arm64` — si bien qu'une seule commande démarre toute la stack.
+
+{/* truncate */}
+
+- **Installation Kubernetes en une commande.** Le chart est distribué comme
+  artefact OCI, donc aucun dépôt à ajouter :
+  `helm install avuruops oci://ghcr.io/avuruvision/charts/avuruops --version <X.Y.Z> -n avuruops --create-namespace`.
+  Un installeur `curl … | sh` résout la dernière version, n'exécute que `helm`
+  et `kubectl` sur votre contexte courant, et attend le déploiement — voir la
+  [configuration Kubernetes](/docs/setup/kubernetes).
+- **Évaluer sans clonage.** Un unique `docker-compose.release.yaml` récupère les
+  images publiées et lance une démo, si bien que la carte des services s'allume
+  sur un poste sans rien cloner — voir la
+  [configuration Docker](/docs/setup/docker).
+- **Chaîne d'approvisionnement vérifiable.** Les images et le chart sont signés
+  avec cosign (sans clé) et portent des attestations SBOM + provenance ;
+  multi-arch par digest, une seule signature couvre les deux architectures.
+- **Documentation prête pour la production.** De nouveaux guides sur les
+  [mises à niveau](/docs/operations/upgrade) (migrations additives, idempotentes
+  et sans retour arrière) et sur le
+  [dimensionnement, la rétention et la haute disponibilité](/docs/operations/scaling),
+  avec un overlay ClickHouse externe pour la haute disponibilité.

@@ -7,23 +7,25 @@ type Snippets = Record<string, {lang: string; code: string}>;
 const DEFAULT_SNIPPETS: Snippets = {
   Kubernetes: {
     lang: 'bash',
-    code: `# Flagship install — Helm chart auto-discovers services via eBPF.
-helm install avuruops ./avuruops -n avuruops --create-namespace
+    code: `# Flagship install — the chart is published to GHCR as an OCI artifact,
+# eBPF auto-discovers your services. No repo to add.
+helm install avuruops oci://ghcr.io/avuruvision/charts/avuruops \\
+  --version <X.Y.Z> -n avuruops --create-namespace
 
 # Point apps at the gateway (OTLP):
 #   http://avuruops-gateway:4318   (HTTP)
 #   http://avuruops-gateway:4317   (gRPC)
 
 # Open the UI:
-kubectl -n avuruops port-forward svc/avuruops-hub 8080:80`,
+kubectl -n avuruops port-forward svc/avuruops-ui 8080:80`,
   },
   Docker: {
     lang: 'bash',
-    code: `# Local sandbox — ClickHouse + gateway + hub + UI + demo app.
-git clone https://github.com/avuruvision/avuru-obs && cd avuru-obs
-make dev
+    code: `# Laptop eval — released images, no checkout.
+curl -fsSLO https://raw.githubusercontent.com/avuruvision/avuru-obs/main/deploy/compose/docker-compose.release.yaml
+docker compose -f docker-compose.release.yaml up --wait
 
-# UI: http://localhost:8080   ·   OTLP: localhost:4318`,
+# UI: http://localhost:3001   ·   OTLP: localhost:4318`,
   },
   VM: {
     lang: 'bash',
