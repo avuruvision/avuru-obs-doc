@@ -1,0 +1,169 @@
+---
+slug: one-clickhouse-four-signals
+title: "One ClickHouse, four signals: the schema behind avuru obs"
+description: "A tour of the table schema that lets avuru obs keep traces, logs, metrics and profiling in a single ClickHouse engine — and why that makes cross-signal correlation just another SQL query."
+authors: [avuru]
+tags: [engineering]
+---
+
+The pitch for **avuru obs** is that every signal lives in one engine. That is easy
+to say on a landing page. This post is the part underneath: the actual ClickHouse
+tables, the columns they share, and why "one store" turns cross-signal correlation
+into a plain SQL `JOIN` instead of a wiring exercise across four systems.
+
+{/* truncate */}
+
+## One database, one engine
+
+Everything lands in a single ClickHouse database, `otel`, and almost every table is
+a plain `MergeTree`. There is no per-signal store to size, scale and back up
+separately — traces, logs, metrics and profiles are tables next to each other, on
+the same disks, in the same query engine.
+
+The trace and log tables aren't hand-rolled. Their column contract is **frozen
+verbatim from the OpenTelemetry Collector's ClickHouse exporter** (pinned at
+`0.154.0`), so the exporter can `INSERT` with an explicit column list and avuru's
+`hub` can read the exact same shape. That's the quiet superpower of building on
+OTLP: the storage schema is the OpenTelemetry data model, not a proprietary
+re-encoding of it.
+
+## The four signals, table by table
+
+**Traces** live in `otel.otel_traces`:
+
+```sql
+CREATE TABLE otel.otel_traces
+(
+    Timestamp          DateTime64(9),
+    TraceId            String,
+    SpanId             String,
+    ParentSpanId       String,
+    SpanName           LowCardinality(String),
+    ServiceName        LowCardinality(String),
+    ResourceAttributes Map(LowCardinality(String), String),
+    SpanAttributes     Map(LowCardinality(String), String),
+    Duration           UInt64,
+    StatusCode         LowCardinality(String),
+    -- Events.*, Links.*, skip indexes on TraceId / attrs / Duration …
+)
+ENGINE = MergeTree
+PARTITION BY toDate(Timestamp)
+ORDER BY (Tenant, ServiceName, SpanName, toDateTime(Timestamp));
+```
+
+A companion table plus a materialized view keep a `TraceId → [start, end]` index so
+"open this trace" is a narrow time-bounded read instead of a scan. `TraceId` and
+`SpanId` carry `bloom_filter` skip indexes; `Duration` gets a `minmax` index so
+"spans slower than X" prunes granules early.
+
+**Logs** live in `otel.otel_logs`, and they carry the same `TraceId`, `SpanId` and
+`ServiceName` columns as spans do. On ClickHouse 26.x the log body and attribute
+maps get full-text `text` indexes, and the common Kubernetes resource attributes
+(`k8s.namespace.name`, `k8s.pod.name`, …) are materialized into their own columns
+so filtering by pod or namespace stays cheap.
+
+**Metrics** are five tables — `otel_metrics_gauge`, `_sum`, `_histogram`,
+`_exponential_histogram`, `_summary` — one per OTLP metric type. All five are
+created even when only some are in use, because with a fixed schema a *missing*
+table means silently dropped inserts the day a new app starts emitting histograms.
+Each row keeps an `Exemplars.TraceId` / `Exemplars.SpanId` array — the thread that
+sews a metric data point back to the exact trace that produced it.
+
+**Profiling** — the newest, opt-in signal — is the one schema avuru fully owns,
+because OTLP Profiles is still alpha and the exporter has no profiles support yet.
+It uses a two-table split so repeated stacks cost almost nothing:
+
+```sql
+-- Unique stacks stored once, keyed by a 64-bit hash.
+CREATE TABLE otel.profiling_stacks
+(
+    Tenant    LowCardinality(String),
+    StackHash UInt64,
+    Frames    Array(String),
+    LastSeen  DateTime DEFAULT now()
+)
+ENGINE = ReplacingMergeTree(LastSeen)
+ORDER BY (Tenant, StackHash);
+
+-- Samples reference a stack by hash instead of repeating frames.
+CREATE TABLE otel.profiling_samples
+(
+    Timestamp   DateTime64(9),
+    Tenant      LowCardinality(String),
+    ServiceName LowCardinality(String),
+    SampleType  LowCardinality(String),
+    StackHash   UInt64,
+    Value       UInt64,
+    NodeName    LowCardinality(String),
+    PodName     String,
+    ContainerName LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY (Tenant, ServiceName, Timestamp);
+```
+
+## Errors: a fifth signal derived, not ingested
+
+Error tracking isn't a separate pipeline — it's a **materialized view** on top of
+the logs table. Any `ERROR`/`FATAL` record (OTLP `SeverityNumber >= 17`) is
+projected into an `error_events` table at insert time, with a stack-trace
+**fingerprint** computed in SQL: normalize hex addresses and line numbers, hash the
+top frames, and group identical crashes into one issue. Exceptions ingested from a
+Sentry-compatible SDK land in the same logs table (tagged at the gateway) and flow
+through the very same view — so browser errors and backend panics dedupe together,
+for free, with no extra store.
+
+## What makes them *one* store
+
+Look at the sort keys and you'll notice the same columns over and over:
+`ServiceName`, `Timestamp`, and above all `TraceId`. Because every signal is keyed
+on the OpenTelemetry resource and trace identity, correlation is a query, not an
+integration:
+
+```sql
+-- From a slow span straight to the logs that explain it.
+SELECT l.Timestamp, l.SeverityText, l.Body
+FROM otel.otel_logs AS l
+WHERE l.TraceId = {trace_id:String}
+ORDER BY l.Timestamp;
+```
+
+```sql
+-- p99 latency per endpoint for one service, in the last hour.
+SELECT SpanName, quantile(0.99)(Duration) / 1e6 AS p99_ms
+FROM otel.otel_traces
+WHERE ServiceName = 'checkout'
+  AND Timestamp > now() - INTERVAL 1 HOUR
+GROUP BY SpanName
+ORDER BY p99_ms DESC;
+```
+
+A latency histogram's exemplar carries the `TraceId` of a representative request,
+so a spike on a dashboard links directly to the trace behind it — same store, one
+join. No `trace_id`-to-`trace_id` bridge to configure between separate systems.
+
+And it's all **one query language**. There's no PromQL for metrics, a log query
+language for logs, and a third dialect for traces — it's SQL for all four, over
+tables you can inspect with `SHOW CREATE TABLE`.
+
+## A few deliberate choices
+
+- **Partition by day, drop by part.** Every table is `PARTITION BY toDate(...)`
+  with `ttl_only_drop_parts = 1`, so retention is applied by dropping whole daily
+  parts (fast) rather than row-level TTL mutations (slow). Retention windows are
+  set at migrate time from the environment, not frozen into the DDL.
+- **The right index for the shape.** Bloom filters for high-cardinality id/attribute
+  lookups on traces and metrics; ClickHouse `text` indexes for full-text log search.
+- **A multi-tenancy seam that's free in single-tenant mode.** Every table leads its
+  sort key with a `Tenant` column that defaults to `'default'`. With one tenant it's
+  a single constant value — zero storage and sort cost — but the column that a
+  hosted, multi-tenant deployment needs is already there.
+
+## Read the tables yourself
+
+None of this is hidden: the migrations that create these tables ship in the engine
+repo, and a running instance is one `SHOW CREATE TABLE` away. If you want to see the
+whole thing light up over OTLP, [install in 30
+seconds](/docs/getting-started/30-seconds), skim the
+[architecture](/guides/architecture), or read how avuru obs
+[compares to the tools you already run](/docs/compare).

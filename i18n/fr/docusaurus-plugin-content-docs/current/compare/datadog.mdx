@@ -1,0 +1,71 @@
+---
+title: "avuru obs vs. Datadog & New Relic"
+sidebar_label: vs Datadog
+description: Comment avuru obs se compare à Datadog et New Relic — une alternative auto-hébergée, AGPL-3.0 et native OTLP, sans agents propriétaires ni facturation à l'hôte.
+keywords:
+  - alternative à Datadog
+  - alternative à New Relic
+  - alternative auto-hébergée à Datadog
+  - APM open source
+  - Datadog vs avuru obs
+  - migrer depuis Datadog
+---
+
+# avuru obs vs. Datadog & New Relic
+
+[Datadog](https://www.datadoghq.com/) et [New Relic](https://newrelic.com/) sont des
+plateformes APM hébergées matures et riches en fonctionnalités. Si vous voulez du
+SaaS clé en main avec un vaste catalogue de fonctionnalités et aucune infrastructure
+à exploiter, elles font le travail. avuru obs est la contre-position
+**auto-hébergée et open source** : possédez vos données, évitez la facturation à
+l'hôte et restez sur des standards ouverts.
+
+## En un coup d'œil
+
+| | Datadog / New Relic | avuru obs |
+|---|---|---|
+| **Modèle** | SaaS hébergé | Auto-hébergé (votre cluster) |
+| **Agent** | Agent propriétaire | `sensor` **eBPF** + OTLP natif |
+| **Emplacement des données** | Cloud du fournisseur | **Votre infrastructure** |
+| **Tarification** | Par hôte / par Go / par siège | Coût d'infrastructure uniquement |
+| **Lock-in** | Formats et agents propriétaires | OpenTelemetry en entrée et en sortie |
+| **Licence** | Commerciale | AGPL-3.0 |
+| **Étendue** | Très large (APM, RUM, sécurité, synthetics…) | Ciblée : traces, logs, métriques, profilage |
+
+## Pourquoi les équipes migrent
+
+- **Possédez votre télémétrie.** Tout reste dans votre cluster — aucune sortie de
+  données vers un fournisseur, ce qui simplifie aussi la conformité.
+- **Un coût prévisible.** La dépense suit votre propre infrastructure au lieu d'un
+  compteur par hôte ou par Go qui augmente avec le trafic.
+- **Pas d'agents propriétaires.** Le `sensor` eBPF ne demande aucun changement de
+  code, et l'ingestion est en **OTLP** standard : vous n'êtes jamais enfermé dans le
+  SDK d'un fournisseur. Voir [Architecture](/guides/architecture).
+
+## Comment migrer
+
+Datadog comme New Relic peuvent exporter via OpenTelemetry, et la plupart des
+équipes font déjà tourner un OTel Collector :
+
+1. Installez avuru obs dans votre cluster.
+2. Ajoutez le `gateway` d'avuru (`:4318`/`:4317`) comme exportateur OTLP dans votre
+   Collector, à côté de l'exportateur du fournisseur, pour faire tourner les deux en
+   parallèle.
+3. Validez la couverture dans avuru obs, puis réduisez le forfait payant.
+
+Voir le [guide du pont OTLP](/docs/setup/otel-bridge) pour les réglages
+d'exportateur.
+
+## Quand Datadog ou New Relic reste le meilleur choix
+
+- Vous voulez du SaaS **entièrement managé**, sans infrastructure à exploiter.
+- Vous avez besoin d'une étendue qu'avuru obs ne couvre pas encore — RUM, synthetics,
+  monitoring de sécurité, ou leur grand catalogue d'intégrations clé en main.
+- Vous voulez des contrats de support et des SLA dès aujourd'hui. avuru obs est en
+  pré-v0.1 et auto-supporté — consultez l'[état des fonctionnalités](/docs/status)
+  avant de vous engager.
+
+:::tip Essayez côte à côte
+[Installez en 30 secondes](/docs/getting-started/30-seconds) et pointez le Collector
+d'un service vers avuru obs — aucun nouvel agent, aucun changement de code.
+:::

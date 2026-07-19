@@ -31,6 +31,13 @@ const config: Config = {
   organizationName: 'avuruvision',
   projectName: 'avuru-obs-doc',
 
+  // Public read-only Live Demo instance (the OpenTelemetry Astronomy Shop,
+  // watched over OTLP). Override at build time with DEMO_URL; the placeholder
+  // points at the intended subdomain until the instance is hosted.
+  customFields: {
+    demoUrl: process.env.DEMO_URL || 'https://demo.avuruobs.io',
+  },
+
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'warn',
 
@@ -292,7 +299,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `avuru obs · Apache-2.0 · built with Docusaurus.`,
+      copyright: `avuru obs · AGPL-3.0 · built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.vsLight,

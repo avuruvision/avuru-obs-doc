@@ -1,0 +1,86 @@
+---
+id: compare-overview
+title: "avuru obs vs. les alternatives"
+sidebar_label: Vue d'ensemble
+description: Comment avuru obs se compare à Jaeger, la stack Grafana, Prometheus et Datadog — et comment migrer depuis chacun via OTLP.
+keywords:
+  - comparaison observabilité
+  - alternative à Datadog
+  - alternative à Grafana
+  - alternative à Jaeger
+  - alternative à Prometheus
+  - alternative à SigNoz
+  - alternative à Apache SkyWalking
+  - observabilité auto-hébergée
+  - alternative à Sentry
+  - alternative à GlitchTip
+  - alternative à Coroot
+  - alternative à DeepFlow
+  - suivi des erreurs open source
+---
+
+# avuru obs vs. les alternatives
+
+La plupart des équipes font déjà tourner *quelque chose* pour leur télémétrie. Cette
+section porte un regard honnête sur la façon dont **avuru obs** se compare aux outils
+que vous êtes le plus susceptible de remplacer — et sur la manière de migrer depuis
+chacun sans tout réécrire.
+
+La version courte du pitch :
+
+- **Un seul moteur, pas quatre.** Traces, logs, métriques et profilage continu
+  arrivent dans le même stockage **ClickHouse**, si bien que la corrélation
+  inter-signaux n'est qu'une requête de plus. Voir
+  [Architecture](/guides/architecture).
+- **Découverte automatique eBPF.** Le `sensor` exécute **OBI** en amont pour des
+  traces sans code, et votre carte des services est **dérivée de ces spans de
+  trace** — sans SDK ni changement de code. La fonction `network` d'OBI couvre les
+  liens non instrumentés ; installez le chart et la carte s'allume.
+- **Natif OpenTelemetry.** **OTLP** standard en entrée et en sortie. Ce que vous
+  exécutez aujourd'hui parle presque certainement déjà OTLP, donc migrer est
+  généralement un changement d'exportateur d'une ligne. Voir le [pont
+  OTLP](/docs/setup/otel-bridge).
+- **Auto-hébergé, entièrement open source (AGPL-3.0).** Votre télémétrie ne quitte
+  jamais votre infrastructure, et le coût suit votre cluster — pas une facturation
+  par hôte ou par Go.
+
+:::note Où en est avuru obs aujourd'hui
+avuru obs est en pré-v0.1. **Les traces, les logs et la carte des services sont
+opérationnels** ; les **métriques (RED)** et le **profilage continu** sont sur la
+feuille de route (M3/M4). Les comparaisons ci-dessous disent clairement ce qui est
+livré et ce qui est prévu — voir [l'état des fonctionnalités](/docs/status).
+:::
+
+## En un coup d'œil
+
+| Ce que vous utilisez aujourd'hui | Catégorie | Ce qu'avuru obs change | À lire |
+|---|---|---|---|
+| **Jaeger** | Tracing distribué | Ajoute les logs (+ métriques/profilage) dans un seul stockage ; carte eBPF sans SDK | [vs Jaeger](/docs/compare/jaeger) |
+| **Stack Grafana (Loki/Tempo/Mimir)** | Stack OSS assemblée | Un seul moteur et une seule UI au lieu de quatre systèmes à exploiter | [vs la stack Grafana](/docs/compare/grafana-stack) |
+| **Prometheus** | Métriques | Métriques **RED** automatiques corrélées aux traces et logs | [vs Prometheus](/docs/compare/prometheus) |
+| **Datadog / New Relic** | APM SaaS commercial | Auto-hébergé, sans agents propriétaires, sans facture par hôte | [vs Datadog](/docs/compare/datadog) |
+| **Sentry** | Suivi des erreurs | Incidents dérivés de l'OTLP que vous envoyez déjà, plus un DSN SDK Sentry drop-in — sans facturation par événement | [vs Sentry](/docs/compare/sentry) |
+| **GlitchTip** | Suivi des erreurs | Même protocole d'ingestion Sentry, mais des erreurs unifiées avec traces, logs et carte eBPF | [vs GlitchTip](/docs/compare/glitchtip) |
+| **DeepFlow** | Plateforme eBPF + ClickHouse | UI first-party complète et suivi des erreurs natif sur la même base eBPF/ClickHouse | [vs DeepFlow](/docs/compare/deepflow) |
+| **Coroot** | Plateforme eBPF + ClickHouse | Un seul ClickHouse pour chaque signal, plus le suivi des erreurs comme module de premier plan | [vs Coroot](/docs/compare/coroot) |
+| **SigNoz** | Plateforme OTel + ClickHouse | Même base OTel/ClickHouse, plus une carte eBPF sans code, du profilage continu et aucune fonctionnalité bridée | [vs SigNoz](/docs/compare/signoz) |
+| **Apache SkyWalking** | APM à agents de langage | Un seul ClickHouse et du SQL universel au lieu de BanyanDB, plus une carte eBPF sans code | [vs SkyWalking](/docs/compare/skywalking) |
+
+## Comment fonctionne la migration, en général
+
+Parce qu'avuru obs est un **backend OTLP drop-in**, migrer depuis n'importe quelle
+source compatible OpenTelemetry se fait des trois mêmes gestes :
+
+1. Installez avuru obs (`helm install`) à côté de ce que vous utilisez aujourd'hui.
+2. Repointez votre exportateur OTLP (ou OTel Collector / Grafana Alloy) vers le
+   `gateway` d'avuru — `:4318` (HTTP) ou `:4317` (gRPC). Vous pouvez
+   **double-exporter** et faire tourner les deux en parallèle le temps de valider.
+3. Une fois les données validées, basculez et décommissionnez l'ancien backend.
+
+Les étapes complètes sont dans le [guide du pont OTLP](/docs/setup/otel-bridge).
+Chaque page ci-dessous ajoute les spécificités de l'outil concerné.
+
+:::tip Prêt à essayer ?
+Le moyen le plus rapide de comparer, c'est côte à côte — [installez en 30
+secondes](/docs/getting-started/30-seconds) et pointez un service vers avuru obs.
+:::
