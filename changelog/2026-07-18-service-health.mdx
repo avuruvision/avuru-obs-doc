@@ -1,0 +1,34 @@
+---
+slug: service-health
+title: "Service health: group your services and roll up their status"
+description: "Consolidated group health with criticality tiers and dependency propagation — derived from the traces you already send, no probing."
+authors: [avuru]
+tags: [platform, service-map]
+date: 2026-07-18
+---
+
+A new **Service Health** board rolls each service's RED health up into
+consolidated **group** status — with criticality tiers and a rule that a service
+can't read green while a critical dependency is red. It is **derived** from the
+traces you already send: no health checks, no probes, no new storage.
+
+{/* truncate */}
+
+- **Per-service status from RED.** Each service is `healthy`, `degraded`, `down`
+  or `idle` based on its error budget and a p95 latency objective over the
+  selected window — with a traffic gate first, so a quiet service reads *idle*,
+  never *down*. Every status carries a plain-language reason
+  (`error rate 4.2% ≥ 1% budget`).
+- **Tiers and groups.** Classify services into criticality tiers (T0/T1/T2).
+  Grouping is hybrid: name groups explicitly in config, or let services group
+  automatically by their Kubernetes namespace. The board lays groups out in tier
+  lanes so the most critical status is first.
+- **Dependency propagation.** Dependencies come from the service map you already
+  have; an edge is *critical* when its target is a T0 service. A critical
+  dependency going down drags its dependents to at least *degraded* — and the
+  detail panel shows the chain, so you see "healthy on its own, degraded because
+  payments is down."
+- **Config that hot-reloads.** Tier and threshold classification lives in a
+  ConfigMap the hub reloads live — re-tier a service with a `kubectl edit`, no
+  restart or redeploy. It's an opt-in module (`modules.serviceHealth.enabled`),
+  on by default because it's free value from data you already collect.
