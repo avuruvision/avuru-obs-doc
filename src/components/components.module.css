@@ -485,7 +485,8 @@
   grid-template-columns: repeat(4, 1fr);
   grid-template-areas:
     "trace trace logs metrics"
-    "profile profile ebpf otel";
+    "profile profile ebpf otel"
+    "errors errors health alert";
   gap: 16px;
   text-align: left;
 }
@@ -495,6 +496,9 @@
 .areaProfile { grid-area: profile; }
 .areaEbpf { grid-area: ebpf; }
 .areaOtel { grid-area: otel; }
+.areaErrors { grid-area: errors; }
+.areaHealth { grid-area: health; }
+.areaAlert { grid-area: alert; }
 
 .bentoCard {
   display: flex;
@@ -530,13 +534,15 @@
       "trace trace"
       "logs metrics"
       "profile profile"
-      "ebpf otel";
+      "ebpf otel"
+      "errors errors"
+      "health alert";
   }
 }
 @media (max-width: 560px) {
   .bento {
     grid-template-columns: 1fr;
-    grid-template-areas: "trace" "logs" "metrics" "profile" "ebpf" "otel";
+    grid-template-areas: "trace" "logs" "metrics" "profile" "ebpf" "otel" "errors" "health" "alert";
   }
 }
 

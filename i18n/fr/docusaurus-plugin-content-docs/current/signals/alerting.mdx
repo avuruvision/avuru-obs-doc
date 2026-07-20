@@ -1,0 +1,174 @@
+---
+id: alerting
+title: Alertes
+sidebar_label: Alertes
+sidebar_position: 7
+description: Un webhook quand un service tombe — et un autre quand il se rétablit. Des règles sur le statut de santé des services, pilotées par configuration, rechargées à chaud, avec sortie réseau gardée.
+---
+
+# Alertes
+
+La [santé des services](/docs/signals/service-health) calcule qui est cassé ;
+les alertes s'assurent que quelqu'un est prévenu. Quand un groupe, un service
+ou un tier passe dans un mauvais état **et y reste**, avuru obs envoie un
+**webhook** — vers Slack, PagerDuty, Opsgenie, Alertmanager, ou n'importe quel
+endpoint qui en accepte un. Quand la cible se rétablit, un webhook de
+résolution ferme la boucle.
+
+C'est dérivé de la santé que vous calculez déjà : pas de sondes, pas de
+nouveau signal, pas d'agent qui surveille depuis l'extérieur.
+
+## Règles et canaux
+
+Une règle, ce sont quatre décisions :
+
+```yaml
+rules:
+  - name: payments-critical
+    when: down            # down | degraded | not-healthy
+    for: 5m               # doit durer aussi longtemps avant de déclencher
+    selector:
+      groups: [payments]  # ou services: [...] ou tiers: [T0]
+    channel: ops
+channels:
+  - name: ops
+    type: webhook
+    url: https://hooks.example.com/services/xxx
+    secret: "secret-de-signature-hmac-optionnel"
+```
+
+- **`when`** — `down`, `degraded`, ou `not-healthy` (degraded *ou* down).
+- **`for`** — la condition doit tenir pendant cette durée ; un accroc de
+  30 secondes ne réveille personne.
+- **`selector`** — cible un ou plusieurs **groupes**, **services** ou
+  **tiers** (un tier alerte sur son pire membre).
+- **`channel`** — un webhook nommé, avec un secret de signature optionnel.
+
+Les règles sont **définies en configuration dans la v1** — pas d'API
+d'écriture, pas d'éditeur dans l'UI. C'est assumé : tant que le hub n'a pas
+d'authentification, la modification des règles reste derrière la même revue
+que le reste de votre configuration. La configuration se recharge à chaud
+(~15 s), donc « éditer la config » signifie toujours « appliqué en quelques
+secondes ».
+
+Une cible `idle` ou `unknown` ne déclenche jamais : *pas de trafic* n'est pas
+*une panne*.
+
+## Déclenchement et résolution
+
+Chaque couple règle×cible exécute une petite machine à états :
+
+```
+ok ──condition vraie──▶ pending ──tenue pendant `for`──▶ FIRING  (webhook : fired)
+                                                           │
+ok ◀──────────────── condition levée ─────────────────  RESOLVED (webhook : resolved)
+```
+
+L'état persiste dans ClickHouse à chaque tick d'évaluation : un redémarrage du
+hub reprend au milieu du `for` au lieu de remettre le chronomètre à zéro, une
+alerte déjà en cours n'est jamais renvoyée, et une résolution est livrée
+exactement une fois.
+
+## Le webhook, en sécurité
+
+Le webhook d'alerte est le **seul appel sortant** du hub, il arrive donc
+gardé :
+
+- **Charge utile** — du JSON simple, facile à router n'importe où :
+
+  ```json
+  {
+    "rule": "payments-critical",
+    "target": "payments",
+    "kind": "fired",
+    "status": "down",
+    "reason": "error rate 7.9% ≥ 2% budget",
+    "firedAt": "2026-07-19T03:12:41Z"
+  }
+  ```
+
+- **Signature HMAC** — définissez un `secret` de canal et chaque livraison
+  porte un en-tête `X-Avuru-Signature` (HMAC-SHA256 du corps) que le récepteur
+  peut vérifier. Le secret n'apparaît jamais dans les logs ni dans l'API.
+- **Garde SSRF, activée par défaut** — le hub refuse les cibles loopback,
+  link-local, plages privées et métadonnées cloud, vérifiées *après* la
+  résolution DNS pour déjouer le rebinding. Atteindre volontairement un
+  récepteur privé (par exemple un Alertmanager dans le cluster) est une
+  dérogation explicite : `alerting.webhookAllow: ["10.0.0.0/8"]`.
+- **Réessais plafonnés** — backoff exponentiel sur les erreurs réseau et les
+  5xx ; arrêt définitif sur les 4xx.
+
+## Cas d'usage
+
+- **Être prévenu quand checkout tombe.** L'histoire de bout en bout — RED →
+  santé → règle → webhook dans votre canal — se rejoue en quinze minutes sur
+  le bac à sable fourni :
+  [Savoir quand checkout est down](/guides/know-when-checkout-is-down).
+- **Prévenir sans réveiller.** Routez `when: degraded` sur le T1 vers un canal
+  Slack et gardez `when: down` sur le T0 pour le pager. Même mécanisme,
+  audience différente.
+- **Alimenter l'arbre de routage que vous avez déjà.** Si Alertmanager ou une
+  plateforme d'incident possède déjà la déduplication, les silences et
+  l'escalade, avuru obs n'est qu'une source de webhooks de plus — il ne
+  combat pas votre stack, il l'alimente.
+- **Fermer la boucle.** Le webhook de résolution atterrit dans le même canal
+  que le déclenchement : le fil d'incident se termine sur des faits, pas sur
+  un haussement d'épaules.
+
+## Configuration
+
+`modules.alerting.enabled` est **activé par défaut mais inerte** — sans
+règles, rien ne s'évalue et rien ne se déclenche. Règles et canaux vivent dans
+le bloc Helm `alerting`, rendu en ConfigMap (montée sur
+`AVURUOPS_ALERTS_CONFIG`) et rechargé à chaud en ~15 s :
+
+```yaml
+alerting:
+  evalIntervalSec: 30   # fréquence d'évaluation des règles
+  windowMinutes: 5      # la fenêtre RED sur laquelle la santé est jugée
+  webhookAllow: []      # CIDR autorisés à passer la garde SSRF
+  channels: []
+  rules: []
+```
+
+La validation échoue bruyamment : un `when` inconnu, une règle pointant vers
+un canal non déclaré, un sélecteur vide ou une URL malformée est rejeté, pas
+ignoré. L'historique d'alertes est conservé **30 jours** par défaut
+(`AVURUOPS_RETENTION_ALERTS_DAYS`).
+
+## Le tableau /alerts et l'API
+
+La page **`/alerts`** est un tableau en lecture seule : ce qui est en cours de
+déclenchement (ou « tout va bien »), une chronologie récente des
+déclenchements/résolutions, et les règles et canaux configurés — l'astreinte
+voit ce qui est surveillé sans lire du YAML.
+
+- **`GET /api/v1/alerts`** — alertes en cours + historique récent.
+- **`GET /api/v1/alerts/rules`** — règles et canaux chargés. Les secrets de
+  canaux ne sont jamais sérialisés ; l'API ne rapporte que `hasAuth`.
+
+Voir la [référence API](/reference/api).
+
+## Limites de la v1
+
+- **Évaluateur unique.** Faites tourner le hub avec **un seul réplica** — pas
+  encore d'élection de leader, des réplicas supplémentaires signifient des
+  notifications en double.
+- **Webhook uniquement.** Les mises en forme natives Slack et e-mail passeront
+  par la même couture de notification, plus tard.
+- **Transitions de santé des services uniquement.** Les déclencheurs sur
+  seuils RED et sur le suivi des erreurs (nouveau problème, problème en
+  hausse) se brancheront sur le même évaluateur, plus tard.
+- **Pas de silences, fenêtres de maintenance, regroupement ni inhibition** —
+  s'il vous les faut aujourd'hui, routez via Alertmanager (voir les cas
+  d'usage ci-dessus).
+- **Décalage de rétention.** L'historique d'alertes (30 j) peut survivre aux
+  traces qui expliquaient une alerte : d'anciennes entrées peuvent pointer
+  vers des traces expirées.
+
+:::note Cette page s'étoffe
+Les alertes s'appuient sur la [santé des services](/docs/signals/service-health) ;
+voir l'[entrée du changelog](/changelog/alerting), la
+[Feuille de route](/docs/roadmap) et l'[État des fonctionnalités](/docs/status)
+pour la suite.
+:::

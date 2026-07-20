@@ -1,0 +1,96 @@
+---
+id: catch-a-bad-deploy
+title: Attraper un mauvais déploiement
+sidebar_label: Attraper un mauvais déploiement
+sidebar_position: 6
+description: Déployez à 14h02, voyez la nouvelle exception regroupée en un seul problème à 14h07 — trouvez-la, prouvez que c'est le déploiement, résolvez-la, et laissez la détection de régression monter la garde.
+---
+
+# Attraper un mauvais déploiement
+
+Vous avez déployé à 14h02. À 14h07, la même exception s'est produite
+4 000 fois. Ce guide déroule toute la boucle sur un bac à sable local : voir
+l'erreur comme **un seul problème** au lieu de 4 000 lignes de log, prouver
+qu'elle a commencé avec le déploiement, la résoudre, et laisser la détection
+de régression vous prévenir si elle revient un jour.
+
+## Prérequis
+
+- Docker avec ~6 Go disponibles pour sa VM.
+- Aucun checkout nécessaire — un seul fichier compose tire les images
+  publiées :
+
+  ```bash
+  curl -fsSLO https://raw.githubusercontent.com/avuruvision/avuru-obs/main/deploy/compose/docker-compose.release.yaml
+  docker compose -f docker-compose.release.yaml up --wait
+  ```
+
+  L'interface est sur `http://localhost:3001`, l'application de démonstration
+  sur `http://localhost:8088`.
+
+## Étapes
+
+1. **Générez du trafic — y compris des échecs.** Ouvrez l'application de
+   démonstration sur `http://localhost:8088` et cliquez un peu partout. Son
+   backend fait volontairement échouer une fraction des requêtes : des spans
+   en erreur arrivent en une minute ou deux — le substitut de votre
+   déploiement de 14h02.
+
+   :::tip Version déterministe
+   Vous travaillez depuis un
+   [checkout](https://github.com/avuruvision/avuru-obs) ? Lancez `make dev`,
+   puis poussez les fixtures d'erreurs figées du dépôt au lieu de cliquer :
+
+   ```bash
+   cd tools/seed && go run . -endpoint http://localhost:4318 \
+     -fixtures ../../deploy/compose/seed/fixtures
+   ```
+   :::
+
+2. **Ouvrez `/errors`.** Une ligne par **problème**, pas une par occurrence —
+   l'empreinte (service + type d'exception + premières frames normalisées de
+   la pile) replie des milliers d'évènements en une poignée de lignes, et
+   reste stable entre les déploiements.
+
+3. **Prouvez que c'est le déploiement.** Cliquez sur le problème.
+   L'histogramme des occurrences et l'horodatage **première vue** sont la
+   preuve : une empreinte toute neuve dont la première occurrence coïncide
+   avec le rollout. Pas de spéléologie dans les logs, pas de grep à travers
+   les pods.
+
+4. **Pivotez vers la cause.** Suivez le lien de trace du problème jusqu'à la
+   requête exacte qui a planté — et de la trace vers ses logs et ses spans. La
+   pile d'appels du problème est le lieu du crash ; la trace est l'histoire
+   autour.
+
+5. **Corrigez et résolvez.** Une fois le correctif déployé, marquez le
+   problème **Résolu**. Il sort de la liste active.
+
+6. **Laissez la détection de régression monter la garde.** Si la même
+   empreinte enregistre une occurrence *après* la résolution, le problème se
+   signale lui-même comme **régression** — le bug que vous aviez clos est de
+   retour, et il le dit au lieu de se cacher dans un nouveau ticket.
+
+## Vérifier
+
+```bash
+# Les problèmes que le module a dérivés du trafic — celui que vous avez résolu a disparu :
+curl -s 'http://localhost:8080/api/v1/errors/issues?status=unresolved' | jq '.issues[].title'
+```
+
+## Notes honnêtes
+
+- Une erreur à la fois journalisée *et* enregistrée comme évènement de span
+  peut apparaître comme **deux problèmes** (sources différentes, empreintes
+  différentes) dans la v1.
+- La dérivation démarre à l'activation du module — il n'y a **pas de
+  rattrapage** de la télémétrie antérieure.
+
+## Ensuite
+
+- [Erreurs](/docs/signals/errors) — empreintes, sources et cycle de triage en
+  détail.
+- [Intégration SDK Sentry](/integrations/frameworks/sentry-sdk) — les erreurs
+  navigateur avec un changement de DSN d'une ligne.
+- [Savoir quand checkout est down](/guides/know-when-checkout-is-down) — des
+  erreurs à la santé jusqu'au webhook qui vous prévient.

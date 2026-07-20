@@ -3,17 +3,114 @@ id: slos-and-alerts
 title: SLOs & alerts
 sidebar_label: SLOs & alerts
 sidebar_position: 5
-description: Turn RED metrics into service-level objectives and alerts.
+description: Encode what "healthy" means per criticality tier — error budgets and latency objectives — then route pages and warnings to different channels.
 ---
 
 # SLOs & alerts
 
-Use the RED metrics (Rate, Errors, Duration) that avuru obs derives
-automatically to define **service-level objectives** and alert on burn rate.
+Turn "everyone knows payments matters most" into configuration: classify
+services into criticality tiers, give each tier an error budget and a latency
+objective, and route `down` to the pager while `degraded` goes to a Slack
+channel. This guide is Helm-first — the production path.
 
-- Define an SLO per critical endpoint (e.g. 99.9% < 300 ms).
-- Alert on **error-budget burn rate**, not raw thresholds.
+## Prerequisites
 
-:::note This page is expanding
-Alerting configuration in the hub is being documented.
-:::
+- avuru obs [installed via Helm](/docs/setup/kubernetes) with the
+  `service-health` and `alerting` modules on (they're on by default).
+- Traffic flowing, so services have RED data to judge.
+
+## Steps
+
+1. **Classify services into tiers.** Name the groups that matter and let
+   everything else auto-group by namespace at the default tier:
+
+   ```yaml
+   serviceGroups:
+     defaultTier: T2
+     groups:
+       - name: payments
+         tier: T0
+         selector: { namespaces: [payments] }
+       - name: storefront
+         tier: T1
+         selector: { services: [web, catalog, search] }
+   ```
+
+2. **Set objectives per tier.** Thresholds resolve by precedence —
+   **services > tiers > defaults** — so tighten T0 without touching the long
+   tail:
+
+   ```yaml
+   serviceGroups:
+     thresholds:
+       defaults:
+         errorRateWarn: 0.01        # 1% → degraded
+         errorRateCrit: 0.05        # 5% → down
+         latencyP95ObjectiveMs: 500
+         minSampleCount: 5
+       tiers:
+         T0: { errorRateWarn: 0.005, errorRateCrit: 0.02, latencyP95ObjectiveMs: 300 }
+       services:
+         reports: { latencyP95ObjectiveMs: 2000 }   # slow by design
+   ```
+
+   Every judgement shows its work on the `/health` board:
+   `error rate 4.2% ≥ 1% budget`, `p95 780ms ≥ 500ms objective`.
+
+3. **Route by audience, not just severity.** Two rules, two channels — the
+   pager only hears about sustained T0 trouble:
+
+   ```yaml
+   alerting:
+     channels:
+       - name: pager
+         type: webhook
+         url: https://events.pagerduty.com/integration/xxx/enqueue
+         secret: "hmac-signing-secret"
+       - name: team-slack
+         type: webhook
+         url: https://hooks.slack.com/services/xxx
+     rules:
+       - name: t0-down
+         when: not-healthy          # degraded OR down
+         for: 5m                    # sustained — a blip never pages
+         selector: { tiers: [T0] }
+         channel: pager
+       - name: t1-early-warning
+         when: degraded
+         for: 10m
+         selector: { tiers: [T1] }
+         channel: team-slack
+   ```
+
+4. **Apply, or edit live.** `helm upgrade` — or `kubectl edit` the rendered
+   ConfigMaps: the hub hot-reloads both files within ~15 s, no restart. Bad
+   config (unknown tier, undeclared channel, empty selector) is rejected
+   loudly, not silently ignored.
+
+## Verify
+
+```bash
+# Thresholds visibly applied — statuses carry their reasons:
+curl -s 'http://<hub>/api/v1/health/groups' | jq '.groups[] | {name, status, reason}'
+
+# Rules loaded (channel secrets are never serialized):
+curl -s 'http://<hub>/api/v1/alerts/rules' | jq
+```
+
+## Honest scope
+
+The rules above alert on **sustained health status** — a target staying
+`down`/`degraded` for a duration — not on multi-window error-budget **burn
+rate**. Burn-rate alerting is on the [roadmap](/docs/roadmap); until then, the
+tier objectives give you the SLO language while status transitions give you
+the mechanism.
+
+## Next
+
+- [Service health](/docs/signals/service-health) — how statuses and rollups
+  are computed.
+- [Alerting](/docs/signals/alerting) — lifecycle, payload, HMAC signing, SSRF
+  guard.
+- [Know when checkout is down](/guides/know-when-checkout-is-down) — the same
+  chain, live on a laptop in fifteen minutes.

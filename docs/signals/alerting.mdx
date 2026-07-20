@@ -1,0 +1,159 @@
+---
+id: alerting
+title: Alerting
+sidebar_label: Alerting
+sidebar_position: 7
+description: A webhook when a service goes down — and another when it recovers. Rules on service-health status, config-driven, hot-reloaded, guarded outbound.
+---
+
+# Alerting
+
+[Service health](/docs/signals/service-health) computes who's broken; alerting
+makes sure someone is told. When a group, service, or tier crosses into a bad
+state **and stays there**, avuru obs fires a **webhook** — into Slack,
+PagerDuty, Opsgenie, Alertmanager, or any endpoint that accepts one. When the
+target recovers, a resolve webhook closes the loop.
+
+It's derived from the health you already compute: no probes, no new signal, no
+agent watching from outside.
+
+## Rules and channels
+
+A rule is four decisions:
+
+```yaml
+rules:
+  - name: payments-critical
+    when: down            # down | degraded | not-healthy
+    for: 5m               # must hold this long before firing
+    selector:
+      groups: [payments]  # or services: [...] or tiers: [T0]
+    channel: ops
+channels:
+  - name: ops
+    type: webhook
+    url: https://hooks.example.com/services/xxx
+    secret: "optional-hmac-signing-secret"
+```
+
+- **`when`** — `down`, `degraded`, or `not-healthy` (degraded *or* down).
+- **`for`** — the condition must hold for this duration; a 30-second blip
+  never pages.
+- **`selector`** — target one or more **groups**, **services**, or **tiers**
+  (a tier alerts on its worst member).
+- **`channel`** — a named webhook, with an optional signing secret.
+
+Rules are **config-defined in v1** — no write API, no UI editor. That's
+deliberate: rule edits belong behind the same review as the rest of your
+config until the hub grows authentication. The config hot-reloads (~15 s), so
+"edit config" still means "applies in seconds".
+
+An `idle` or `unknown` target never fires: *no traffic* is not *an outage*.
+
+## Fire and resolve
+
+Each rule×target runs a small state machine:
+
+```
+ok ──condition true──▶ pending ──held for `for`──▶ FIRING  (webhook: fired)
+                                                     │
+ok ◀────────────── condition clears ──────────── RESOLVED  (webhook: resolved)
+```
+
+State persists in ClickHouse on every evaluation tick, so a hub restart
+resumes mid-`for` instead of resetting the clock, an already-firing alert is
+never re-sent, and a resolve is delivered exactly once.
+
+## The webhook, safely
+
+The alert webhook is the hub's **only outbound call**, so it ships guarded:
+
+- **Payload** — plain JSON, easy to route anywhere:
+
+  ```json
+  {
+    "rule": "payments-critical",
+    "target": "payments",
+    "kind": "fired",
+    "status": "down",
+    "reason": "error rate 7.9% ≥ 2% budget",
+    "firedAt": "2026-07-19T03:12:41Z"
+  }
+  ```
+
+- **HMAC signing** — set a channel `secret` and every delivery carries an
+  `X-Avuru-Signature` header (HMAC-SHA256 of the body) for the receiver to
+  verify. The secret never appears in logs or in the API.
+- **SSRF guard, on by default** — the hub refuses loopback, link-local,
+  private-range and cloud-metadata targets, checked *after* DNS resolution so
+  rebinding doesn't slip through. Deliberately reaching a private receiver
+  (say, an in-cluster Alertmanager) is an explicit override:
+  `alerting.webhookAllow: ["10.0.0.0/8"]`.
+- **Capped retries** — exponential backoff on network errors and 5xx;
+  terminal on 4xx.
+
+## Use cases
+
+- **Page when checkout goes down.** The end-to-end story — RED → health →
+  rule → webhook in your channel — is a fifteen-minute walkthrough on the
+  bundled sandbox: [Know when checkout is down](/guides/know-when-checkout-is-down).
+- **Early warning without paging.** Route `when: degraded` on T1 to a Slack
+  channel and keep `when: down` on T0 for the pager. Same mechanism, different
+  audience.
+- **Feed the routing tree you already have.** If Alertmanager or an incident
+  platform already owns dedup, silences and escalation, avuru obs is just one
+  more webhook source — it doesn't fight your stack, it feeds it.
+- **Close the loop.** The resolve webhook lands in the same channel as the
+  fire, so the incident thread ends with facts, not a shrug.
+
+## Configuration
+
+`modules.alerting.enabled` is **on by default but inert** — with no rules,
+nothing evaluates and nothing fires. Rules and channels live in the `alerting`
+Helm block, rendered to a ConfigMap (mounted at `AVURUOPS_ALERTS_CONFIG`) and
+hot-reloaded within ~15 s:
+
+```yaml
+alerting:
+  evalIntervalSec: 30   # how often rules are evaluated
+  windowMinutes: 5      # the RED window health is judged over
+  webhookAllow: []      # CIDRs allowed past the SSRF guard
+  channels: []
+  rules: []
+```
+
+Validation is fail-loud: an unknown `when`, a rule pointing at an undeclared
+channel, an empty selector or a malformed URL is rejected, not ignored.
+Alert history is kept **30 days** by default
+(`AVURUOPS_RETENTION_ALERTS_DAYS`).
+
+## The /alerts board and API
+
+The **`/alerts`** page is a read-only board: what's firing now (or "all
+clear"), a recent fire/resolve timeline, and the configured rules and channels
+— so the on-call can see what's watched without reading YAML.
+
+- **`GET /api/v1/alerts`** — current firing alerts + recent history.
+- **`GET /api/v1/alerts/rules`** — loaded rules and channels. Channel secrets
+  are never serialized; the API only reports `hasAuth`.
+
+See the [API reference](/reference/api).
+
+## v1 limitations
+
+- **Single evaluator.** Run the hub with **one replica** — there's no leader
+  election yet, so extra replicas mean duplicate notifications.
+- **Webhook only.** Native Slack and email formatting are behind the same
+  notifier seam, later.
+- **Service-health transitions only.** RED-threshold and error-tracking
+  triggers (new issue, spiking issue) plug into the same evaluator, later.
+- **No silences, maintenance windows, grouping or inhibition** — if you need
+  those today, route through Alertmanager (see use cases above).
+- **Retention skew.** Alert history (30 d) can outlive the traces that
+  explained an alert, so old entries may link to expired traces.
+
+:::note This page is expanding
+Alerting rides on [service health](/docs/signals/service-health); see the
+[changelog entry](/changelog/alerting), the [Roadmap](/docs/roadmap) and
+[Feature status](/docs/status) for what's next.
+:::

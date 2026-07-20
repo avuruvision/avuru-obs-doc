@@ -31,9 +31,9 @@ logs et des traces.
 |---|---|---|
 | **Instrumentation zéro-code** | `node-agent` eBPF | `sensor` eBPF (OBI) |
 | **Carte des services en minutes** | Oui | Oui |
-| **Signaux** | Métriques, logs, traces, profilage, alertes SLO | Traces, métriques RED + infra, logs, profilage |
+| **Signaux** | Métriques, logs, traces, profilage, alertes SLO | Traces, métriques RED + infra, logs, profilage, suivi des erreurs, santé des services + alertes |
 | **Stockage** | TSDB compatible Prometheus pour les métriques **+** ClickHouse pour logs/traces/profils (les métriques peuvent aller dans ClickHouse) | **Un seul ClickHouse** pour tous les signaux |
-| **Suivi des erreurs** | Déduit des traces et des logs | **Module de premier plan** avec **ingestion via SDK Sentry** *(en cours d'arrivée)* |
+| **Suivi des erreurs** | Déduit des traces et des logs | **Module de premier plan** avec **ingestion via SDK Sentry** |
 | **Choix des signaux** | Ensemble prédéfini | **Système de modules** — activer/désactiver des familles de signaux |
 | **Ingestion** | OTLP + `node-agent` | **OTLP** natif (`:4318`/`:4317`) + eBPF |
 | **Analyse de cause racine** | RCA assistée par IA + inspections prédéfinies | Requêtes corrélées (pas encore de RCA par IA) |
@@ -58,14 +58,19 @@ logs et des traces.
   ajoutant logs, métriques d'infra et profilage. Désactiver un module ignore son
   schéma, son API, sa collecte et son écran, si bien qu'une installation légère
   le reste.
+- **Santé et alertes incluses.** La
+  [santé des services](/docs/signals/service-health) consolide le RED en statut
+  de groupe avec tiers de criticité et propagation des dépendances — un service
+  ne peut pas s'afficher vert quand une dépendance critique est rouge — et les
+  [alertes](/docs/signals/alerting) envoient un webhook (Slack, PagerDuty,
+  Alertmanager) quand une cible tombe et quand elle se rétablit.
 
 :::note État en toute transparence
-Le **module de suivi des erreurs** et son ingestion via SDK Sentry sont **en
-cours d'arrivée** : ils sont en développement actif et ne font pas encore partie
-de la version **v0.1.0** publiée. Le [système de modules](/docs/setup/modules) et
-le stockage ClickHouse unique, eux, sont déjà disponibles. Suivez ce qui est en
-production sur [l'état des fonctionnalités](/docs/status) et le
-[Changelog](/changelog).
+Le **module de suivi des erreurs** (avec ingestion via SDK Sentry), la
+**[santé des services](/docs/signals/service-health)** et les
+**[alertes](/docs/signals/alerting)** sont arrivés avec la ligne **v0.2** ; le
+port d'ingestion reste opt-in. Suivez ce qui est en production sur
+[l'état des fonctionnalités](/docs/status) et le [Changelog](/changelog).
 :::
 
 ## Comment les faire tourner côte à côte
@@ -88,8 +93,9 @@ exportateurs.
 - Vous voulez une **analyse de cause racine assistée par IA** et des inspections
   prédéfinies dès aujourd'hui — avuru obs corrèle les signaux par des requêtes,
   mais ne fait pas encore de RCA automatique.
-- Vous vous appuyez sur les **alertes basées sur des SLO** et les tableaux de bord
-  prêts à l'emploi de Coroot.
+- Vous vous appuyez sur les **alertes SLO à burn rate** et les tableaux de bord
+  prêts à l'emploi de Coroot — avuru obs alerte aujourd'hui sur des transitions
+  de statut de santé soutenues, pas sur la combustion du budget d'erreur.
 - Vous exploitez déjà une base de métriques **compatible Prometheus** et vous
   souhaitez que vos métriques y restent.
 - Vous avez besoin des tableaux de bord de bases de données du **cluster-agent**

@@ -50,7 +50,9 @@ run well together (see below).
 You don't have to choose immediately. Prometheus can **remote-write** into an
 OTLP pipeline, and avuru obs ingests OTLP — so you can feed existing Prometheus
 metrics into avuru while you evaluate, and keep PromQL where you need it. See the
-[OTLP bridge guide](/docs/setup/otel-bridge).
+[OTLP bridge guide](/docs/setup/otel-bridge). In the other direction, avuru's
+[alert webhooks](/docs/signals/alerting) can feed your existing Alertmanager
+routing tree, so avuru-detected outages ride your dedup and silences.
 
 ## When Prometheus is the better fit
 

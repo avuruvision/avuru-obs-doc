@@ -40,6 +40,9 @@ billing, and stay on open standards.
 - **No proprietary agents.** The eBPF `sensor` needs no code changes, and
   ingestion is standard **OTLP**, so you're never locked into one vendor's SDK.
   See [Architecture](/guides/architecture).
+- **Monitors without the meter.** A [service-health board](/docs/signals/service-health)
+  with criticality tiers and webhook [alerting](/docs/signals/alerting) when a
+  service goes down are in the box — not a per-monitor or per-host line item.
 
 ## How to migrate
 
@@ -58,7 +61,7 @@ See the [OTLP bridge guide](/docs/setup/otel-bridge) for exporter settings.
 - You want **fully managed** SaaS with no infrastructure to operate.
 - You need breadth avuru obs doesn't cover yet — RUM, synthetics, security
   monitoring, or their large turnkey integration catalog.
-- You want vendor support contracts and SLAs today. avuru obs is pre-v0.1 and
+- You want vendor support contracts and SLAs today. avuru obs is young and
   self-supported — check [Feature status](/docs/status) before committing.
 
 :::tip Try it side by side

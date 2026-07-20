@@ -3,7 +3,7 @@ import Link from '@docusaurus/Link';
 import Translate from '@docusaurus/Translate';
 import styles from './components.module.css';
 
-type IconKey = 'trace' | 'logs' | 'metrics' | 'profile' | 'ebpf' | 'otel';
+type IconKey = 'trace' | 'logs' | 'metrics' | 'profile' | 'ebpf' | 'otel' | 'errors' | 'health' | 'alert';
 
 /** Lucide-style stroke icons (24×24, currentColor). No emoji. */
 const ICONS: Record<IconKey, React.ReactElement> = {
@@ -54,6 +54,22 @@ const ICONS: Record<IconKey, React.ReactElement> = {
       <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
       <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
       <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+    </>
+  ),
+  errors: (
+    <>
+      <path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86Z" />
+      <line x1="12" x2="12" y1="8" y2="12" />
+      <line x1="12" x2="12.01" y1="16" y2="16" />
+    </>
+  ),
+  health: (
+    <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
+  ),
+  alert: (
+    <>
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </>
   ),
 };
@@ -217,6 +233,39 @@ const FEATURES: Feature[] = [
     desc: (
       <Translate id="home.feat.otel.desc">
         Speak OTLP end to end. Bring your existing SDKs and collectors.
+      </Translate>
+    ),
+  },
+  {
+    icon: 'errors',
+    area: styles.areaErrors,
+    to: '/docs/signals/errors',
+    title: <Translate id="home.feat.errors.title">Error tracking</Translate>,
+    desc: (
+      <Translate id="home.feat.errors.desc">
+        Exceptions become deduplicated, triageable issues — with Sentry-SDK ingest for the browser.
+      </Translate>
+    ),
+  },
+  {
+    icon: 'health',
+    area: styles.areaHealth,
+    to: '/docs/signals/service-health',
+    title: <Translate id="home.feat.health.title">Service health</Translate>,
+    desc: (
+      <Translate id="home.feat.health.desc">
+        Group status with criticality tiers — a service can't read green while a critical dependency is red.
+      </Translate>
+    ),
+  },
+  {
+    icon: 'alert',
+    area: styles.areaAlert,
+    to: '/docs/signals/alerting',
+    title: <Translate id="home.feat.alerts.title">Alerting</Translate>,
+    desc: (
+      <Translate id="home.feat.alerts.desc">
+        A webhook to Slack, PagerDuty or Alertmanager when a service goes down — and when it recovers.
       </Translate>
     ),
   },

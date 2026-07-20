@@ -1,0 +1,66 @@
+---
+id: network-health
+title: Network health
+sidebar_label: Network health
+sidebar_position: 8
+description: Per-edge TCP RTT and failed connections on the service map, measured in the kernel by OBI — connection health with no traces, SDKs, or app changes.
+---
+
+# Network health
+
+The service map shows what your services *say* to each other. Network health
+shows whether the wire between them is slow or refusing connections: per-edge
+**TCP RTT** and **failed/reset connections**, measured in the kernel by OBI —
+no traces, no SDKs, no app changes.
+
+## On the edge
+
+Hover any service-map edge for its call volume plus **RTT p95** and **failed
+connections**. An edge turns **amber and dashed** when RTT is high or
+connections are failing; if traces already mark the edge red with application
+errors, red takes precedence — an app failure outranks a slow wire.
+
+## How it works
+
+OBI's TCP-stats feature emits two metrics per connection pair:
+`obi.stat.tcp.rtt` (a histogram) and `obi.stat.tcp.failed.connections` (a
+counter whose `reason` label carries resets). They land in the **existing
+metric tables** — no migration, no new storage — and the hub joins them onto
+service-map edges at query time.
+
+This is **not a module**: it's an enrichment of the core service map, active
+when the sensor's OBI network feature is on and the
+[infra-metrics module](/docs/setup/modules) is enabled.
+
+## Use cases
+
+- **See the slow link before the SLO burns.** Kernel RTT rises before p95
+  request latency does the accounting for you — an amber edge is an early,
+  localized symptom.
+- **Split "network fault" from "app fault" on one screen.** A red edge with a
+  clean wire points at the application; an amber wire under a healthy service
+  points at the network. Same topology, one glance.
+- **Health for edges you never instrumented.** Legacy or third-party services
+  with no SDK still get L4 health on their edges, because the kernel sees every
+  connection.
+
+:::caution Validation pending
+The exact OBI stats configuration key and the per-edge Kubernetes owner
+attribution are **not yet verified against a running eBPF cluster**. Until
+they're confirmed in a real kind/eBPF environment, treat this feature as
+experimental — it ships **off by default** for exactly this reason
+(`sensor.obi.network.enabled`).
+:::
+
+## Limitations
+
+- **No retransmissions** — OBI doesn't emit them, so they aren't shown.
+- **Failed-connection counts are an approximation** — a sum over a cumulative
+  counter, not a sessionized count.
+- **Only attributed edges appear** — an edge needs both endpoints resolved to
+  a Kubernetes owner by OBI.
+
+:::note This page is expanding
+See the [changelog entry](/changelog/network-health), the
+[Roadmap](/docs/roadmap) and [Feature status](/docs/status).
+:::

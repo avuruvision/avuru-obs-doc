@@ -62,6 +62,23 @@ Every issue has a status:
 records an occurrence *after* it was resolved is flagged as a regression — the
 bug you closed last week is back.
 
+## Use cases
+
+- **Catch a bad deploy.** One new fingerprint whose first-seen lines up with
+  the 14:02 rollout *is* the answer — no log spelunking. The
+  [Catch a bad deploy](/guides/catch-a-bad-deploy) guide walks it end to end
+  on the bundled sandbox.
+- **Browser errors without new tooling.** Your frontend already runs a Sentry
+  SDK? Change its DSN and browser exceptions land next to the backend traces
+  that caused them. See the
+  [Sentry SDK integration](/integrations/frameworks/sentry-sdk).
+- **Regression watch.** Resolve an issue and forget it — if the bug ships
+  again, the issue flags itself as a regression instead of drowning in a new
+  ticket.
+- **Triage services you never instrumented.** Issues derive from the telemetry
+  eBPF and OTLP already deliver, so even SDK-less services get grouped,
+  triageable errors.
+
 ## Configuration
 
 - **`modules.errorTracking.enabled`** — default **on**. Derivation is free value

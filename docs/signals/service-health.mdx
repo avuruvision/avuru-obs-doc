@@ -1,0 +1,144 @@
+---
+id: service-health
+title: Service health
+sidebar_label: Service health
+sidebar_position: 6
+description: One board that answers "what's broken and how bad" — group status with criticality tiers and dependency propagation, derived from the traces you already send.
+---
+
+# Service health
+
+Forty green tiles don't answer the 3 a.m. question: *is anything my users care
+about actually broken?* The **Service Health** board does. It rolls each
+service's RED health up into consolidated **group** status, lays the groups out
+by criticality tier, and enforces one rule dashboards usually leave to the
+reader: a service can't read green while a critical dependency is red.
+
+It is **derived** from the traces you already send. No health checks, no
+probes, no new storage — the hub never originates traffic to your services.
+
+## From RED to status
+
+Each service gets one of four states, computed from its RED data over the
+selected window:
+
+- **`healthy`** — inside its error budget and latency objective.
+- **`degraded`** — over the warning error rate, or past its p95 objective.
+- **`down`** — over the critical error rate.
+- **`idle`** — not enough traffic to judge. A **traffic gate runs first**, so a
+  quiet service reads *idle*, never *down* — no 3 a.m. page because a batch job
+  went to sleep.
+
+Every status carries a plain-language reason, not just a color:
+`error rate 4.2% ≥ 1% budget`, or `p95 780ms ≥ 500ms objective`. Thresholds
+resolve by precedence — **service overrides > tier overrides > defaults** — so
+you can hold T0 to 0.5% while the long tail lives with the built-ins.
+
+## Groups and tiers
+
+Grouping is hybrid, so the board is useful before you configure anything:
+
+- **Named groups** come from config: a selector matches services by name or by
+  Kubernetes namespace, and assigns a criticality tier (**T0/T1/T2**).
+- **Everything else auto-groups by namespace** at the default tier. Services
+  with no namespace label pool into an `(unlabeled)` group until config claims
+  them.
+
+The `/health` board lays groups out in **tier lanes**, most critical first —
+so the on-call glance starts where the blast radius is largest.
+
+## Dependency propagation
+
+Your checkout service can be perfectly healthy *and* completely useless,
+because payments is down. Service Health encodes that:
+
+- Dependencies come from the [service map](/docs/getting-started/core-concepts)
+  you already have — no extra declaration.
+- An edge is **critical** when its target is a T0 service (or when you force it
+  with `criticalEdges`).
+- A critical dependency going `down` drags its dependents to at least
+  `degraded`. Each member reports both its **base** status and its
+  **effective** status, so the detail panel can say exactly that: *healthy on
+  its own, degraded because payments is down.*
+
+Propagation is one hop, cycle-safe, and down-only — deliberate v1 boundaries
+(see limitations below).
+
+## Use cases
+
+- **The on-call glance.** One screen, tier lanes, worst first. If the T0 lane
+  is green, go back to bed — and if it isn't, the reason string tells you why
+  before you've opened a single dashboard.
+- **Encode the golden rule instead of re-deriving it.** "Checkout depends on
+  payments" lives in the topology, not in tribal knowledge. New team members
+  see the dependency chain in the member detail panel.
+- **Re-tier mid-incident.** Classification lives in a ConfigMap the hub
+  hot-reloads (~15 s). Promote a suddenly-critical service to T0 with a
+  `kubectl edit` — no restart, no redeploy, no PR.
+- **Drive a status page.** `GET /api/v1/health/groups` returns the whole board
+  as JSON — overall status, per-group rollups, reasons. Feed it to an external
+  status page or a wallboard.
+
+## Configuration
+
+The module is **on by default** (`modules.serviceHealth.enabled`) — it's free
+value from data you already collect. Turning it off removes the API routes and
+the sidebar entry, nothing else, because it owns no storage.
+
+Grouping lives in the `serviceGroups` Helm block, rendered to a ConfigMap the
+hub reads (mounted at `AVURUOPS_GROUPS_CONFIG`) and **hot-reloads within
+~15 s** of a `kubectl edit`:
+
+```yaml
+serviceGroups:
+  defaultTier: T2            # tier for services no group claims
+  groups:
+    - name: payments
+      tier: T0
+      selector:
+        namespaces: [payments]
+        services: []
+  # SLO-lite thresholds. Precedence: services > tiers > defaults > built-in.
+  thresholds:
+    defaults:
+      errorRateWarn: 0.01
+      errorRateCrit: 0.05
+      latencyP95ObjectiveMs: 500
+      minSampleCount: 5
+    tiers:
+      T0: { errorRateWarn: 0.005, errorRateCrit: 0.02, latencyP95ObjectiveMs: 300 }
+    services:
+      payments: { latencyP95ObjectiveMs: 800 }
+  # Force specific edges critical even when the target isn't T0 (rare).
+  criticalEdges: []
+  #  - { from: web, to: legacy-billing }
+```
+
+Validation is fail-loud: a bad tier or an empty selector is rejected at
+startup (and a bad tier already fails `helm template` against the chart's
+values schema).
+
+## API
+
+- **`GET /api/v1/health/groups?start&end`** — the whole board: overall status,
+  per-group status with rollup reason and aggregate RED, and members with base
+  vs. effective status and their dependencies.
+- **`GET /api/v1/health/groups/{name}`** — one group, for drill-downs.
+
+See the [API reference](/reference/api).
+
+## v1 limitations
+
+- **Propagation is one hop and down-only.** A `degraded` dependency doesn't
+  propagate, and transitive chains (A→B→C) don't cascade past the first hop.
+- **Group latency is the worst member's p95**, not a true group-level
+  quantile.
+- **Unlabeled services pool together** in `(unlabeled)` until a config group
+  names them.
+
+:::note This page is expanding
+Service health is where [alerting](/docs/signals/alerting) gets its signal —
+a rule can page you when a group, service, or tier goes bad. See the
+[changelog entry](/changelog/service-health), the [Roadmap](/docs/roadmap) and
+[Feature status](/docs/status).
+:::

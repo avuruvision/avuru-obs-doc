@@ -48,6 +48,9 @@ protocol and network-flow analysis and a permissive Apache-2.0 core.
 - **Fewer moving parts.** DeepFlow runs an agent, a server, ClickHouse, a MySQL
   metadata database and Grafana. avuru obs is one Helm chart over a single
   ClickHouse store.
+- **Connection health on the map.** Per-edge TCP RTT and failed connections
+  from OBI's kernel stats surface directly on the service map — see
+  [Network health](/docs/signals/network-health).
 
 ## How they coexist
 
