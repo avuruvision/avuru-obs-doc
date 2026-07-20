@@ -1,0 +1,29 @@
+---
+slug: error-tracking
+title: "Error tracking: exceptions become triageable issues"
+description: "Exceptions already in your traces and logs become deduplicated issues with a stack trace, an occurrence timeline, and a triage lifecycle — plus a Sentry-protocol ingest for browser errors."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-17
+---
+
+A new **Error tracking** module turns the exceptions already flowing through
+avuru-obs — span exception events, error spans, and ERROR/FATAL logs — into
+first-class **issues**: deduplicated by fingerprint, each with a stack trace,
+an occurrence timeline, a link to a representative trace, and a triage
+lifecycle. No code change required.
+
+{/* truncate */}
+
+- **Derived, not instrumented.** Issues are computed in-database from the data
+  you already send — group errors and triage them with no SDK to deploy.
+- **Two ways in.** Backend exceptions arrive zero-code via OBI and OTLP; for
+  browser errors — the one signal eBPF can't reach — a **Sentry-protocol ingest
+  endpoint** lets existing Sentry SDKs point at avuru-obs by changing a DSN
+  (off by default; opt-in).
+- **Triage lifecycle.** Mark an issue unresolved, resolved, or ignored;
+  a resolved issue that recurs is flagged as a **regression**, computed at read
+  time.
+- **The Errors page.** Search and filter issues by status and service, open an
+  issue for its stack trace, occurrence histogram, and trace links. It's an
+  opt-in module (`modules.errorTracking.enabled`).

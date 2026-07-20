@@ -1,0 +1,26 @@
+---
+slug: network-health
+title: "Network health on the service map: per-edge RTT and connection failures"
+description: "Kernel-level TCP RTT and failed/reset connections on the service-map edges, from OBI — connection health with no traces, SDKs, or app changes."
+authors: [avuru]
+tags: [service-map, platform]
+date: 2026-07-19
+---
+
+The service map now shows **connection-level health** on its edges: per-edge
+**TCP RTT** and **failed/reset connections**, measured in the kernel by OBI —
+no traces, no SDKs, no app changes. A link that's slow or refusing connections
+is now visible on the same topology you already watch.
+
+{/* truncate */}
+
+- **On the edge.** Hover an edge for its call volume plus RTT p95 and failed
+  connections; an edge turns amber (dashed) when RTT is high or connections are
+  failing, with trace-error red taking precedence.
+- **From OBI's TCP stats.** Sourced from `obi.stat.tcp.rtt` and
+  `obi.stat.tcp.failed.connections`, keyed to the same service endpoints as the
+  network-flow edges. Enable with the sensor's OBI network feature (requires the
+  infra-metrics module).
+- **No new storage.** RTT (a histogram) and failures (a counter) land in the
+  existing metric tables and are read at query time — no migration.
+- **Scope note.** OBI does not emit TCP retransmissions, so those are not shown.

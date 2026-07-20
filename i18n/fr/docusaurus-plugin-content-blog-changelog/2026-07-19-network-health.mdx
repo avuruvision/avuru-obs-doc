@@ -1,0 +1,30 @@
+---
+slug: network-health
+title: "Santé réseau sur la carte des services : RTT et échecs de connexion par arête"
+description: "RTT TCP et connexions échouées/réinitialisées au niveau du noyau sur les arêtes de la carte des services, via OBI — santé des connexions sans traces, SDK ni modification applicative."
+authors: [avuru]
+tags: [service-map, platform]
+date: 2026-07-19
+---
+
+La carte des services affiche désormais la **santé au niveau des connexions**
+sur ses arêtes : le **RTT TCP** et les **connexions échouées/réinitialisées**
+par arête, mesurés dans le noyau par OBI — sans traces, sans SDK, sans
+modification applicative. Un lien lent ou qui refuse les connexions est
+maintenant visible sur la topologie que vous surveillez déjà.
+
+{/* truncate */}
+
+- **Sur l'arête.** Survolez une arête pour voir son volume d'appels plus le
+  RTT p95 et les connexions échouées ; une arête passe en ambre (pointillés)
+  quand le RTT est élevé ou que des connexions échouent, le rouge des erreurs de
+  trace restant prioritaire.
+- **Depuis les stats TCP d'OBI.** Issu de `obi.stat.tcp.rtt` et
+  `obi.stat.tcp.failed.connections`, rattaché aux mêmes points de terminaison
+  que les arêtes de flux réseau. Activez-le via la fonctionnalité réseau OBI du
+  sensor (nécessite le module infra-metrics).
+- **Aucun nouveau stockage.** Le RTT (un histogramme) et les échecs (un
+  compteur) atterrissent dans les tables de métriques existantes et sont lus à
+  la requête — aucune migration.
+- **Portée.** OBI n'émet pas les retransmissions TCP ; elles ne sont donc pas
+  affichées.

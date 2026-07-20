@@ -88,10 +88,11 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
   ships a local admin password). The enterprise seam — auth provider, `tenant`
   column, retention policy objects — is built in from v0.1, so this lands without
   a rewrite.
-- **v0.2 — network flow enrichment:** OBI's built-in `network` feature enriches
-  the service map with un-instrumented edges and per-edge network health (bytes
-  now; RTT and retransmits later) — a config toggle on the existing sensor, no
-  bespoke agent.
+- **v0.2 — network flow enrichment (shipping):** OBI's built-in `network`
+  feature enriches the service map with un-instrumented edges and per-edge
+  network health — bytes, RTT, and failed/reset connections — a config toggle on
+  the existing sensor, no bespoke agent. (Retransmissions aren't shown: OBI
+  doesn't emit them.)
 - **v0.2 — remote configuration:** the hub's OpAMP server and Configuration /
   OpAMP controls in the UI (day-2 config is Helm-driven in v0.1).
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
