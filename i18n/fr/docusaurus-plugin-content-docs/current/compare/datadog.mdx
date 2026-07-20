@@ -41,6 +41,10 @@ l'hôte et restez sur des standards ouverts.
 - **Pas d'agents propriétaires.** Le `sensor` eBPF ne demande aucun changement de
   code, et l'ingestion est en **OTLP** standard : vous n'êtes jamais enfermé dans le
   SDK d'un fournisseur. Voir [Architecture](/guides/architecture).
+- **Des moniteurs sans compteur.** Un
+  [tableau de santé des services](/docs/signals/service-health) avec tiers de
+  criticité et des [alertes](/docs/signals/alerting) webhook quand un service
+  tombe sont inclus — pas une ligne de facturation par moniteur ou par hôte.
 
 ## Comment migrer
 
@@ -61,8 +65,8 @@ d'exportateur.
 - Vous voulez du SaaS **entièrement managé**, sans infrastructure à exploiter.
 - Vous avez besoin d'une étendue qu'avuru obs ne couvre pas encore — RUM, synthetics,
   monitoring de sécurité, ou leur grand catalogue d'intégrations clé en main.
-- Vous voulez des contrats de support et des SLA dès aujourd'hui. avuru obs est en
-  pré-v0.1 et auto-supporté — consultez l'[état des fonctionnalités](/docs/status)
+- Vous voulez des contrats de support et des SLA dès aujourd'hui. avuru obs est
+  jeune et auto-supporté — consultez l'[état des fonctionnalités](/docs/status)
   avant de vous engager.
 
 :::tip Essayez côte à côte

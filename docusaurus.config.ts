@@ -12,7 +12,7 @@ const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
 const config: Config = {
   title: 'Avuru Obs',
-  tagline: 'Open-source observability, APM & error tracking — a self-hosted Datadog, Grafana & Sentry alternative',
+  tagline: 'Open-source observability, APM, error tracking & alerting — a self-hosted Datadog, Grafana & Sentry alternative',
   // .ico is the broadly-compatible default (Safari ignores SVG favicons); the
   // crisp SVG + PNG + apple-touch variants are advertised via headTags below.
   favicon: 'img/favicon.ico',
@@ -52,7 +52,7 @@ const config: Config = {
       attributes: {
         name: 'keywords',
         content:
-          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP, Sentry alternative, GlitchTip alternative, open source error tracking, self-hosted error tracking, error monitoring, crash reporting, Coroot alternative',
+          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP, Sentry alternative, GlitchTip alternative, open source error tracking, self-hosted error tracking, error monitoring, crash reporting, Coroot alternative, service health monitoring, open source alerting, webhook alerts, alerting on service health, service dependency map, network health monitoring, eBPF network monitoring, TCP RTT',
       },
     },
     {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},

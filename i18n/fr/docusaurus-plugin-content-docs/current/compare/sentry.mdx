@@ -48,8 +48,8 @@ expliquent, dans un **unique magasin ClickHouse**.
   obs via eBPF et OTLP — événements `exception` de span, spans en erreur et logs
   ERROR/FATAL. ClickHouse les regroupe en **problèmes** dédupliqués (trace
   d'exception, première/dernière apparition, nombre d'occurrences, état de triage)
-  au moment de l'insertion. Rien à installer dans l'application. Voir
-  [Architecture](/guides/architecture).
+  au moment de l'insertion. Rien à installer dans l'application. Voir les
+  [cas d'usage du suivi des erreurs](/docs/signals/errors#cas-dusage).
 - **Chaque problème renvoie à sa trace.** Comme les erreurs partagent le
   `trace_id` avec le reste de votre télémétrie, vous passez d'un problème
   directement à la trace, aux logs et aux métriques qui l'entourent — sans changer
@@ -64,6 +64,10 @@ expliquent, dans un **unique magasin ClickHouse**.
 - **Auto-hébergé, un seul magasin.** Vos données d'erreur ne quittent jamais votre
   infrastructure, et il n'y a qu'un seul ClickHouse à dimensionner et à sauvegarder
   — pas un Postgres, un Redis, un Kafka et un Snuba.
+- **Et quand un service tombe, vous le savez.** Les [alertes](/docs/signals/alerting)
+  sur le statut de santé envoient un webhook vers Slack ou votre pager quand un
+  backend passe dans un mauvais état — l'alerte au niveau des problèmes
+  (nouveaux ou en hausse) reste sur la feuille de route.
 
 ## Comment migrer
 

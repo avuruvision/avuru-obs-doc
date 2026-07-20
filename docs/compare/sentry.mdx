@@ -45,7 +45,7 @@ ClickHouse store**.
   eBPF and OTLP — span `exception` events, error spans and ERROR/FATAL logs.
   ClickHouse groups them into deduplicated **issues** (stack trace, first/last
   seen, occurrence count, triage state) at insert time. Nothing to install in the
-  app. See [Architecture](/guides/architecture).
+  app. See the [error-tracking use cases](/docs/signals/errors#use-cases).
 - **Every issue links back to its trace.** Because errors share `trace_id` with
   the rest of your telemetry, you pivot from an issue straight to the trace, logs
   and metrics around it — no context-switch to a separate tool.
@@ -58,6 +58,10 @@ ClickHouse store**.
 - **Self-hosted, one store.** Your error data never leaves your infrastructure,
   and there's a single ClickHouse to size and back up — not a Postgres, a Redis, a
   Kafka and a Snuba cluster.
+- **And when a service goes down, you hear about it.** Health-status
+  [alerting](/docs/signals/alerting) fires a webhook into Slack or your pager
+  when a backend crosses into a bad state — issue-level alerting (new or
+  spiking issues) stays on the roadmap.
 
 ## How to migrate
 
