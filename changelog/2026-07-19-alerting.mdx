@@ -1,0 +1,30 @@
+---
+slug: alerting
+title: "Alerting: get a webhook when a service goes down"
+description: "A hub-side evaluator that watches service-health status and fires a webhook when a rule's target crosses into a bad state — config-driven, no probing."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-19
+---
+
+A new **Alerting** module closes the loop on service health: when a group,
+service, or tier crosses into a bad state and stays there, avuru-obs fires a
+**webhook** — into Slack, PagerDuty, Opsgenie, Alertmanager, or any endpoint
+that accepts one. It's derived from the health you already compute; no probes,
+no new signal.
+
+{/* truncate */}
+
+- **Rules in config.** A rule targets a group/service/tier, a condition
+  (`down`, `degraded`, `not-healthy`) and a `for` duration, and points at a
+  channel. Rules and channels live in a ConfigMap the hub **hot-reloads** —
+  edit and it applies in seconds, no restart.
+- **Fire and resolve.** An alert fires when the condition holds for its
+  duration and resolves when it clears; both deliver a webhook. State persists,
+  so a restart never re-fires or drops a resolve.
+- **Safe outbound.** The webhook is the hub's first outbound call, so it's
+  guarded: an SSRF check on the resolved IP, capped retries, and optional
+  HMAC signing — a channel secret is never shown in the API or logs.
+- **A read-only board.** `/alerts` shows what's firing, a recent fire/resolve
+  timeline, and the configured rules. Turn the module off entirely with
+  `modules.alerting.enabled=false`.

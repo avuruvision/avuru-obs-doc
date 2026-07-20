@@ -32,12 +32,15 @@ changements livrés le [Changelog](/changelog).
 | Profilage continu — flame graphs CPU par service (expérimental, opt-in) | <StatusBadge status="shipped" label="Livré" /> | M4 |
 | Projets — portée par environnement, sélecteur dans la barre latérale, liens `?project=` partageables | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
 | Contrôles de collecte — par signal/namespace/pod/nœud, avec inventaire des agents par nœud | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
+| Santé des services — santé de groupe avec niveaux de criticité et propagation des dépendances critiques, dérivée du RED | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| Alerting — notifications par webhook quand un service/groupe passe dans un mauvais état | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| Santé réseau sur la carte des services — RTT + connexions échouées/réinitialisées par arête (stats TCP OBI) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Enrichissement par **flux** réseau via la fonctionnalité `network` d'OBI (arêtes non instrumentées + santé par arête) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Authentification / OIDC (les projets sont livrés en v0.1 ; la jointure d'auth est déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 

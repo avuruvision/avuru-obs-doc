@@ -1,0 +1,33 @@
+---
+slug: alerting
+title: "Alerting : recevez un webhook quand un service tombe"
+description: "Un évaluateur côté hub qui surveille la santé des services et déclenche un webhook quand la cible d'une règle passe dans un mauvais état — piloté par configuration, sans sonde."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-19
+---
+
+Un nouveau module **Alerting** boucle la boucle sur la santé des services :
+quand un groupe, un service ou un niveau passe dans un mauvais état et y reste,
+avuru-obs déclenche un **webhook** — vers Slack, PagerDuty, Opsgenie,
+Alertmanager, ou tout point de terminaison qui en accepte un. C'est dérivé de la
+santé que vous calculez déjà : aucune sonde, aucun nouveau signal.
+
+{/* truncate */}
+
+- **Règles en configuration.** Une règle vise un groupe/service/niveau, une
+  condition (`down`, `degraded`, `not-healthy`) et une durée `for`, et pointe
+  vers un canal. Règles et canaux vivent dans une ConfigMap que le hub
+  **recharge à chaud** — modifiez et cela s'applique en quelques secondes, sans
+  redémarrage.
+- **Déclenchement et résolution.** Une alerte se déclenche quand la condition
+  tient pendant sa durée et se résout quand elle disparaît ; les deux
+  délivrent un webhook. L'état persiste : un redémarrage ne redéclenche jamais
+  ni n'oublie une résolution.
+- **Sortie sécurisée.** Le webhook est le premier appel sortant du hub, donc
+  protégé : une vérification SSRF sur l'IP résolue, des relances plafonnées et
+  une signature HMAC optionnelle — le secret d'un canal n'apparaît jamais dans
+  l'API ni les logs.
+- **Un tableau en lecture seule.** `/alerts` montre ce qui se déclenche, une
+  chronologie récente déclenchement/résolution et les règles configurées.
+  Désactivez le module avec `modules.alerting.enabled=false`.
