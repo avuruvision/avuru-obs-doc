@@ -1,0 +1,33 @@
+---
+slug: error-tracking
+title: "Suivi des erreurs : les exceptions deviennent des problèmes triables"
+description: "Les exceptions déjà présentes dans vos traces et logs deviennent des problèmes dédupliqués avec une stack trace, une chronologie d'occurrences et un cycle de triage — plus une ingestion au protocole Sentry pour les erreurs navigateur."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-17
+---
+
+Un nouveau module **Suivi des erreurs** transforme les exceptions qui circulent
+déjà dans avuru-obs — événements d'exception de span, spans en erreur et logs
+ERROR/FATAL — en **problèmes** de premier plan : dédupliqués par empreinte,
+chacun avec une stack trace, une chronologie d'occurrences, un lien vers une
+trace représentative et un cycle de triage. Aucune modification de code
+requise.
+
+{/* truncate */}
+
+- **Dérivé, pas instrumenté.** Les problèmes sont calculés en base à partir des
+  données que vous envoyez déjà — regroupez et triez les erreurs sans SDK à
+  déployer.
+- **Deux entrées.** Les exceptions backend arrivent zéro-code via OBI et OTLP ;
+  pour les erreurs navigateur — le seul signal que l'eBPF ne peut atteindre —
+  un **point d'ingestion au protocole Sentry** permet aux SDK Sentry existants
+  de pointer vers avuru-obs en changeant un DSN (désactivé par défaut ;
+  opt-in).
+- **Cycle de triage.** Marquez un problème non résolu, résolu ou ignoré ; un
+  problème résolu qui réapparaît est signalé comme **régression**, calculée à la
+  lecture.
+- **La page Erreurs.** Recherchez et filtrez les problèmes par statut et
+  service, ouvrez un problème pour sa stack trace, son histogramme d'occurrences
+  et ses liens de trace. C'est un module opt-in
+  (`modules.errorTracking.enabled`).

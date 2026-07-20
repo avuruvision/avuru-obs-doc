@@ -41,6 +41,11 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/health/groups/{name}` | One group's health — each member's base vs. effective status and its critical-dependency chain (`404` if absent). |
 | `GET /api/v1/alerts` | Currently-firing alerts + recent fire/resolve history. Module `alerting`. |
 | `GET /api/v1/alerts/rules` | The configured alerting rules and channels (channel secrets redacted). Module `alerting`. |
+| `GET /api/v1/errors/issues` | Deduplicated error issues — `status`, `service`, `q`, `sort` filters. Module `error-tracking`. |
+| `GET /api/v1/errors/issues/{fingerprint}` | One issue: stack trace, first/last seen, count, source, representative trace. |
+| `GET /api/v1/errors/issues/{fingerprint}/events` | Occurrences of an issue (keyset paginated). |
+| `GET /api/v1/errors/issues/{fingerprint}/histogram` | Occurrence histogram over the window. |
+| `POST /api/v1/errors/issues/{fingerprint}/status` | Triage an issue — `unresolved` / `resolved` / `ignored`. |
 | `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
 | `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |
 | `GET /api/v1/agents` | Sensor inventory: per-node telemetry freshness per signal — `windowSec` (default `600`) bounds "fresh". |
