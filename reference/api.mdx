@@ -37,8 +37,8 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/spans/{spanId}` | Resolve a span id to its containing trace (`404` if unknown) — powers the span-id search. |
 | `GET /api/v1/logs` | Search logs (filters + keyset pagination). |
 | `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
-| `GET /api/v1/health/groups` | Consolidated group health over the window: per-service status from RED, tier-grouped, with critical-dependency propagation. Module `service-health`. |
-| `GET /api/v1/health/groups/{name}` | One group's health — each member's base vs. effective status and its critical-dependency chain (`404` if absent). |
+| `GET /api/v1/health/groups` | Consolidated group health over the window: per-service status from RED, tier-grouped, with critical-dependency propagation. Module `service-health`. `includeAux`. |
+| `GET /api/v1/health/groups/{name}` | One group's health, including each member's base vs. effective status and its critical-dependency chain (`404` if the group is absent). |
 | `GET /api/v1/alerts` | Currently-firing alerts + recent fire/resolve history. Module `alerting`. |
 | `GET /api/v1/alerts/rules` | The configured alerting rules and channels (channel secrets redacted). Module `alerting`. |
 | `GET /api/v1/errors/issues` | Deduplicated error issues — `status`, `service`, `q`, `sort` filters. Module `error-tracking`. |
