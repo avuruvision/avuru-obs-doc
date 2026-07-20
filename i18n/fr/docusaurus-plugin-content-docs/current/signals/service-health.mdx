@@ -1,0 +1,159 @@
+---
+id: service-health
+title: Santé des services
+sidebar_label: Santé des services
+sidebar_position: 6
+description: Un tableau qui répond à « qu'est-ce qui est cassé, et à quel point » — statut par groupe avec tiers de criticité et propagation des dépendances, dérivé des traces que vous envoyez déjà.
+---
+
+# Santé des services
+
+Quarante tuiles vertes ne répondent pas à la question de 3 h du matin :
+*quelque chose qui compte pour mes utilisateurs est-il réellement cassé ?* Le
+tableau **Santé des services**, lui, y répond. Il consolide la santé RED de
+chaque service en un statut de **groupe**, dispose les groupes par tier de
+criticité, et applique une règle que les dashboards laissent d'habitude à la
+charge du lecteur : un service ne peut pas s'afficher vert quand une dépendance
+critique est rouge.
+
+Le tout est **dérivé** des traces que vous envoyez déjà. Pas de health checks,
+pas de sondes, pas de nouveau stockage — le hub n'émet jamais de trafic vers
+vos services.
+
+## Du RED au statut
+
+Chaque service reçoit l'un de quatre états, calculé à partir de ses données RED
+sur la fenêtre sélectionnée :
+
+- **`healthy`** — dans son budget d'erreur et son objectif de latence.
+- **`degraded`** — au-delà du taux d'erreur d'avertissement, ou au-delà de son
+  objectif de p95.
+- **`down`** — au-delà du taux d'erreur critique.
+- **`idle`** — pas assez de trafic pour juger. Un **filtre de trafic passe en
+  premier** : un service silencieux s'affiche *idle*, jamais *down* — pas de
+  réveil à 3 h du matin parce qu'un batch s'est endormi.
+
+Chaque statut porte une raison en langage clair, pas seulement une couleur :
+`error rate 4.2% ≥ 1% budget`, ou `p95 780ms ≥ 500ms objective`. Les seuils se
+résolvent par précédence — **surcharges par service > surcharges par tier >
+valeurs par défaut** — vous pouvez donc tenir le T0 à 0,5 % pendant que la
+longue traîne vit avec les valeurs intégrées.
+
+## Groupes et tiers
+
+Le regroupement est hybride, si bien que le tableau est utile avant toute
+configuration :
+
+- **Les groupes nommés** viennent de la configuration : un sélecteur associe
+  les services par nom ou par namespace Kubernetes, et leur assigne un tier de
+  criticité (**T0/T1/T2**).
+- **Tout le reste se regroupe automatiquement par namespace** au tier par
+  défaut. Les services sans label de namespace se rassemblent dans un groupe
+  `(unlabeled)` jusqu'à ce que la configuration les réclame.
+
+Le tableau `/health` dispose les groupes en **couloirs par tier**, le plus
+critique en premier — le coup d'œil de l'astreinte commence là où le rayon
+d'impact est le plus large.
+
+## Propagation des dépendances
+
+Votre service checkout peut être parfaitement sain *et* totalement inutile,
+parce que payments est down. La santé des services l'encode :
+
+- Les dépendances viennent de la
+  [carte des services](/docs/getting-started/core-concepts) que vous avez
+  déjà — aucune déclaration supplémentaire.
+- Une arête est **critique** quand sa cible est un service T0 (ou quand vous
+  la forcez avec `criticalEdges`).
+- Une dépendance critique qui passe `down` entraîne ses dépendants au moins en
+  `degraded`. Chaque membre rapporte à la fois son statut **de base** et son
+  statut **effectif**, si bien que le panneau de détail peut dire exactement
+  cela : *sain en soi, dégradé parce que payments est down.*
+
+La propagation se fait sur un saut, sans risque de cycle, et uniquement pour
+`down` — des limites v1 assumées (voir plus bas).
+
+## Cas d'usage
+
+- **Le coup d'œil de l'astreinte.** Un seul écran, des couloirs par tier, le
+  pire en premier. Si le couloir T0 est vert, retournez vous coucher — et s'il
+  ne l'est pas, la raison vous dit pourquoi avant même d'avoir ouvert un
+  dashboard.
+- **Encoder la règle d'or au lieu de la re-déduire.** « Checkout dépend de
+  payments » vit dans la topologie, pas dans la tradition orale. Les nouveaux
+  arrivants voient la chaîne de dépendances dans le panneau de détail.
+- **Re-classer en plein incident.** La classification vit dans une ConfigMap
+  que le hub recharge à chaud (~15 s). Promouvez en T0 un service devenu
+  soudain critique avec un `kubectl edit` — sans restart, sans redéploiement,
+  sans PR.
+- **Alimenter une status page.** `GET /api/v1/health/groups` renvoie tout le
+  tableau en JSON — statut global, consolidations par groupe, raisons.
+  Branchez-le sur une status page externe ou un écran mural.
+
+## Configuration
+
+Le module est **activé par défaut** (`modules.serviceHealth.enabled`) — c'est
+de la valeur gratuite tirée de données que vous collectez déjà. Le désactiver
+retire les routes d'API et l'entrée de menu, rien d'autre, car il ne possède
+aucun stockage.
+
+Le regroupement vit dans le bloc Helm `serviceGroups`, rendu en ConfigMap que
+le hub lit (montée sur `AVURUOPS_GROUPS_CONFIG`) et **recharge à chaud en
+~15 s** après un `kubectl edit` :
+
+```yaml
+serviceGroups:
+  defaultTier: T2            # tier des services qu'aucun groupe ne réclame
+  groups:
+    - name: payments
+      tier: T0
+      selector:
+        namespaces: [payments]
+        services: []
+  # Seuils façon SLO. Précédence : services > tiers > defaults > intégrés.
+  thresholds:
+    defaults:
+      errorRateWarn: 0.01
+      errorRateCrit: 0.05
+      latencyP95ObjectiveMs: 500
+      minSampleCount: 5
+    tiers:
+      T0: { errorRateWarn: 0.005, errorRateCrit: 0.02, latencyP95ObjectiveMs: 300 }
+    services:
+      payments: { latencyP95ObjectiveMs: 800 }
+  # Forcer certaines arêtes critiques même si la cible n'est pas T0 (rare).
+  criticalEdges: []
+  #  - { from: web, to: legacy-billing }
+```
+
+La validation échoue bruyamment : un tier invalide ou un sélecteur vide est
+rejeté au démarrage (et un tier invalide échoue déjà au `helm template` contre
+le schéma de valeurs du chart).
+
+## API
+
+- **`GET /api/v1/health/groups?start&end`** — le tableau entier : statut
+  global, statut par groupe avec raison de consolidation et RED agrégé, et les
+  membres avec statut de base vs effectif et leurs dépendances.
+- **`GET /api/v1/health/groups/{name}`** — un seul groupe, pour les
+  drill-downs.
+
+Voir la [référence API](/reference/api).
+
+## Limites de la v1
+
+- **La propagation se fait sur un saut et seulement pour `down`.** Une
+  dépendance `degraded` ne se propage pas, et les chaînes transitives (A→B→C)
+  ne cascadent pas au-delà du premier saut.
+- **La latence de groupe est le p95 du pire membre**, pas un vrai quantile au
+  niveau du groupe.
+- **Les services sans label se rassemblent** dans `(unlabeled)` jusqu'à ce
+  qu'un groupe de configuration les nomme.
+
+:::note Cette page s'étoffe
+La santé des services est le signal dont se nourrissent les
+[alertes](/docs/signals/alerting) — une règle peut vous prévenir quand un
+groupe, un service ou un tier va mal. Voir l'[entrée du
+changelog](/changelog/service-health), la [Feuille de route](/docs/roadmap) et
+l'[État des fonctionnalités](/docs/status).
+:::
