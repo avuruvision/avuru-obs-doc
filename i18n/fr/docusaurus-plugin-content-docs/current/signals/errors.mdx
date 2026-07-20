@@ -66,6 +66,24 @@ La **détection de régression** est calculée à la lecture : un problème **r�
 qui enregistre une occurrence *après* sa résolution est signalé comme une
 régression — le bug que vous aviez clos la semaine dernière est de retour.
 
+## Cas d'usage
+
+- **Attraper un mauvais déploiement.** Une seule empreinte nouvelle dont la
+  première occurrence coïncide avec le rollout de 14h02, *c'est* la réponse —
+  pas de spéléologie dans les logs. Le guide
+  [Attraper un mauvais déploiement](/guides/catch-a-bad-deploy) le déroule de
+  bout en bout sur le bac à sable fourni.
+- **Les erreurs navigateur sans nouvel outillage.** Votre frontend utilise déjà
+  un SDK Sentry ? Changez son DSN et les exceptions navigateur atterrissent à
+  côté des traces backend qui les ont causées. Voir
+  l'[intégration SDK Sentry](/integrations/frameworks/sentry-sdk).
+- **Veille de régression.** Résolvez un problème et oubliez-le — si le bug
+  repart en production, le problème se signale lui-même comme régression au
+  lieu de se noyer dans un nouveau ticket.
+- **Trier des services jamais instrumentés.** Les problèmes dérivent de la
+  télémétrie que l'eBPF et l'OTLP livrent déjà : même les services sans SDK
+  obtiennent des erreurs regroupées et triables.
+
 ## Configuration
 
 - **`modules.errorTracking.enabled`** — **activé** par défaut. La dérivation

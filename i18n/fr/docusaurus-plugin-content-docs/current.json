@@ -36,7 +36,7 @@
     "description": "The generated-index page title for category 'Signals' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Signals.link.generated-index.description": {
-    "message": "Traces, logs, métriques et profilage — le modèle de données de chacun et comment ils se corrèlent.",
+    "message": "Traces, logs, métriques et profilage — plus les signaux qui en dérivent : erreurs, santé des services, alertes et santé réseau.",
     "description": "The generated-index page description for category 'Signals' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Operations": {

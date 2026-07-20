@@ -1,0 +1,70 @@
+---
+id: network-health
+title: Santé réseau
+sidebar_label: Santé réseau
+sidebar_position: 8
+description: RTT TCP et connexions échouées par arête sur la carte des services, mesurés dans le noyau par OBI — la santé des connexions sans traces, sans SDK, sans changement d'application.
+---
+
+# Santé réseau
+
+La carte des services montre ce que vos services *se disent*. La santé réseau
+montre si le fil entre eux est lent ou refuse des connexions : **RTT TCP** et
+**connexions échouées/réinitialisées** par arête, mesurés dans le noyau par
+OBI — sans traces, sans SDK, sans changement d'application.
+
+## Sur l'arête
+
+Survolez n'importe quelle arête de la carte pour voir son volume d'appels plus
+son **p95 de RTT** et ses **connexions échouées**. Une arête passe **ambre et
+en pointillés** quand le RTT est élevé ou que des connexions échouent ; si les
+traces marquent déjà l'arête en rouge avec des erreurs applicatives, le rouge
+l'emporte — une panne applicative prime sur un fil lent.
+
+## Comment ça marche
+
+La fonctionnalité TCP-stats d'OBI émet deux métriques par paire de
+connexions : `obi.stat.tcp.rtt` (un histogramme) et
+`obi.stat.tcp.failed.connections` (un compteur dont le label `reason` porte
+les réinitialisations). Elles atterrissent dans les **tables de métriques
+existantes** — pas de migration, pas de nouveau stockage — et le hub les joint
+aux arêtes de la carte au moment de la requête.
+
+Ce n'est **pas un module** : c'est un enrichissement de la carte des services
+de base, actif quand la fonctionnalité réseau OBI du sensor est allumée et que
+le [module infra-metrics](/docs/setup/modules) est activé.
+
+## Cas d'usage
+
+- **Voir le lien lent avant que le SLO ne brûle.** Le RTT noyau monte avant
+  que la latence p95 des requêtes ne fasse les comptes pour vous — une arête
+  ambre est un symptôme précoce et localisé.
+- **Séparer « panne réseau » et « panne applicative » sur un seul écran.** Une
+  arête rouge avec un fil propre pointe vers l'application ; un fil ambre sous
+  un service sain pointe vers le réseau. Même topologie, un seul coup d'œil.
+- **De la santé pour les arêtes jamais instrumentées.** Les services legacy ou
+  tiers sans SDK obtiennent quand même une santé L4 sur leurs arêtes, parce
+  que le noyau voit chaque connexion.
+
+:::caution Validation en attente
+La clé de configuration exacte des stats OBI et l'attribution par propriétaire
+Kubernetes des arêtes **ne sont pas encore vérifiées sur un cluster eBPF
+réel**. Tant qu'elles ne sont pas confirmées dans un environnement kind/eBPF,
+considérez cette fonctionnalité comme expérimentale — elle est livrée
+**désactivée par défaut** exactement pour cette raison
+(`sensor.obi.network.enabled`).
+:::
+
+## Limites
+
+- **Pas de retransmissions** — OBI ne les émet pas, elles ne sont donc pas
+  affichées.
+- **Le compte de connexions échouées est une approximation** — une somme sur
+  un compteur cumulatif, pas un décompte par session.
+- **Seules les arêtes attribuées apparaissent** — une arête a besoin que ses
+  deux extrémités soient résolues vers un propriétaire Kubernetes par OBI.
+
+:::note Cette page s'étoffe
+Voir l'[entrée du changelog](/changelog/network-health), la
+[Feuille de route](/docs/roadmap) et l'[État des fonctionnalités](/docs/status).
+:::
