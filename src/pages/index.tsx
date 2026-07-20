@@ -3,6 +3,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import Translate, {translate} from '@docusaurus/Translate';
 import Head from '@docusaurus/Head';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {
   TerminalDemo,
   ArchitectureDiagram,
@@ -114,6 +115,9 @@ function InstallCommand(): React.ReactElement {
 }
 
 function Hero(): React.ReactElement {
+  const {siteConfig} = useDocusaurusContext();
+  const demoUrl =
+    (siteConfig.customFields?.demoUrl as string) || 'https://demo.avuruobs.io';
   return (
     <header className={styles.hero}>
       <div className={styles.heroBg} aria-hidden="true">
@@ -155,7 +159,7 @@ function Hero(): React.ReactElement {
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/demo">
+            to={demoUrl}>
             <Translate id="home.cta.demo">Live Demo</Translate>
           </Link>
           <Link

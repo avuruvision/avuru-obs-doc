@@ -68,27 +68,6 @@
   "home.cta.demo": {
     "message": "Démo en direct"
   },
-  "demo.meta.title": {
-    "message": "Démo en direct"
-  },
-  "demo.meta.desc": {
-    "message": "Une instance avuru obs publique et en lecture seule qui observe l'Astronomy Shop OpenTelemetry via OTLP."
-  },
-  "demo.title": {
-    "message": "Voyez avuru obs sur des données réelles"
-  },
-  "demo.lede": {
-    "message": "Une instance publique et en lecture seule qui observe l'Astronomy Shop OpenTelemetry — une application de démonstration multi-services — avec chaque signal qui arrive en OTLP standard. Explorez la carte des services, les traces, les logs, les métriques et le profilage sur du trafic réel."
-  },
-  "demo.cta.launch": {
-    "message": "Lancer la démo en direct →"
-  },
-  "demo.cta.install": {
-    "message": "Installez la vôtre en 30 s"
-  },
-  "demo.note": {
-    "message": "Lecture seule — parcourez tout, ne modifiez rien. La démo tourne entièrement sur le chemin OTLP stable. Vous la voulez sur votre cluster ? C'est un seul chart Helm."
-  },
   "home.feat.traces.title": {
     "message": "Tracing distribué"
   },
