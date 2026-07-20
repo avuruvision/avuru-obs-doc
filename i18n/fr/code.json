@@ -88,5 +88,62 @@
   },
   "demo.note": {
     "message": "Lecture seule — parcourez tout, ne modifiez rien. La démo tourne entièrement sur le chemin OTLP stable. Vous la voulez sur votre cluster ? C'est un seul chart Helm."
+  },
+  "home.feat.traces.title": {
+    "message": "Tracing distribué"
+  },
+  "home.feat.traces.desc": {
+    "message": "Des cascades span par span à travers tous les services — assemblées automatiquement, sans propagation de contexte manuelle."
+  },
+  "home.feat.logs.title": {
+    "message": "Logs corrélés"
+  },
+  "home.feat.logs.desc": {
+    "message": "Des logs structurés reliés à la trace qui les a produits."
+  },
+  "home.feat.metrics.title": {
+    "message": "Métriques & dashboards"
+  },
+  "home.feat.metrics.desc": {
+    "message": "Les métriques RED prêtes à l'emploi sur un seul moteur SQL natif."
+  },
+  "home.feat.profiling.title": {
+    "message": "Profilage continu"
+  },
+  "home.feat.profiling.desc": {
+    "message": "Des flame graphs CPU et mémoire en continu via eBPF — trouvez le chemin chaud sans rebuild."
+  },
+  "home.feat.ebpf.title": {
+    "message": "Auto-instrumentation eBPF"
+  },
+  "home.feat.ebpf.desc": {
+    "message": "Un DaemonSet attache des sondes noyau. Zéro SDK, zéro sidecar."
+  },
+  "home.feat.otel.title": {
+    "message": "OpenTelemetry natif"
+  },
+  "home.feat.otel.desc": {
+    "message": "Parlez OTLP de bout en bout. Gardez vos SDK et collecteurs existants."
+  },
+  "home.feat.errors.title": {
+    "message": "Suivi des erreurs"
+  },
+  "home.feat.errors.desc": {
+    "message": "Les exceptions deviennent des problèmes dédupliqués et triables — avec ingestion SDK Sentry pour le navigateur."
+  },
+  "home.feat.health.title": {
+    "message": "Santé des services"
+  },
+  "home.feat.health.desc": {
+    "message": "Un statut par groupe avec tiers de criticité — un service ne peut pas s'afficher vert quand une dépendance critique est rouge."
+  },
+  "home.feat.alerts.title": {
+    "message": "Alertes"
+  },
+  "home.feat.alerts.desc": {
+    "message": "Un webhook vers Slack, PagerDuty ou Alertmanager quand un service tombe — et quand il se rétablit."
+  },
+  "home.feat.learn": {
+    "message": "Découvrir →"
   }
 }
