@@ -1,0 +1,172 @@
+---
+id: know-when-checkout-is-down
+title: Savoir quand checkout est down
+sidebar_label: Savoir quand checkout est down
+sidebar_position: 7
+description: La boucle complète sur un laptop — les métriques RED deviennent un statut de santé, le statut déclenche une règle d'alerte, et un webhook atterrit dans votre canal. Quinze minutes, configurations fournies.
+---
+
+# Savoir quand checkout est down
+
+Checkout se met à refuser des requêtes à 3 h du matin. Personne ne regarde un
+dashboard. Ce guide déroule toute la chaîne sur le bac à sable fourni — **RED
+→ statut de santé → règle d'alerte → webhook** — avec des configurations
+livrées dans le dépôt, puis montre le même montage en valeurs Helm de
+production.
+
+## Prérequis
+
+- Un [checkout d'avuru-obs](https://github.com/avuruvision/avuru-obs), Docker
+  (~6 Go pour sa VM), et Go (pour le seeder de fixtures).
+- Démarrez le bac à sable de dev depuis la racine du dépôt :
+
+  ```bash
+  make dev    # compose up avec build — UI sur http://localhost:3001
+  ```
+
+Le compose de dev monte déjà deux configurations pré-remplies dans le hub :
+
+**`deploy/compose/groups.json`** — un groupe `payments` en T0 (avec
+`minSampleCount: 1`, car les volumes des fixtures sont minuscules) :
+
+```json
+{
+  "defaultTier": "T2",
+  "thresholds": {
+    "defaults": { "minSampleCount": 1 }
+  },
+  "groups": [
+    { "name": "payments", "tier": "T0", "selector": { "services": ["seed-payments"] } }
+  ]
+}
+```
+
+**`deploy/compose/alerts.json`** — une règle qui se déclenche dès que le
+service checkout pré-rempli passe `down` :
+
+```json
+{
+  "evalIntervalSec": 2,
+  "windowMinutes": 120,
+  "channels": [
+    { "name": "sink", "type": "webhook", "url": "http://sink.invalid/hook" }
+  ],
+  "rules": [
+    {
+      "name": "checkout-down",
+      "when": "down",
+      "for": "0s",
+      "selector": { "services": ["seed-checkout"] },
+      "channel": "sink"
+    }
+  ]
+}
+```
+
+## Étapes
+
+1. **Injectez la panne.** Poussez les fixtures déterministes du dépôt — elles
+   incluent un service checkout dont les requêtes échouent :
+
+   ```bash
+   cd tools/seed && go run . -endpoint http://localhost:4318 \
+     -fixtures ../../deploy/compose/seed/fixtures
+   ```
+
+2. **Regardez `/health`.** Ouvrez `http://localhost:3001/health`. Le tableau
+   dispose les groupes en couloirs par tier : le groupe `payments` en T0, et
+   les services pré-remplis regroupés automatiquement en dessous.
+   `seed-checkout` s'affiche **down**, avec la raison écrite en toutes
+   lettres — un taux d'erreur au-delà de son budget critique, pas juste un
+   point rouge.
+
+3. **Regardez `/alerts`.** La règle `checkout-down` est déjà **en cours de
+   déclenchement** — le tableau montre la règle, la cible, son statut, et
+   depuis quand. La livraison vers `sink.invalid` échoue, et c'est voulu :
+   l'état de déclenchement et l'historique persistent, que l'endpoint du
+   webhook soit joignable ou non.
+
+4. **Pointez vers un vrai canal.** Éditez `deploy/compose/alerts.json` et
+   remplacez l'URL du sink par un webhook à vous — un webhook entrant Slack
+   ou n'importe quel endpoint HTTPS public. Le hub recharge le fichier à
+   chaud en quelques secondes ; l'évaluation suivante livre pour de bon.
+
+   :::info Récepteurs locaux et garde SSRF
+   Le hub refuse **par défaut** les cibles de webhook loopback/privées. Un
+   endpoint HTTPS public fonctionne tel quel ; pour tester contre un récepteur
+   sur votre propre machine, autorisez sa plage explicitement en ajoutant la
+   variable d'environnement `AVURUOPS_WEBHOOK_ALLOW` (CIDR séparés par des
+   virgules) au service `hub` du fichier compose.
+   :::
+
+5. **Lisez la charge utile.** Chaque livraison est du JSON simple :
+
+   ```json
+   {
+     "rule": "checkout-down",
+     "target": "seed-checkout",
+     "kind": "fired",
+     "status": "down",
+     "reason": "error rate 100.0% ≥ 5% budget",
+     "firedAt": "2026-07-20T03:12:41Z"
+   }
+   ```
+
+6. **Signez-la, si vous voulez.** Ajoutez un `secret` au canal et chaque
+   livraison porte `X-Avuru-Signature` — un HMAC-SHA256 du corps que votre
+   récepteur peut recalculer :
+
+   ```bash
+   echo -n "$BODY" | openssl dgst -sha256 -hmac "$SECRET"
+   ```
+
+7. **Le rétablissement ferme la boucle.** Quand la cible cesse d'être `down`,
+   un webhook `"kind": "resolved"` atterrit dans le même canal — le fil
+   d'incident se termine sur des faits.
+
+## Vérifier
+
+```bash
+curl -s http://localhost:8080/api/v1/alerts | jq
+# → "firing" : checkout-down sur seed-checkout, plus l'historique fired/resolved
+```
+
+## La même chose en production
+
+En valeurs Helm, la configuration a la même forme, rendue en ConfigMaps que le
+hub recharge à chaud (~15 s après un `kubectl edit` — sans restart) :
+
+```yaml
+serviceGroups:
+  groups:
+    - name: payments
+      tier: T0
+      selector: { namespaces: [payments] }
+
+alerting:
+  webhookAllow: []          # CIDR autorisés à passer la garde SSRF, p. ex.
+                            # un Alertmanager dans le cluster
+  channels:
+    - name: ops
+      type: webhook
+      url: https://hooks.slack.com/services/xxx
+      secret: "secret-de-signature-hmac"
+  rules:
+    - name: payments-critical
+      when: down
+      for: 5m               # soutenu — un accroc ne réveille personne
+      selector: { groups: [payments] }
+      channel: ops
+```
+
+Gardez le hub à **un seul réplica** — l'évaluateur n'a pas encore d'élection
+de leader, des réplicas supplémentaires dupliqueraient les notifications.
+
+## Ensuite
+
+- [Santé des services](/docs/signals/service-health) — états, tiers,
+  propagation des dépendances.
+- [Alertes](/docs/signals/alerting) — règles, cycle de vie, garanties du
+  webhook.
+- [SLOs & alertes](/guides/slos-and-alerts) — fixez des objectifs par tier et
+  routez les réveils en conséquence.

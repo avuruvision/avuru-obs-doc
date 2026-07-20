@@ -1,0 +1,118 @@
+---
+id: slos-and-alerts
+title: SLOs & alertes
+sidebar_label: SLOs & alertes
+sidebar_position: 5
+description: Encodez ce que « sain » veut dire par tier de criticité — budgets d'erreur et objectifs de latence — puis routez réveils et avertissements vers des canaux différents.
+---
+
+# SLOs & alertes
+
+Transformez « tout le monde sait que payments est le plus important » en
+configuration : classez les services en tiers de criticité, donnez à chaque
+tier un budget d'erreur et un objectif de latence, et routez `down` vers le
+pager pendant que `degraded` part dans un canal Slack. Ce guide est
+Helm-first — le chemin de production.
+
+## Prérequis
+
+- avuru obs [installé via Helm](/docs/setup/kubernetes) avec les modules
+  `service-health` et `alerting` actifs (ils le sont par défaut).
+- Du trafic en cours, pour que les services aient des données RED à juger.
+
+## Étapes
+
+1. **Classez les services en tiers.** Nommez les groupes qui comptent et
+   laissez le reste se regrouper automatiquement par namespace au tier par
+   défaut :
+
+   ```yaml
+   serviceGroups:
+     defaultTier: T2
+     groups:
+       - name: payments
+         tier: T0
+         selector: { namespaces: [payments] }
+       - name: storefront
+         tier: T1
+         selector: { services: [web, catalog, search] }
+   ```
+
+2. **Fixez des objectifs par tier.** Les seuils se résolvent par précédence —
+   **services > tiers > defaults** — vous resserrez donc le T0 sans toucher à
+   la longue traîne :
+
+   ```yaml
+   serviceGroups:
+     thresholds:
+       defaults:
+         errorRateWarn: 0.01        # 1 % → degraded
+         errorRateCrit: 0.05        # 5 % → down
+         latencyP95ObjectiveMs: 500
+         minSampleCount: 5
+       tiers:
+         T0: { errorRateWarn: 0.005, errorRateCrit: 0.02, latencyP95ObjectiveMs: 300 }
+       services:
+         reports: { latencyP95ObjectiveMs: 2000 }   # lent par conception
+   ```
+
+   Chaque jugement montre son raisonnement sur le tableau `/health` :
+   `error rate 4.2% ≥ 1% budget`, `p95 780ms ≥ 500ms objective`.
+
+3. **Routez par audience, pas seulement par gravité.** Deux règles, deux
+   canaux — le pager n'entend parler que des ennuis T0 qui durent :
+
+   ```yaml
+   alerting:
+     channels:
+       - name: pager
+         type: webhook
+         url: https://events.pagerduty.com/integration/xxx/enqueue
+         secret: "secret-de-signature-hmac"
+       - name: team-slack
+         type: webhook
+         url: https://hooks.slack.com/services/xxx
+     rules:
+       - name: t0-down
+         when: not-healthy          # degraded OU down
+         for: 5m                    # soutenu — un accroc ne réveille personne
+         selector: { tiers: [T0] }
+         channel: pager
+       - name: t1-early-warning
+         when: degraded
+         for: 10m
+         selector: { tiers: [T1] }
+         channel: team-slack
+   ```
+
+4. **Appliquez, ou éditez en direct.** `helm upgrade` — ou `kubectl edit` sur
+   les ConfigMaps rendues : le hub recharge les deux fichiers à chaud en
+   ~15 s, sans restart. Une configuration invalide (tier inconnu, canal non
+   déclaré, sélecteur vide) est rejetée bruyamment, pas ignorée en silence.
+
+## Vérifier
+
+```bash
+# Les seuils visiblement appliqués — les statuts portent leurs raisons :
+curl -s 'http://<hub>/api/v1/health/groups' | jq '.groups[] | {name, status, reason}'
+
+# Les règles chargées (les secrets de canaux ne sont jamais sérialisés) :
+curl -s 'http://<hub>/api/v1/alerts/rules' | jq
+```
+
+## Périmètre honnête
+
+Les règles ci-dessus alertent sur un **statut de santé soutenu** — une cible
+qui reste `down`/`degraded` pendant une durée — pas sur un **taux de
+combustion** du budget d'erreur multi-fenêtres. L'alerte sur burn rate est sur
+la [feuille de route](/docs/roadmap) ; d'ici là, les objectifs par tier vous
+donnent le langage des SLO et les transitions de statut le mécanisme.
+
+## Ensuite
+
+- [Santé des services](/docs/signals/service-health) — comment statuts et
+  consolidations sont calculés.
+- [Alertes](/docs/signals/alerting) — cycle de vie, charge utile, signature
+  HMAC, garde SSRF.
+- [Savoir quand checkout est down](/guides/know-when-checkout-is-down) — la
+  même chaîne, en direct sur un laptop en quinze minutes.

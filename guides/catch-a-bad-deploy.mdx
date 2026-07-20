@@ -1,0 +1,88 @@
+---
+id: catch-a-bad-deploy
+title: Catch a bad deploy
+sidebar_label: Catch a bad deploy
+sidebar_position: 6
+description: Ship at 14:02, see the new exception grouped as one issue by 14:07 — find it, prove it's the deploy, resolve it, and let regression detection watch your back.
+---
+
+# Catch a bad deploy
+
+You shipped at 14:02. By 14:07 the same exception has fired 4 000 times. This
+guide walks the whole loop on a laptop sandbox: see the error as **one issue**
+instead of 4 000 log lines, prove it started with the deploy, resolve it, and
+let regression detection tell you if it ever comes back.
+
+## Prerequisites
+
+- Docker with ~6 GB available to its VM.
+- No checkout needed — one compose file pulls the released images:
+
+  ```bash
+  curl -fsSLO https://raw.githubusercontent.com/avuruvision/avuru-obs/main/deploy/compose/docker-compose.release.yaml
+  docker compose -f docker-compose.release.yaml up --wait
+  ```
+
+  The UI is at `http://localhost:3001`, the demo app at `http://localhost:8088`.
+
+## Steps
+
+1. **Generate traffic — including failures.** Open the demo app at
+   `http://localhost:8088` and click around. Its backend deliberately fails a
+   fraction of requests, so error spans start arriving within a minute or two —
+   the stand-in for your 14:02 deploy.
+
+   :::tip Deterministic version
+   Working from a [checkout](https://github.com/avuruvision/avuru-obs)? Run
+   `make dev`, then push the repo's fixed error fixtures instead of clicking:
+
+   ```bash
+   cd tools/seed && go run . -endpoint http://localhost:4318 \
+     -fixtures ../../deploy/compose/seed/fixtures
+   ```
+   :::
+
+2. **Open `/errors`.** One row per **issue**, not one per occurrence — the
+   fingerprint (service + exception type + normalized top stack frames) folds
+   thousands of events into a handful of rows, and stays stable across
+   deploys.
+
+3. **Prove it's the deploy.** Click the issue. The occurrence histogram and
+   **first seen** timestamp are the evidence: a brand-new fingerprint whose
+   first occurrence lines up with the rollout. No log spelunking, no grepping
+   across pods.
+
+4. **Pivot to the cause.** Follow the issue's trace link to the exact request
+   that crashed — and from the trace to its logs and spans. The stack trace on
+   the issue is the crash site; the trace is the story around it.
+
+5. **Fix and resolve.** After you ship the fix, mark the issue **Resolved**.
+   It drops out of the active list.
+
+6. **Let regression detection watch.** If the same fingerprint records an
+   occurrence *after* you resolved it, the issue flags itself as a
+   **regression** — the bug you closed is back, and it says so instead of
+   hiding in a new ticket.
+
+## Verify
+
+```bash
+# Issues the module derived from the traffic — the one you resolved is gone:
+curl -s 'http://localhost:8080/api/v1/errors/issues?status=unresolved' | jq '.issues[].title'
+```
+
+## Honest notes
+
+- An error that is *both* logged and recorded as a span event can appear as
+  **two issues** (different sources, different fingerprints) in v1.
+- Derivation starts when the module is enabled — there's **no backfill** of
+  older telemetry.
+
+## Next
+
+- [Errors](/docs/signals/errors) — fingerprints, sources and the triage
+  lifecycle in full.
+- [Sentry SDK integration](/integrations/frameworks/sentry-sdk) — browser
+  errors with a one-line DSN change.
+- [Know when checkout is down](/guides/know-when-checkout-is-down) — from
+  errors to health to a webhook that pages you.
