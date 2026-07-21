@@ -1,0 +1,35 @@
+---
+slug: sensor-safe-by-default
+title: "Le capteur eBPF est désormais prouvé sûr à laisser activé"
+description: "La CI maintient en vie un canari sensible aux probes sous le capteur, un nouveau mode opt-in restreint les uprobes aux workloads étiquetés, et un runbook de déploiement progressif couvre l'activation d'eBPF sur une flotte en production."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-21
+---
+
+Le tracing zéro-code ne vaut que s'il ne casse rien. La gate wedge le
+**prouve** désormais : la CI maintient un workload volontairement fragile —
+limite CPU serrée, liveness probe agressive — Ready sous le capteur, et un
+nouveau **mode opt-in** permet aux flottes prudentes d'adopter les uprobes
+étiquette par étiquette.
+
+{/* truncate */}
+
+- **Un canari dans la gate.** La démo e2e wedge inclut désormais un pod
+  sensible aux probes qui reproduit le vrai mode de défaillance (le surcoût
+  des uprobes est imputé au cgroup CPU de *l'application*). Après une période
+  de soak avec le capteur attaché, ce pod précis — même identité, pas un
+  remplaçant — doit rester Ready avec zéro redémarrage, sinon la release
+  échoue. « Sûr » est un signal CI, pas une promesse.
+- **Instrumentation opt-in.** `sensor.obi.discovery.mode: optIn` n'attache les
+  uprobes **qu'aux** workloads étiquetés `avuru.obs/instrument: "true"` — le
+  tracing devient une adoption délibérée, tandis que les logs, les métriques
+  d'infrastructure et l'inventaire des nœuds continuent de couvrir tout le
+  cluster. Le défaut reste `optOut` : zéro-code pour tout, avec les échappes
+  existantes par pod, namespace et nœud.
+- **Un runbook de déploiement progressif.** Activer le capteur sur une flotte
+  avec de vrais workloads suit désormais un chemin documenté : pool de nœuds
+  canari, soak sur un pic d'activité en surveillant les événements de probe et
+  le throttling CPU, puis élargissement pool par pool — avec un tableau
+  d'échappes indexé par symptôme pour des réponses ciblées plutôt que de
+  couper le capteur.
