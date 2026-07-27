@@ -3,7 +3,7 @@ id: modules
 title: Modules
 sidebar_label: Modules
 sidebar_position: 6
-description: Choose which signal families your install runs — traces, logs, metrics, profiling.
+description: Choose which signal families your install runs — traces, logs, metrics, profiling, energy.
 ---
 
 # Modules
@@ -13,8 +13,11 @@ module off skips its storage schema, its API, its collection, and its screen in
 the UI — so a traces-only install carries none of the storage or CPU weight of
 logs or profiling.
 
-Everything is on by default. You only ever turn modules **off**, and the
-service map still lights up in minutes either way.
+Almost everything is on by default — you turn modules **off**, and the service
+map still lights up in minutes either way. The one exception is **green**
+(energy & carbon): it ships **off**, because the signal depends on RAPL
+hardware and a default-on module would silently flip on for every existing
+install on the next upgrade.
 
 ## The modules
 
@@ -24,6 +27,7 @@ service map still lights up in minutes either way.
 | **logs** | Log collection, search, and trace correlation | `modules.logs.enabled` |
 | **infra-metrics** | Node and pod metrics, the sensor inventory | `modules.infraMetrics.enabled` |
 | **profiling** | Continuous CPU profiling and flame graphs | `modules.profiling.enabled` |
+| **green** | Per-service [energy & carbon](/docs/signals/green) from CNCF Kepler | `modules.green.enabled` — **off by default** (needs RAPL; also opt in `sensor.green.enabled`, and it requires `infra-metrics`) |
 
 RED metrics are derived from your traces, not from the metrics tables, so the
 **Metrics** view is part of core and stays available even with `infra-metrics`

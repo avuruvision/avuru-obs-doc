@@ -46,6 +46,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/errors/issues/{fingerprint}/events` | Occurrences of an issue (keyset paginated). |
 | `GET /api/v1/errors/issues/{fingerprint}/histogram` | Occurrence histogram over the window. |
 | `POST /api/v1/errors/issues/{fingerprint}/status` | Triage an issue — `unresolved` / `resolved` / `ignored`. |
+| `GET /api/v1/green/summary` | Per-service energy (Wh) and carbon (gCO2e) over the window, with the coverage ratio and unattributed bucket. Module `green` (requires `infra-metrics`). |
+| `GET /api/v1/green/budgets` | Monthly carbon budgets per service group: used, projected, ratio, and warn/exceeded status. Module `green`. |
+| `GET /api/v1/green/report` | CSRD-ready export — per-app numbers plus a methodology block (formula, factor provenance, coverage). Module `green`. |
 | `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
 | `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |
 | `GET /api/v1/agents` | Sensor inventory: per-node telemetry freshness per signal — `windowSec` (default `600`) bounds "fresh". |

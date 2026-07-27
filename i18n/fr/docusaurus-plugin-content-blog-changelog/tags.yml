@@ -23,6 +23,11 @@ platform:
   permalink: /platform
   description: Backend, stockage & exploitation
 
+sustainability:
+  label: Durabilité
+  permalink: /sustainability
+  description: Attribution énergie & carbone
+
 docs:
   label: Docs
   permalink: /docs

@@ -1,0 +1,55 @@
+---
+slug: green
+title: "Green : énergie et carbone par service, prêt pour la CSRD et hors ligne"
+description: "Énergie (Wh) et carbone (gCO2e) par service depuis CNCF Kepler, corrélés à la carte que vous avez déjà — budgets carbone, intensité par requête et un export CSRD auditable. Zéro changement de code, aucune donnée ne quitte le cluster."
+authors: [avuru]
+tags: [sustainability, platform]
+date: 2026-07-27
+---
+
+Le nouveau module **green** transforme la carte pod→service que vous exploitez
+déjà en **énergie (Wh) et carbone (gCO2e) par service** — les chiffres que
+réclament l'ESRS E1 / la CSRD et les objectifs internes de durabilité, sans
+estimation sur tableur ni SaaS qui veut votre télémétrie. L'énergie est mesurée
+par **CNCF Kepler** (depuis les compteurs RAPL du CPU) ; avuru obs sait déjà
+quel pod est quel service, et attribue donc les joules aux services de votre
+carte. Auto-hébergé, sans changement applicatif, sans API externe.
+
+{/* truncate */}
+
+- **Des chiffres qu'un auditeur peut reproduire.** Un export CSV/JSON prêt pour
+  la CSRD porte un **bloc méthodologie** — la formule, le facteur d'intensité
+  du réseau et sa provenance, le ratio de couverture de mesure et un seau
+  *non attribué* explicite — pour qu'un gCO2e reporté soit traçable jusqu'à sa
+  production.
+- **Des budgets carbone par équipe.** Des budgets mensuels de gCO2e par groupe
+  de services, avec **alerte à 80 %**, **dépassement à 100 %** et une
+  projection de fin de mois — livrés via les canaux d'[alerting](/docs/signals/alerting)
+  que vous avez déjà configurés. Alerting désactivé, les budgets affichent
+  quand même leur statut sur le tableau de bord.
+- **Une efficacité démontrable.** Intensité carbone par requête (Wh ÷ requêtes,
+  gCO2e dérivé) et tendance par service, pour qu'une optimisation ressorte même
+  quand le trafic augmente — plus une **superposition gCO2e** sur la carte des
+  services que vous surveillez déjà.
+- **Hors ligne par conception.** Les facteurs d'intensité du réseau sont des
+  **moyennes annuelles par pays intégrées**, avec surcharges opérateur en
+  configuration ; `gCO2e = Wh × intensité × PUE` s'exécute dans le hub au
+  moment de la requête. Aucune sortie réseau, compatible air-gap.
+- **Aucun nouveau stockage, aucun changement de code.** Tous les calculs
+  s'exécutent sur les tables de métriques déjà existantes — pas de migration.
+  Kepler rejoint le sensor comme conteneur **opt-in et sans sonde**
+  (`sensor.green.enabled`), il ne peut donc jamais déstabiliser le pod du
+  sensor ; et sur les nœuds sans RAPL, le module rapporte honnêtement (un ratio
+  de couverture et un état vide pédagogique) au lieu d'estimer.
+- **Désactivé par défaut.** Le signal dépend du matériel RAPL/powercap :
+  `modules.green.enabled` est donc livré **désactivé** — une installation
+  existante se met à jour sans changement. Il nécessite le
+  [module infra-metrics](/docs/setup/modules) pour la jointure pod→charge.
+
+:::caution À confirmer sur du matériel réel avant la production
+Les noms de métriques, clés de configuration et port de Kepler sont validés en
+CI avec le compteur de développement de l'image épinglée, mais **doivent être
+confirmés sur du matériel RAPL réel avant une utilisation en production**. Les
+noms de métriques du hub sont configurables précisément pour cette raison.
+Voir la page [Green](/docs/signals/green).
+:::
