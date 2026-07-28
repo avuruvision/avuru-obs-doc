@@ -1,0 +1,101 @@
+---
+id: licensing
+title: Licence et pérennité
+sidebar_label: Licence et pérennité
+sidebar_position: 8
+description: Ce que l'AGPL implique pour vous, pourquoi avuru obs l'a choisie, et comment le projet assure sa pérennité.
+---
+
+# Licence et pérennité
+
+avuru obs est distribué sous licence
+[AGPL-3.0](https://github.com/avuruvision/avuru-obs/blob/main/LICENSE).
+Cette page explique ce que cela implique pour vous en pratique — et c'est plus
+court que vous ne le craignez.
+
+## En bref
+
+- **Utilisez-le librement.** Héberger vous-même avuru obs pour votre équipe ou
+  votre entreprise — sans modification, en production, à n'importe quelle
+  échelle — ne vous impose **aucune obligation**.
+- **Vos applications restent les vôtres.** Observer vos services n'en fait pas
+  des œuvres dérivées. Rien de votre code instrumenté n'est concerné.
+- **Tout ce qui est livré reste ouvert, pour toujours.** L'
+  [accord de licence de contribution (§2.2)](https://github.com/avuruvision/avuru-obs/blob/main/CLA.md)
+  du projet garantit juridiquement que chaque contribution reste disponible
+  sous AGPL-3.0. L'édition open source ne peut jamais être fermée ni amputée
+  rétroactivement.
+- **Rien n'est réservé à une offre payante.** Authentification, rôles, contrôle
+  d'accès par projet et SSO OIDC — des capacités souvent verrouillées derrière
+  un palier payant ailleurs — sont dans l'édition open source.
+- **L'agent de nœud est en Apache-2.0.** Le capteur déployé sur vos hôtes est
+  l'
+  [OpenTelemetry eBPF Instrumentation](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation)
+  (OBI) en amont, configuré — non forké — par avuru obs.
+
+## Quand l'AGPL vous demande-t-elle quelque chose ?
+
+Dans un seul cas : vous **modifiez avuru obs lui-même** et rendez la version
+modifiée accessible à des tiers via un réseau — par exemple, en exploitant un
+hub modifié comme service pour des tiers. Les personnes qui l'utilisent doivent
+alors pouvoir obtenir le code source de vos modifications. Pour un déploiement
+interne, « les personnes qui l'utilisent » sont votre propre équipe : en
+pratique, cela ne change rien.
+
+Redistribuer ou exploiter avuru obs **sans modification** ne requiert que ce qui
+est déjà public : la licence et le code source. Si l'AGPL ne convient pas à
+votre cas — par exemple intégrer avuru obs ou l'un de ses modules dans un
+produit propriétaire — une licence commerciale est disponible :
+**egilberny@lab.luxavuru.com**.
+
+## Pourquoi l'AGPL
+
+Les plateformes d'observabilité détiennent la télémétrie la plus sensible qu'une
+organisation produise. avuru obs est conçu comme une alternative **souveraine**
+à la facturation SaaS par hôte — et la souveraineté n'est crédible que si le
+logiciel ne peut jamais être enfermé. Une licence permissive laisserait
+l'édition open source libre d'être absorbée par n'importe quel acteur dominant
+dans un service propriétaire et fermé — y compris sa
+[comptabilité énergie et carbone](/docs/status). L'AGPL ferme cette porte :
+quiconque bâtit sur avuru obs bâtit au grand jour. La façon dont cela positionne
+le projet face à chaque alternative est détaillée dans la
+[section comparaison](/docs/compare).
+
+Pour les personnes qui le déploient réellement, la différence est invisible :
+l'auto-hébergement sous AGPL n'impose pas plus d'obligations que sous une
+licence permissive — c'est-à-dire aucune.
+
+## Ce qui est sous quelle licence
+
+| Composant | Licence |
+|---|---|
+| Hub, UI, passerelle, charts Helm | AGPL-3.0 |
+| Capteur (agent de nœud) | Apache-2.0 — OBI en amont, déployé via Helm, non forké |
+| Dépendances Go/TS | Apache-2.0 / MIT / BSD — l'attribution est livrée dans [THIRD-PARTY-NOTICES.md](https://github.com/avuruvision/avuru-obs/blob/main/THIRD-PARTY-NOTICES.md) |
+
+## Éditions et pérennité
+
+- **Édition open source** — c'est le produit. Tout ce qui est documenté sur ce
+  site, y compris l'authentification, le RBAC et le SSO OIDC. AGPL-3.0, pour
+  toujours.
+- **Édition Enterprise (prévue)** — une offre commerciale distincte pour les
+  besoins à l'échelle de l'organisation (multi-tenance, rétention avancée et
+  conformité). Elle **s'ajoute à** l'édition open source ; elle n'en retire
+  jamais rien.
+- **Licence commerciale / double licence** — pour les éditeurs qui intègrent
+  avuru obs là où l'AGPL ne convient pas : **egilberny@lab.luxavuru.com**.
+- **Sponsoring** —
+  [GitHub Sponsors](https://github.com/sponsors/avuruvision) et
+  [Open Collective](https://opencollective.com/avuru-obs) financent la CI, le
+  matériel de test eBPF sur différentes versions de noyau, et les releases
+  multi-arch signées.
+
+## Contribuer et le CLA
+
+Les contributeurs signent une seule fois un
+[CLA individuel](https://github.com/avuruvision/avuru-obs/blob/main/CLA.md)
+lors de leur première pull request — un bot s'en occupe, la signature tient en
+un commentaire. Vous conservez la propriété de votre travail ; le projet obtient
+les droits qui rendent possible le modèle décrit plus haut ; et le §2.2 garantit
+que votre contribution reste disponible sous AGPL-3.0 pour toujours. Détails :
+[CONTRIBUTING.md](https://github.com/avuruvision/avuru-obs/blob/main/CONTRIBUTING.md).
