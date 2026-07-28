@@ -4,7 +4,15 @@ import Link from '@docusaurus/Link';
 import Translate, {translate} from '@docusaurus/Translate';
 import Head from '@docusaurus/Head';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import {HeroDashboard, BuiltOn} from '@site/src/components';
+import {
+  TerminalDemo,
+  ArchitectureDiagram,
+  GitHubMetrics,
+  HeroDashboard,
+  FeatureGrid,
+  StatBand,
+  BuiltOn,
+} from '@site/src/components';
 import styles from './index.module.css';
 
 const INSTALL_CMD =
@@ -179,11 +187,11 @@ const HOLD_MS = 1700;
 function Typewriter(): React.ReactElement {
   const words = React.useMemo(
     () => [
-      translate({id: 'home.type.w1', message: 'For Kubernetes.'}),
+      translate({id: 'home.type.w1', message: 'For green IT.'}),
       translate({id: 'home.type.w2', message: 'For SREs.'}),
       translate({id: 'home.type.w3', message: 'For platform teams.'}),
       translate({id: 'home.type.w4', message: 'For CSRD reporting.'}),
-      translate({id: 'home.type.w5', message: 'For green IT.'}),
+      translate({id: 'home.type.w5', message: 'For any infrastructure.'}),
     ],
     [],
   );
@@ -350,6 +358,10 @@ export default function Home(): React.ReactElement {
         </p>
       </section>
 
+      <section className={styles.statSection}>
+        <StatBand />
+      </section>
+
       <section className={styles.pillars}>
         <div className={styles.pillar}>
           <h3 className={styles.pillarTitle}>
@@ -396,6 +408,19 @@ export default function Home(): React.ReactElement {
         </div>
       </section>
 
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.features.title">Every signal, one engine</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.features.lede">
+            Traces, logs, metrics, profiles and energy land in the same store —
+            query and correlate them without stitching tools together.
+          </Translate>
+        </p>
+        <FeatureGrid />
+      </section>
+
       <section className={styles.useCases}>
         <div className={styles.useCase}>
           <div className={styles.cardShot}>
@@ -434,6 +459,69 @@ export default function Home(): React.ReactElement {
             <Translate id="home.usecase.green.cta">Explore the green module →</Translate>
           </Link>
         </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.dropin.title">Already sending OpenTelemetry?</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.dropin.lede">
+            Point your existing collectors at avuru obs and keep your
+            instrumentation. Logs, metrics and continuous profiling land next to
+            your traces — in one ClickHouse — with a one-line exporter change.
+          </Translate>
+        </p>
+        <div className={styles.ctaRow}>
+          <Link
+            className={`button button--lg ${styles.btnGrad}`}
+            to="/docs/setup/otel-bridge">
+            <Translate id="home.dropin.cta.bridge">OTLP bridge guide</Translate>
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/compare">
+            <Translate id="home.dropin.cta.compare">Compare &amp; migrate</Translate>
+          </Link>
+        </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.demo.title">See the collector, not a screenshot</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.demo.lede">
+            Install the chart and the service map lights up — no SDKs, no
+            sidecars, no YAML archaeology.
+          </Translate>
+        </p>
+        <TerminalDemo />
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.arch.title">One engine. One control plane. One UI.</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.arch.lede">
+            Click any component to open its docs.
+          </Translate>
+        </p>
+        <ArchitectureDiagram />
+      </section>
+
+      <section className={`${styles.section} ${styles.sectionBordered}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.metrics.title">Open source &amp; alive</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.metrics.lede">
+            AGPL-3.0 and self-hostable — own your telemetry, no per-host or
+            per-GB billing. Built in the open on GitHub.
+          </Translate>
+        </p>
+        <GitHubMetrics />
       </section>
 
       <section className={styles.section}>

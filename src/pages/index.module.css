@@ -348,12 +348,31 @@
 }
 @media (max-width: 900px) { .useCases { grid-template-columns: 1fr; } }
 
-/* closing band wrapper */
+/* stat band section */
+.statSection {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.6rem 1rem 0.5rem;
+}
+
+/* below-the-fold sections */
 .section {
   max-width: 1000px;
   margin: 0 auto;
   padding: 3rem 1rem;
 }
+.sectionTitle {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+.sectionLede {
+  color: var(--avuru-muted);
+  max-width: 680px;
+  margin-bottom: 1.8rem;
+}
+.sectionBordered { border-top: 1px solid var(--avuru-border); }
 
 /* closing CTA band */
 .cta {
