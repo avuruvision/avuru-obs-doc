@@ -1,0 +1,106 @@
+---
+id: green
+title: Green — energy & carbon
+sidebar_label: Green
+sidebar_position: 9
+description: Per-service energy (Wh) and carbon (gCO2e) from CNCF Kepler, correlated with the service map you already run — carbon budgets, per-request intensity, and a CSRD-ready export. Zero code changes, no egress.
+---
+
+# Green — energy & carbon
+
+Teams are being asked for per-application energy and carbon numbers — ESRS E1 /
+CSRD reporting, internal sustainability targets, cost-of-compute pressure — and
+the usual answer is a spreadsheet estimate or a SaaS that wants the cluster's
+telemetry. avuru obs already knows which pod belongs to which service and what
+the CPU did; **CNCF Kepler** adds the one missing measurement (joules, from the
+CPU's RAPL counters), and the correlation the platform already does turns it
+into **per-service Wh, per-request intensity, and gCO2e a report can cite** —
+self-hosted, zero app changes, no external API.
+
+## What you get
+
+- **Per-service energy and carbon.** Wh and gCO2e per service / deployment over
+  a window, on the `/green` dashboard and as a **gCO2e overlay** on the service
+  map you already watch.
+- **Per-request intensity.** Wh ÷ request count (gCO2e derived), plus a
+  per-service trend — so an efficiency win shows up even as traffic grows.
+- **Carbon budgets.** Monthly gCO2e budgets per service group, with warn at
+  80 %, exceeded at 100 %, and a month-end projection.
+- **A CSRD-ready export.** Per-app numbers for ESRS E1 with a methodology block
+  an auditor can follow.
+
+## How it works
+
+Kepler measures per-pod CPU energy from **RAPL** and exposes it on a metrics
+endpoint. It runs as an **opt-in, probe-free** fourth container in the sensor
+DaemonSet (`sensor.green.enabled`); a scrape config carries its counters over
+the **existing** OTLP → gateway path into the metric tables you already have.
+The hub computes energy and carbon **at query time**:
+
+```
+Wh    = Δjoules ÷ 3600         (per pod, summed to the workload)
+gCO2e = Wh × grid-intensity × PUE
+```
+
+The pod→workload join reads the same kubeletstats attributes as node/pod
+health — which is why green **requires the [infra-metrics module](/docs/setup/modules)**.
+There are **no new tables and no migration**: it's the same read-time
+aggregation pattern as service and network health.
+
+Grid intensity (gCO2e/kWh) and PUE are **operator-set per cluster** in config,
+with **bundled per-country annual averages** as defaults — no external API, no
+egress. Factor provenance (operator-set vs. bundled, and its vintage) is part
+of every export.
+
+## Budgets & the CSRD export
+
+Budgets are declarative config (a hot-reloaded ConfigMap, like alerting rules),
+evaluated on the same tick as [alerting](/docs/signals/alerting) and delivered
+through the **channels you already configured**. A budget fires once per
+crossing (warn / exceeded) and resolves on month rollover or when usage drops
+back. With the alerting module off, budgets still compute
+used / projected / ratio / status on the dashboard — only the notifications
+stop.
+
+The export states **how each number was produced**: the formula, the grid
+factor and its provenance, the **coverage ratio** (attributed ÷ measured
+energy), and an explicit **unattributed** bucket for measured energy the join
+couldn't place. Numbers you can hand to an auditor and reproduce.
+
+## Use cases
+
+- **Answer the CSRD / ESRS E1 ask without a spreadsheet.** Per-service gCO2e
+  with a stated methodology, exported on demand — no estimate, no third-party
+  processor.
+- **Give each team a carbon budget.** A monthly gCO2e ceiling per service group
+  that warns before it's blown, on the alerting channels you already use.
+- **Prove an optimization worked.** Per-request intensity isolates efficiency
+  from traffic, so a code change that cut energy is visible even as load rises.
+
+:::caution Confirm on real hardware before production
+Kepler's config keys, metric names/labels, port and RBAC are validated in CI
+against the pinned image's **dev fake-cpu-meter**, but are **not yet confirmed
+against real RAPL hardware** — do that before production use. The hub's Kepler
+metric names are configurable for exactly this reason.
+:::
+
+## Limitations
+
+- **No RAPL, no data.** Most public-cloud VMs expose no powercap/RAPL — v1
+  targets bare-metal / metal instances and **reports honestly** (a coverage
+  ratio and a teaching empty state) instead of estimating. TDP-based estimation
+  for RAPL-less nodes is post-v1.
+- **Operational energy only.** Scope 2-shaped CPU energy; no embodied /
+  Scope 3 carbon.
+- **Static annual factors.** Reported gCO2e uses annual-average grid intensity,
+  not the grid's hour-by-hour reality; the methodology block says so.
+- **Per-service, not per-endpoint.** Attribution is per service and per
+  request, not per route.
+- **Off by default.** `modules.green.enabled` and `sensor.green.enabled` both
+  ship off — the signal is hardware-dependent, so an existing install upgrades
+  unchanged.
+
+:::note This page is expanding
+See the [changelog entry](/changelog/green), the [Roadmap](/docs/roadmap) and
+[Feature status](/docs/status).
+:::

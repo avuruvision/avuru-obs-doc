@@ -1,0 +1,49 @@
+---
+slug: green
+title: "Green: per-service energy and carbon, CSRD-ready and offline"
+description: "Per-service energy (Wh) and carbon (gCO2e) from CNCF Kepler, correlated with the map you already have — carbon budgets, per-request intensity, and an auditable CSRD export. Zero code changes, no data leaves the cluster."
+authors: [avuru]
+tags: [sustainability, platform]
+date: 2026-07-27
+---
+
+The new **green** module turns the pod→service map you already run into
+**per-service energy (Wh) and carbon (gCO2e)** — the numbers ESRS E1 / CSRD and
+internal sustainability targets ask for, without a spreadsheet estimate or a
+SaaS that wants your telemetry. Energy is measured by **CNCF Kepler** (from the
+CPU's RAPL counters); avuru obs already knows which pod is which service, so it
+attributes joules to the services on your map. Self-hosted, zero app changes,
+no external API.
+
+{/* truncate */}
+
+- **Numbers an auditor can reproduce.** A CSRD-ready CSV/JSON export carries a
+  **methodology block** — the formula, the grid-intensity factor and its
+  provenance, the measurement coverage ratio, and an explicit *unattributed*
+  bucket — so a reported gCO2e is traceable back to how it was produced.
+- **Carbon budgets per team.** Monthly gCO2e budgets per service group, with
+  **warn at 80%**, **exceeded at 100%**, and a month-end projection — delivered
+  through the [alerting](/docs/signals/alerting) channels you already
+  configured. With alerting off, budgets still show status on the dashboard.
+- **Efficiency you can prove.** Per-request carbon intensity (Wh ÷ requests,
+  gCO2e derived) and a per-service trend, so an optimization shows up even as
+  traffic grows — plus a **gCO2e overlay** on the service map you already watch.
+- **Offline by design.** Grid-intensity factors are **bundled per-country
+  annual averages** with operator overrides in config; `gCO2e = Wh × intensity
+  × PUE` runs in the hub at query time. No egress, air-gap friendly.
+- **No new storage, no code changes.** All math runs over the metric tables
+  that already exist — no migration. Kepler joins the sensor as an **opt-in,
+  probe-free** container (`sensor.green.enabled`), so it can never destabilize
+  the sensor pod, and on nodes without RAPL the module reports honestly (a
+  coverage ratio and a teaching empty state) rather than estimating.
+- **Off by default.** The signal depends on RAPL/powercap hardware, so
+  `modules.green.enabled` ships **off** — an existing install upgrades
+  unchanged. It requires the [infra-metrics module](/docs/setup/modules) for
+  the pod→workload join.
+
+:::caution Confirm on real hardware before production
+Kepler's metric names, config keys and port are validated in CI against the
+pinned image's dev meter, but **must be confirmed on real RAPL hardware before
+production use**. The hub's metric names are configurable for exactly this
+reason. See the [Green](/docs/signals/green) page.
+:::
