@@ -30,7 +30,7 @@
     "message": "Construit sur"
   },
   "home.type.w1": {
-    "message": "Pour Kubernetes."
+    "message": "Pour le Green IT."
   },
   "home.type.w2": {
     "message": "Pour les SRE."
@@ -42,7 +42,7 @@
     "message": "Pour le reporting CSRD."
   },
   "home.type.w5": {
-    "message": "Pour le Green IT."
+    "message": "Pour toute infrastructure."
   },
   "home.pillar.1.t": {
     "message": "Chaque signal"
