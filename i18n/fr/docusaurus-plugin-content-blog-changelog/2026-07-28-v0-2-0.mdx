@@ -1,0 +1,60 @@
+---
+slug: v0-2-0
+title: "v0.2.0 est là : profondeur et contrôle — sécurisé par défaut, signaux modulaires, quatre nouveaux modules"
+description: "La deuxième version rend l'installation en cinq minutes exploitable par de vraies équipes : connexion avec rôles et SSO, modules à la carte, un capteur qu'on peut laisser activé en toute confiance, et le suivi des erreurs, la santé des services, les alertes et l'énergie verte sur les données déjà collectées."
+authors: [avuru]
+tags: [platform, ui, sustainability]
+date: 2026-07-28
+---
+
+avuru obs **v0.2.0** est taguée. La v0.1 a prouvé le pari : une carte des
+services vivante en moins de cinq minutes, sans toucher aux applications. La
+v0.2 en fait une installation qu'une vraie équipe peut exploiter au
+quotidien : **sécurisée par défaut**, **modulaire par conception**, avec
+quatre nouveaux modules qui transforment les données déjà collectées en
+triage, en état de santé et en redevabilité.
+
+{/* truncate */}
+
+- **Sécurisé par défaut.** Le hub exige désormais une connexion : des
+  utilisateurs locaux avec les rôles Admin, Éditeur et Lecteur, accordés par
+  projet et appliqués côté serveur sur chaque route de l'API — les projets
+  deviennent une vraie frontière de sécurité, pas un simple filtre. Ajoutez le
+  **SSO d'entreprise** avec n'importe quel fournisseur OpenID Connect
+  (correspondance groupe→rôle, `forceSSO` pour les flottes 100 % IdP) — sans
+  proxy annexe, sans pod supplémentaire
+  ([guide sécurité](/docs/operations/security)).
+- **Choisissez vos signaux.** Un interrupteur par famille de signaux
+  (`modules.<name>.enabled`) contrôle d'un bloc son schéma, son API, son
+  pipeline, sa collecte et son interface — une installation « traces
+  uniquement » ne porte aucun poids de logs ni de profils, et la barre
+  latérale suit ce que l'installation annonce.
+- **Suivi des erreurs.** Les exceptions déjà présentes dans vos spans et vos
+  logs deviennent des problèmes dédupliqués et triables — pile d'appels,
+  chronologie des occurrences, lien vers la trace d'origine, cycle de vie
+  résolu/ignoré avec détection des régressions. Les applications navigateur
+  remontent aussi, en changeant un seul DSN — le signal que l'eBPF ne peut pas
+  atteindre.
+- **Santé des services & alertes.** Regroupez les services avec des niveaux de
+  criticité (T0/T1/T2) et une propagation par dépendance — un service ne peut
+  pas s'afficher vert quand une dépendance critique est rouge — puis recevez
+  un webhook (protégé contre les SSRF, avec cycle déclenché/résolu) quand un
+  groupe bascule en mauvais état.
+- **Santé réseau sur la carte.** RTT par liaison et compteurs de connexions
+  échouées/réinitialisées issus des statistiques TCP eBPF — la santé au niveau
+  connexion, sans traces ni SDK.
+- **Green : énergie & carbone.** Wh et gCO2e par service mesurés au niveau du
+  nœud (opt-in, matériel RAPL), budgets carbone mensuels avec alertes, et un
+  export prêt pour la CSRD qui explicite sa méthodologie. Rien ne sort du
+  cluster.
+- **Un capteur qu'on peut laisser activé, preuve à l'appui.** La CI maintient
+  un canari sensible aux sondes en bonne santé pendant un test d'endurance
+  avec le capteur attaché ; les flottes prudentes disposent d'un mode de
+  découverte opt-in et d'un guide de déploiement progressif.
+- **AGPL-3.0.** Le projet est désormais sous licence AGPL-3.0.
+
+Retrouvez les notes complètes sur la page [Versions](/docs/releases) et la
+[version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.2.0).
+Le tronc est désormais en `0.3.0-SNAPSHOT` — prochaines étapes sur la
+[feuille de route](/docs/roadmap) : les clés d'ingestion par projet, le plan
+de contrôle de la collecte à chaud, et une compatibilité d'ingestion élargie.

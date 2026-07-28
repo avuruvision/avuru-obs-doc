@@ -58,6 +58,11 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/health/groups/{name}` | One group's health, including each member's base vs. effective status and its critical-dependency chain (`404` if the group is absent). |
 | `GET /api/v1/alerts` | Currently-firing alerts + recent fire/resolve history. Module `alerting`. |
 | `GET /api/v1/alerts/rules` | The configured alerting rules and channels (channel secrets redacted). Module `alerting`. |
+| `GET /api/v1/alerts/channels` | The configured notification channels (secrets redacted). Module `alerting`. |
+| `POST /api/v1/alerts/channels` | Create a notification channel. Admin role. |
+| `PUT /api/v1/alerts/channels/{name}` | Update a notification channel. Admin role. |
+| `DELETE /api/v1/alerts/channels/{name}` | Delete a notification channel. Admin role. |
+| `POST /api/v1/alerts/channels/{name}/test` | Send a test notification through a channel (same SSRF policy as the evaluator; `503` if delivery is not configured). Admin role. |
 | `GET /api/v1/errors/issues` | Deduplicated error issues — `status`, `service`, `q`, `sort` filters. Module `error-tracking`. |
 | `GET /api/v1/errors/issues/{fingerprint}` | One issue: stack trace, first/last seen, count, source, representative trace. |
 | `GET /api/v1/errors/issues/{fingerprint}/events` | Occurrences of an issue (keyset paginated). |

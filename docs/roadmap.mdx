@@ -82,19 +82,37 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 </MilestoneGrid>
 
-## Beyond v0.1 (directional)
+## v0.2 — depth and control (released 2026-07-28)
 
-- **v0.2 — auth (shipped):** local users with per-project roles and OIDC SSO
-  landed on the auth seam built in from v0.1 — no rewrite needed. Per-project
-  ingest keys come next on the same seam. See the
-  [feature status](/docs/status).
-- **v0.2 — network flow enrichment (shipping):** OBI's built-in `network`
-  feature enriches the service map with un-instrumented edges and per-edge
-  network health — bytes, RTT, and failed/reset connections — a config toggle on
-  the existing sensor, no bespoke agent. (Retransmissions aren't shown: OBI
-  doesn't emit them.)
-- **v0.2 — remote configuration:** the hub's OpAMP server and Configuration /
-  OpAMP controls in the UI (day-2 config is Helm-driven in v0.1).
+Everything targeted at v0.2 shipped in
+[v0.2.0](/docs/releases): secure-by-default authentication with per-project
+roles and OIDC SSO, the module framework (pick your signals), error tracking
+with a browser ingest path, service health groups with criticality tiers,
+alerting webhooks, network health on the service-map edges, the green
+energy & carbon module, and a CI-proven "safe to leave on" sensor. The
+project is licensed AGPL-3.0 as of this release. Full detail on the
+[feature status](/docs/status) page and in the
+[changelog](/changelog/v0-2-0).
+
+## Beyond v0.2 (directional)
+
+- **Projects completion:** per-project **ingest keys** on the shipped auth
+  seam (replacing topology-based trust at the gateway), project CRUD,
+  per-project retention and system status, and chart component toggles for
+  multi-cluster installs against a shared ClickHouse.
+- **Runtime collection control plane:** the Helm collection knobs become
+  switchable from the UI — a bounded, schema-validated overlay the hub applies
+  to the sensor ConfigMaps, default-off and narrowly scoped. OpAMP remains the
+  destination: status reporting first, remote-config when the upstream grows a
+  client.
+- **Wider ingest compatibility:** push receivers for the common
+  tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
+  exporters so avuru obs can dual-write during a migration.
+- **Richer auto-tagging:** map Kubernetes labels/annotations to business tags
+  and filter by them across every signal.
+- **Green estimation for RAPL-less nodes:** a TDP-based power model produces
+  per-service numbers explicitly labeled *estimated*, never blended with
+  measured joules.
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`

@@ -22,12 +22,33 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.2.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.3.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : un plan de contrôle de collecte à chaud,
-l'authentification OIDC, et davantage de clients (source de données Grafana,
-CLI).
+[Feuille de route](/docs/roadmap)) : les clés d'ingestion par projet, un plan
+de contrôle de la collecte à chaud, une compatibilité d'ingestion élargie, un
+étiquetage automatique plus riche, et davantage de clients (source de données
+Grafana, CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.2.0" date="2026-07-28" status="shipped" statusLabel="Livré">
+
+**Profondeur et contrôle.** L'installation en cinq minutes devient celle
+qu'une vraie équipe peut exploiter au quotidien : le hub est sécurisé par
+défaut (connexion, rôles Admin/Éditeur/Lecteur accordés par projet, SSO OIDC
+avec n'importe quel IdP), les signaux sont modulaires (un interrupteur par
+famille contrôle d'un bloc schéma, API, pipeline, collecte et interface), et
+le capteur peut être laissé activé en toute confiance — garanti par la CI.
+Quatre nouveaux modules s'appuient sur les données déjà collectées : le suivi
+des erreurs (problèmes dédupliqués et triables, plus une voie d'ingestion
+navigateur), la santé des services par groupes (niveaux de criticité avec
+propagation par dépendance), les alertes (webhooks protégés contre les SSRF
+sur les transitions de santé) et l'énergie & carbone (Wh/gCO2e par service,
+budgets, export prêt pour la CSRD). La santé réseau arrive sur les liaisons de
+la carte des services. Sous licence AGPL-3.0 à partir de cette version.
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.2.0)
+· [changelog](/changelog/v0-2-0).
 
 </ReleaseEntry>
 

@@ -1,0 +1,50 @@
+---
+slug: v0-2-0
+title: "v0.2.0 is out: depth and control — secure by default, modular signals, four new modules"
+description: "The second release makes the five-minute install safe to run for real teams: login with roles and SSO, pick-your-signals modules, a sensor that is provably safe to leave on, and error tracking, service health, alerting and green energy on the data you already collect."
+authors: [avuru]
+tags: [platform, ui, sustainability]
+date: 2026-07-28
+---
+
+avuru obs **v0.2.0** is tagged. v0.1 proved the wedge — a live service map in
+under five minutes, zero app changes. v0.2 makes that install one a real team
+can run every day: **secure by default**, **modular by design**, and four new
+modules that turn the data you already collect into triage, status and
+accountability.
+
+{/* truncate */}
+
+- **Secure by default.** The hub now requires login: local users with Admin,
+  Editor and Viewer roles granted per project, enforced server-side on every
+  API route — projects become a real security boundary, not a filter. Add
+  **enterprise SSO** with any OpenID Connect IdP (group→role mapping,
+  `forceSSO` for IdP-only fleets) — no proxy sidecar, no extra pod
+  ([security guide](/docs/operations/security)).
+- **Pick your signals.** One switch per signal family
+  (`modules.<name>.enabled`) gates its schema, API, pipeline, collection and
+  UI together — a traces-only install carries no log or profile weight, and
+  the sidebar follows what the install advertises.
+- **Error tracking.** Exceptions already in your spans and logs become
+  deduplicated, triageable issues — stack trace, occurrence timeline, link to
+  the originating trace, resolved/ignored lifecycle with regression detection.
+  Browser apps report too, by changing one DSN — the signal eBPF cannot reach.
+- **Service health & alerting.** Group services with criticality tiers
+  (T0/T1/T2) and dependency propagation — a service can't read green while a
+  critical dependency is red — then get a webhook (SSRF-guarded, with
+  firing/resolved lifecycle) when a group crosses into a bad state.
+- **Network health on the map.** Per-edge RTT and failed/reset connection
+  counts from eBPF TCP stats — connection-level health without traces or SDKs.
+- **Green: energy & carbon.** Per-service Wh and gCO2e measured at the node
+  (opt-in, RAPL hardware), monthly carbon budgets with alerts, and a
+  CSRD-ready export that states its methodology. Nothing leaves the cluster.
+- **A sensor that is provably safe to leave on.** CI keeps a probe-sensitive
+  canary healthy through a soak with the sensor attached; cautious fleets get
+  an opt-in discovery mode and a staged-rollout runbook.
+- **AGPL-3.0.** The project is now licensed AGPL-3.0.
+
+See the full notes on the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.2.0).
+The trunk is now `0.3.0-SNAPSHOT` — next up on the
+[Roadmap](/docs/roadmap): per-project ingest keys, the runtime collection
+control plane, and wider ingest compatibility.

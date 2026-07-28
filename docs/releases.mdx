@@ -21,11 +21,30 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.2.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.3.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): a
-runtime collection control plane, auth/OIDC, and more clients (Grafana data
-source, CLI).
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
+per-project ingest keys, a runtime collection control plane, wider ingest
+compatibility, richer auto-tagging, and more clients (Grafana data source,
+CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.2.0" date="2026-07-28" status="shipped">
+
+**Depth and control.** The five-minute install becomes one a real team can
+run every day: the hub is secure by default (login, Admin/Editor/Viewer roles
+granted per project, OIDC SSO with any IdP), signals are modular (one switch
+per family gates schema, API, pipeline, collection and UI together), and the
+sensor is provably safe to leave on — CI-enforced. Four new modules build on
+the data already collected: error tracking (deduplicated, triageable issues
+plus a browser ingest path), service health groups (criticality tiers with
+dependency propagation), alerting (SSRF-guarded webhooks on health
+transitions) and green energy & carbon (per-service Wh/gCO2e, budgets, a
+CSRD-ready export). Network health lands on the service-map edges. Licensed
+AGPL-3.0 from this release on.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.2.0)
+· [changelog](/changelog/v0-2-0).
 
 </ReleaseEntry>
 
