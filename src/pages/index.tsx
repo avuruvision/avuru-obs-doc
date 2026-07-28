@@ -114,17 +114,52 @@ function InstallCommand(): React.ReactElement {
   );
 }
 
+/** Decorative radar rings + horizon arc — pure inline SVG, no external assets. */
+function HeroRings(): React.ReactElement {
+  return (
+    <div className={styles.heroArt} aria-hidden="true">
+      <svg
+        className={styles.heroArtSvg}
+        viewBox="0 0 1200 800"
+        preserveAspectRatio="xMidYMax slice"
+        focusable="false">
+        <defs>
+          <linearGradient id="heroRingGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#34d399" />
+            <stop offset="0.5" stopColor="#22d3ee" />
+            <stop offset="1" stopColor="#818cf8" />
+          </linearGradient>
+          <radialGradient id="heroHorizonGlow" cx="0.5" cy="1" r="0.9">
+            <stop offset="0" stopColor="rgba(52, 211, 153, 0.28)" />
+            <stop offset="0.45" stopColor="rgba(34, 211, 238, 0.10)" />
+            <stop offset="1" stopColor="rgba(6, 10, 20, 0)" />
+          </radialGradient>
+        </defs>
+        <rect x="0" y="300" width="1200" height="500" fill="url(#heroHorizonGlow)" />
+        <circle className={`${styles.ring} ${styles.ring1}`} cx="600" cy="980" r="300" />
+        <circle className={`${styles.ring} ${styles.ring2}`} cx="600" cy="980" r="470" />
+        <circle className={`${styles.ring} ${styles.ring3}`} cx="600" cy="980" r="640" />
+        <circle className={`${styles.ring} ${styles.ring4}`} cx="600" cy="980" r="810" />
+        <circle
+          cx="600"
+          cy="1180"
+          r="430"
+          fill="#0a1424"
+          stroke="rgba(148, 163, 184, 0.18)"
+          strokeWidth="1.5"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function Hero(): React.ReactElement {
   const {siteConfig} = useDocusaurusContext();
   const demoUrl =
     (siteConfig.customFields?.demoUrl as string) || 'https://demo.avuruobs.io';
   return (
     <header className={styles.hero}>
-      <div className={styles.heroBg} aria-hidden="true">
-        <span className={`${styles.blob} ${styles.blob1}`} />
-        <span className={`${styles.blob} ${styles.blob2}`} />
-        <span className={`${styles.blob} ${styles.blob3}`} />
-      </div>
+      <HeroRings />
 
       <div className={styles.heroInner}>
         <Link className={styles.pill} to="/docs/signals/green">
@@ -133,13 +168,10 @@ function Hero(): React.ReactElement {
           <span className={styles.pillArrow}>→</span>
         </Link>
 
-        <div className={styles.eyebrow}>
-          Open source · eBPF-native · OpenTelemetry
-        </div>
         <h1 className={styles.title}>
-          <Translate id="home.title.lead">APM &amp; Observability</Translate>{' '}
+          <Translate id="home.title.lead">Observe everything.</Translate>{' '}
           <span className={styles.gradText}>
-            <Translate id="home.title.grad">without friction</Translate>
+            <Translate id="home.title.grad">Waste nothing.</Translate>
           </span>
         </h1>
         <p className={styles.subtitle}>
@@ -149,40 +181,21 @@ function Hero(): React.ReactElement {
           </Translate>
         </p>
 
-        <InstallCommand />
-
         <div className={styles.ctaRow}>
-          <Link
-            className={`button button--lg ${styles.btnGrad}`}
-            to="/docs/getting-started/30-seconds">
-            <Translate id="home.cta.guide">30-second guide</Translate>
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to={demoUrl}>
+          <Link className={`button button--lg ${styles.btnGrad}`} to={demoUrl}>
             <Translate id="home.cta.demo">Live Demo</Translate>
           </Link>
           <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
-            <Translate id="home.cta.docs">Read the docs</Translate>
+            className={`button button--lg ${styles.btnOutline}`}
+            to="/docs/getting-started/30-seconds">
+            <Translate id="home.cta.guide">30-second guide</Translate>
           </Link>
         </div>
-
-        <div className={styles.chips}>
-          <span className={styles.chip}>Traces</span>
-          <span className={styles.chip}>Logs</span>
-          <span className={styles.chip}>Metrics</span>
-          <span className={styles.chip}>Profiling</span>
-          <span className={styles.chip}>Energy</span>
-        </div>
       </div>
 
-      <div className={styles.heroShot}>
-        <HeroDashboard />
+      <div className={styles.heroLogos}>
+        <BuiltOn />
       </div>
-
-      <BuiltOn />
     </header>
   );
 }
@@ -202,6 +215,36 @@ export default function Home(): React.ReactElement {
         <script type="application/ld+json">{JSON.stringify(WEBSITE_DATA)}</script>
       </Head>
       <Hero />
+
+      <section className={styles.statement}>
+        <h2 className={styles.statementTitle}>
+          <Translate id="home.statement.title">
+            Every watt, every request, accounted for.
+          </Translate>
+        </h2>
+        <p className={styles.statementLede}>
+          <Translate id="home.statement.lede">
+            Per-service energy and carbon alongside your traces — CSRD-ready
+            exports, zero code changes, and no data ever leaves your cluster.
+          </Translate>
+        </p>
+      </section>
+
+      <section className={`${styles.section} ${styles.productSection}`}>
+        <h2 className={styles.sectionTitle}>
+          <Translate id="home.product.title">One Helm chart. Full picture.</Translate>
+        </h2>
+        <p className={styles.sectionLede}>
+          <Translate id="home.product.lede">
+            Install in 30 seconds and the service map lights up — traces, logs,
+            metrics, profiles and energy in one UI.
+          </Translate>
+        </p>
+        <InstallCommand />
+        <div className={styles.heroShot}>
+          <HeroDashboard />
+        </div>
+      </section>
 
       <section className={styles.statSection}>
         <StatBand />
