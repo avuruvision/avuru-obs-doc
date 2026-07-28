@@ -1,0 +1,32 @@
+---
+slug: sensor-safe-by-default
+title: "The eBPF sensor is now provably safe to leave on"
+description: "CI keeps a probe-sensitive canary alive under the sensor, a new opt-in instrumentation mode narrows uprobes to labeled workloads, and a staged-rollout runbook covers enabling eBPF on a running fleet."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-21
+---
+
+Zero-code tracing only counts if it does no harm. The wedge gate now **proves**
+it: CI keeps a deliberately fragile workload — tight CPU limit, aggressive
+liveness probe — Ready under the sensor, and a new **opt-in mode** lets
+cautious fleets adopt uprobes label by label.
+
+{/* truncate */}
+
+- **A canary in the gate.** The e2e wedge demo now includes a probe-sensitive
+  pod that reproduces the real failure mode (uprobe overhead is charged to the
+  *application's* CPU cgroup). After a soak with the sensor attached, that
+  exact pod — same identity, not a replacement — must still be Ready with zero
+  restarts, or the release fails. "Safe" is a CI signal, not a claim.
+- **Opt-in instrumentation.** `sensor.obi.discovery.mode: optIn` attaches
+  uprobes **only** to workloads labeled `avuru.obs/instrument: "true"` —
+  tracing becomes deliberate adoption, while logs, infra metrics and the node
+  inventory keep covering the whole cluster. The default stays `optOut`:
+  zero-code for everything, with the existing pod/namespace/node escape
+  hatches.
+- **A staged-rollout runbook.** Enabling the sensor on a fleet with real
+  workloads now has a documented path: canary node pool, a business-peak soak
+  watching probe events and CPU throttling, then widening pool by pool — with
+  a symptom-keyed escape-hatch table for targeted responses instead of turning
+  the sensor off.
