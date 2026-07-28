@@ -26,7 +26,7 @@ const STRUCTURED_DATA = {
   applicationCategory: 'DeveloperApplication',
   operatingSystem: 'Linux, Kubernetes',
   description:
-    'Open-source, eBPF-native observability and APM platform — distributed tracing, metrics, logs and continuous profiling in one engine. A self-hosted alternative to Datadog, New Relic and the Grafana/Prometheus stack.',
+    'Open-source, eBPF-native observability and APM platform — distributed tracing, metrics, logs, continuous profiling and per-service energy & carbon (gCO2e) in one engine. CSRD-ready green IT reporting, zero code changes. A self-hosted alternative to Datadog, New Relic and the Grafana/Prometheus stack.',
   url: 'https://avuruobs.io',
   license: 'https://www.gnu.org/licenses/agpl-3.0.html',
   isAccessibleForFree: true,
@@ -127,9 +127,9 @@ function Hero(): React.ReactElement {
       </div>
 
       <div className={styles.heroInner}>
-        <Link className={styles.pill} to="/docs/signals/profiling">
+        <Link className={styles.pill} to="/docs/signals/green">
           <span className={styles.pillTag}>New</span>
-          <Translate id="home.pill">Continuous eBPF profiling</Translate>
+          <Translate id="home.pill">Energy &amp; carbon per service — zero code</Translate>
           <span className={styles.pillArrow}>→</span>
         </Link>
 
@@ -144,8 +144,8 @@ function Hero(): React.ReactElement {
         </h1>
         <p className={styles.subtitle}>
           <Translate id="home.subtitle">
-            Traces, metrics, logs and continuous profiling — one install, one
-            engine, zero code changes.
+            Traces, metrics, logs, continuous profiling — and energy &amp;
+            carbon per service. One install, one engine, zero code changes.
           </Translate>
         </p>
 
@@ -174,6 +174,7 @@ function Hero(): React.ReactElement {
           <span className={styles.chip}>Logs</span>
           <span className={styles.chip}>Metrics</span>
           <span className={styles.chip}>Profiling</span>
+          <span className={styles.chip}>Energy</span>
         </div>
       </div>
 
@@ -193,7 +194,7 @@ export default function Home(): React.ReactElement {
       description={translate({
         id: 'home.meta.desc',
         message:
-          'Avuru Obs is an open-source, eBPF-native observability platform — distributed tracing, metrics, logs and continuous profiling in one engine. A self-hosted alternative to Datadog, New Relic and the Grafana stack.',
+          'Avuru Obs is an open-source, eBPF-native observability platform — distributed tracing, metrics, logs, continuous profiling and per-service energy & carbon (gCO2e) in one engine. CSRD-ready green IT reporting, zero code changes. A self-hosted alternative to Datadog, New Relic and the Grafana stack.',
       })}>
       <Head>
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
@@ -212,8 +213,8 @@ export default function Home(): React.ReactElement {
         </h2>
         <p className={styles.sectionLede}>
           <Translate id="home.features.lede">
-            Traces, logs, metrics and profiles land in the same store — query and
-            correlate them without stitching tools together.
+            Traces, logs, metrics, profiles and energy land in the same store —
+            query and correlate them without stitching tools together.
           </Translate>
         </p>
         <FeatureGrid />
@@ -270,6 +271,10 @@ export default function Home(): React.ReactElement {
             <AltPoint
               title={<Translate id="home.alt.p3.t">No lock-in</Translate>}
               text={<Translate id="home.alt.p3.d">OpenTelemetry-native: standard OTLP in and out, no proprietary agents.</Translate>}
+            />
+            <AltPoint
+              title={<Translate id="home.alt.p4.t">CSRD-ready green IT</Translate>}
+              text={<Translate id="home.alt.p4.d">Per-service energy and gCO₂e computed on your own cluster — carbon reporting without shipping telemetry to a SaaS.</Translate>}
             />
           </div>
         </div>

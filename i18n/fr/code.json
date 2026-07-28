@@ -2,8 +2,17 @@
   "home.title": {
     "message": "APM & observabilité sans friction"
   },
+  "home.title.lead": {
+    "message": "APM & Observabilité"
+  },
+  "home.title.grad": {
+    "message": "sans friction"
+  },
+  "home.pill": {
+    "message": "Énergie & carbone par service — zéro code"
+  },
   "home.subtitle": {
-    "message": "Traces, métriques, logs et profilage continu — une seule installation, un seul moteur, zéro changement de code."
+    "message": "Traces, métriques, logs, profilage continu — et énergie & carbone par service. Une seule installation, un seul moteur, zéro changement de code."
   },
   "home.copy": {
     "message": "Copier"
@@ -19,6 +28,15 @@
   },
   "home.meta.title": {
     "message": "APM & observabilité sans friction"
+  },
+  "home.meta.desc": {
+    "message": "Avuru Obs est une plateforme d'observabilité open source native eBPF — tracing distribué, métriques, logs, profilage continu et énergie & carbone par service (gCO2e) dans un seul moteur. Reporting green IT prêt pour la CSRD, zéro changement de code. Une alternative auto-hébergée à Datadog, New Relic et la stack Grafana."
+  },
+  "home.features.title": {
+    "message": "Chaque signal, un seul moteur"
+  },
+  "home.features.lede": {
+    "message": "Traces, logs, métriques, profils et énergie atterrissent dans le même stockage — interrogez-les et corrélez-les sans assembler des outils."
   },
   "home.demo.title": {
     "message": "Voyez le collecteur, pas une capture d'écran"
@@ -37,6 +55,54 @@
   },
   "home.metrics.lede": {
     "message": "Sous licence AGPL-3.0, développé au grand jour sur GitHub."
+  },
+  "home.alt.title": {
+    "message": "L'alternative open source à Datadog & la stack Grafana"
+  },
+  "home.alt.lede": {
+    "message": "Hébergez toute la plateforme sur votre propre cluster. Un seul moteur remplace l'étalement Prometheus + Loki + Tempo + Grafana — et les agents propriétaires de Datadog ou New Relic — sans facturation par hôte ni verrouillage."
+  },
+  "home.alt.p1.t": {
+    "message": "Coût prévisible"
+  },
+  "home.alt.p1.d": {
+    "message": "Faites croître la télémétrie sans mauvaise surprise de facturation par hôte ou par Go."
+  },
+  "home.alt.p2.t": {
+    "message": "Vos données restent à vous"
+  },
+  "home.alt.p2.d": {
+    "message": "Auto-hébergé et AGPL-3.0 — votre télémétrie ne quitte jamais votre infrastructure."
+  },
+  "home.alt.p3.t": {
+    "message": "Aucun verrouillage"
+  },
+  "home.alt.p3.d": {
+    "message": "Natif OpenTelemetry : OTLP standard en entrée et en sortie, pas d'agents propriétaires."
+  },
+  "home.alt.p4.t": {
+    "message": "Green IT prêt pour la CSRD"
+  },
+  "home.alt.p4.d": {
+    "message": "Énergie et gCO₂e par service calculés sur votre propre cluster — un reporting carbone sans envoyer votre télémétrie à un SaaS."
+  },
+  "home.stat.signals": {
+    "message": "signaux, un seul moteur"
+  },
+  "home.stat.code": {
+    "message": "changement de code"
+  },
+  "home.stat.sidecars": {
+    "message": "sidecar à exécuter"
+  },
+  "home.stat.stars": {
+    "message": "étoiles GitHub"
+  },
+  "home.final.title": {
+    "message": "Déployez-le en 30 secondes"
+  },
+  "home.final.lede": {
+    "message": "Un chart Helm et la carte des services s'allume. Aucun agent à câbler, aucun code à changer."
   },
   "metrics.stars": {
     "message": "Étoiles GitHub"
@@ -121,6 +187,12 @@
   },
   "home.feat.alerts.desc": {
     "message": "Un webhook vers Slack, PagerDuty ou Alertmanager quand un service tombe — et quand il se rétablit."
+  },
+  "home.feat.green.title": {
+    "message": "Énergie & carbone"
+  },
+  "home.feat.green.desc": {
+    "message": "Wh et gCO₂e par service, par déploiement, par requête — attribution Kepler/RAPL corrélée à la carte que vous exploitez déjà, avec budgets carbone et export prêt pour la CSRD. Zéro instrumentation, zéro sortie de données."
   },
   "home.feat.learn": {
     "message": "Découvrir →"

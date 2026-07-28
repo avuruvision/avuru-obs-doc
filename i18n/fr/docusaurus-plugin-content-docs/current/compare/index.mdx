@@ -17,6 +17,11 @@ keywords:
   - alternative à Coroot
   - alternative à DeepFlow
   - suivi des erreurs open source
+  - observabilité green IT
+  - suivi de l'empreinte carbone
+  - reporting CSRD IT
+  - mesure d'énergie Kepler
+  - empreinte carbone logicielle
 ---
 
 # avuru obs vs. les alternatives
@@ -43,12 +48,19 @@ La version courte du pitch :
 - **Auto-hébergé, entièrement open source (AGPL-3.0).** Votre télémétrie ne quitte
   jamais votre infrastructure, et le coût suit votre cluster — pas une facturation
   par hôte ou par Go.
+- **Énergie & carbone dans le même moteur.** Le **module green** (opt-in)
+  attribue **Wh et gCO₂e par service** (CNCF Kepler, RAPL) et les corrèle à la
+  télémétrie que vous collectez déjà — budgets carbone et **export prêt pour la
+  CSRD**, calculés sur votre propre cluster. Aucun APM majeur — Datadog
+  compris — n'attribue le carbone par service sans changement de code ni SaaS.
+  Voir [Green](/docs/signals/green).
 
 :::note Où en est avuru obs aujourd'hui
-avuru obs est en pré-v0.1. **Les traces, les logs et la carte des services sont
-opérationnels** ; les **métriques (RED)** et le **profilage continu** sont sur la
-feuille de route (M3/M4). Les comparaisons ci-dessous disent clairement ce qui est
-livré et ce qui est prévu — voir [l'état des fonctionnalités](/docs/status).
+avuru obs est en **v0.2**. Les traces, les logs, les métriques RED, le profilage
+continu, la carte des services, le suivi des erreurs, la santé des services, les
+alertes, la santé réseau et le **module green** (énergie & carbone par service,
+opt-in) sont opérationnels. Les comparaisons ci-dessous disent clairement ce qui
+est livré et ce qui est prévu — voir [l'état des fonctionnalités](/docs/status).
 :::
 
 ## En un coup d'œil
@@ -58,7 +70,7 @@ livré et ce qui est prévu — voir [l'état des fonctionnalités](/docs/status
 | **Jaeger** | Tracing distribué | Ajoute les logs (+ métriques/profilage) dans un seul stockage ; carte eBPF sans SDK | [vs Jaeger](/docs/compare/jaeger) |
 | **Stack Grafana (Loki/Tempo/Mimir)** | Stack OSS assemblée | Un seul moteur et une seule UI au lieu de quatre systèmes à exploiter | [vs la stack Grafana](/docs/compare/grafana-stack) |
 | **Prometheus** | Métriques | Métriques **RED** automatiques corrélées aux traces et logs | [vs Prometheus](/docs/compare/prometheus) |
-| **Datadog / New Relic** | APM SaaS commercial | Auto-hébergé, sans agents propriétaires, sans facture par hôte | [vs Datadog](/docs/compare/datadog) |
+| **Datadog / New Relic** | APM SaaS commercial | Auto-hébergé, sans agents propriétaires, sans facture par hôte — plus l'énergie & les gCO₂e par service | [vs Datadog](/docs/compare/datadog) |
 | **Sentry** | Suivi des erreurs | Incidents dérivés de l'OTLP que vous envoyez déjà, plus un DSN SDK Sentry drop-in — sans facturation par événement | [vs Sentry](/docs/compare/sentry) |
 | **GlitchTip** | Suivi des erreurs | Même protocole d'ingestion Sentry, mais des erreurs unifiées avec traces, logs et carte eBPF | [vs GlitchTip](/docs/compare/glitchtip) |
 | **DeepFlow** | Plateforme eBPF + ClickHouse | UI first-party complète et suivi des erreurs natif sur la même base eBPF/ClickHouse | [vs DeepFlow](/docs/compare/deepflow) |

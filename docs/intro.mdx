@@ -3,14 +3,14 @@ id: intro
 title: What is avuru obs?
 sidebar_label: Introduction
 sidebar_position: 1
-description: All-in-one observability — traces, metrics, logs and continuous profiling in a single install, with zero code changes.
+description: All-in-one observability — traces, metrics, logs, continuous profiling and per-service energy & carbon in a single install, with zero code changes.
 ---
 
 # What is avuru obs?
 
 **avuru obs** is an open-source, all-in-one observability platform. Traces,
-metrics, logs and continuous profiling — in a **single install**, on **one
-storage engine**, behind **one UI**. It consolidates a full multi-service
+metrics, logs, continuous profiling — and per-service **energy & carbon** — in
+a **single install**, on **one storage engine**, behind **one UI**. It consolidates a full multi-service
 observability stack into a much smaller footprint, with no SDK rollout.
 
 The wedge is simple:
@@ -32,27 +32,34 @@ The wedge is simple:
   backend.
 - **Low footprint.** A minimal collector distro and a single Go control plane —
   not a constellation of services.
+- **Green IT built in.** The opt-in [green module](/docs/signals/green)
+  attributes **Wh and gCO₂e per service** (CNCF Kepler, RAPL) — carbon budgets
+  and a **CSRD-ready export**, computed on your cluster with zero
+  instrumentation and no data egress.
 
-## The four signals
+## The five signals
 
 | Signal | How it arrives | Where it lives | Status |
 |---|---|---|---|
 | **Traces** | eBPF + OTLP | ClickHouse | Available |
 | **Logs** | collected, correlated by `trace_id` | ClickHouse | Available |
-| **Metrics** | RED + OTLP | ClickHouse | Planned · M3 |
-| **Profiling** | continuous (eBPF profiler) | ClickHouse | Planned · M4 |
+| **Metrics** | RED + OTLP | ClickHouse | Available |
+| **Profiling** | continuous (eBPF profiler) | ClickHouse | Available · opt-in |
+| **Energy** | CNCF Kepler (RAPL) | ClickHouse | Available · opt-in |
 
 :::tip What works today
-Traces, logs, the service map and System Status are **live**; metrics, profiling,
-node health and OBI network flow enrichment are on the way. See
-**[Feature status](/docs/status)** for the full picture.
+Traces, logs, metrics, profiling, the service map, error tracking, service
+health, alerting and the [green module](/docs/signals/green) (energy & carbon,
+opt-in) are **live**. See **[Feature status](/docs/status)** for the full
+picture.
 :::
 
 ## The pieces
 
 avuru obs is a handful of components, each doing one job:
 
-- **`sensor`** — eBPF DaemonSet (flows, traces, RED metrics, logs, profiles).
+- **`sensor`** — eBPF DaemonSet (flows, traces, RED metrics, logs, profiles,
+  energy via Kepler — opt-in).
 - **`gateway`** — a minimal OpenTelemetry Collector distribution.
 - **`hub`** — a single Go binary: REST/WebSocket API + OpAMP config plane.
 - **`ui`** — a static SPA served from its own pod.
@@ -76,6 +83,6 @@ fastest path from `helm install` to your first trace.
   Grafana stack, Prometheus and Datadog, and how to migrate.
 
 :::note Status
-avuru obs is pre-v0.1 and under active development. APIs and schemas may change
+avuru obs is at v0.2 and under active development. APIs and schemas may change
 between minor versions. Licensed under **AGPL-3.0**.
 :::

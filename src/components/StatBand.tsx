@@ -36,7 +36,7 @@ export default function StatBand(): React.ReactElement {
   return (
     <div className={styles.statBand}>
       <div className={styles.stat}>
-        <div className={`${styles.statValue} ${styles.gradNum}`}>4</div>
+        <div className={`${styles.statValue} ${styles.gradNum}`}>5</div>
         <div className={styles.statLabel}>
           <Translate id="home.stat.signals">signals, one engine</Translate>
         </div>
