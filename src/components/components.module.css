@@ -486,7 +486,8 @@
   grid-template-areas:
     "trace trace logs metrics"
     "profile profile ebpf otel"
-    "errors errors health alert";
+    "errors errors health alert"
+    "green green green green";
   gap: 16px;
   text-align: left;
 }
@@ -499,6 +500,7 @@
 .areaErrors { grid-area: errors; }
 .areaHealth { grid-area: health; }
 .areaAlert { grid-area: alert; }
+.areaGreen { grid-area: green; }
 
 .bentoCard {
   display: flex;
@@ -536,13 +538,14 @@
       "profile profile"
       "ebpf otel"
       "errors errors"
-      "health alert";
+      "health alert"
+      "green green";
   }
 }
 @media (max-width: 560px) {
   .bento {
     grid-template-columns: 1fr;
-    grid-template-areas: "trace" "logs" "metrics" "profile" "ebpf" "otel" "errors" "health" "alert";
+    grid-template-areas: "trace" "logs" "metrics" "profile" "ebpf" "otel" "errors" "health" "alert" "green";
   }
 }
 
@@ -589,6 +592,14 @@
   flex: 1;
   border-radius: 3px 3px 0 0;
   background: linear-gradient(180deg, #22d3ee, var(--avuru-accent));
+  opacity: 0.85;
+}
+
+.miniGreen { display: flex; align-items: flex-end; gap: 5px; height: 56px; max-width: 420px; }
+.miniGreenBar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #4ade80, #16a34a);
   opacity: 0.85;
 }
 

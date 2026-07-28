@@ -3,7 +3,7 @@ import Link from '@docusaurus/Link';
 import Translate from '@docusaurus/Translate';
 import styles from './components.module.css';
 
-type IconKey = 'trace' | 'logs' | 'metrics' | 'profile' | 'ebpf' | 'otel' | 'errors' | 'health' | 'alert';
+type IconKey = 'trace' | 'logs' | 'metrics' | 'profile' | 'ebpf' | 'otel' | 'errors' | 'health' | 'alert' | 'green';
 
 /** Lucide-style stroke icons (24×24, currentColor). No emoji. */
 const ICONS: Record<IconKey, React.ReactElement> = {
@@ -70,6 +70,12 @@ const ICONS: Record<IconKey, React.ReactElement> = {
     <>
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </>
+  ),
+  green: (
+    <>
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
     </>
   ),
 };
@@ -140,6 +146,17 @@ function MiniLogs(): React.ReactElement {
           <span className={`${styles.miniLvl} ${l.cls}`}>{l.lvl}</span>
           <span className={styles.miniLogText} style={{width: `${l.w}%`}} />
         </div>
+      ))}
+    </div>
+  );
+}
+
+function MiniGreen(): React.ReactElement {
+  const bars = [92, 100, 84, 88, 72, 76, 60, 52, 56, 40];
+  return (
+    <div className={styles.miniGreen} aria-hidden="true">
+      {bars.map((h, i) => (
+        <span key={i} className={styles.miniGreenBar} style={{height: `${h}%`}} />
       ))}
     </div>
   );
@@ -268,6 +285,18 @@ const FEATURES: Feature[] = [
         A webhook to Slack, PagerDuty or Alertmanager when a service goes down — and when it recovers.
       </Translate>
     ),
+  },
+  {
+    icon: 'green',
+    area: styles.areaGreen,
+    to: '/docs/signals/green',
+    title: <Translate id="home.feat.green.title">Energy &amp; carbon</Translate>,
+    desc: (
+      <Translate id="home.feat.green.desc">
+        Wh and gCO₂e per service, per deployment, per request — Kepler/RAPL attribution correlated with the map you already run, with carbon budgets and a CSRD-ready export. Zero instrumentation, no egress.
+      </Translate>
+    ),
+    visual: <MiniGreen />,
   },
 ];
 
