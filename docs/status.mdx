@@ -38,6 +38,8 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Network health on the service map — per-edge RTT + failed/reset connections (OBI TCP stats) | <StatusBadge status="shipped" /> | v0.2 |
 | Green — per-service energy (Wh) & carbon (gCO2e) via CNCF Kepler, carbon budgets, CSRD-ready export (off by default; needs RAPL) | <StatusBadge status="shipped" /> | v0.2 |
 | Sensor safety — CI-proven "do no harm" gate (probe-sensitive canary) + opt-in instrumentation mode (`discovery.mode`) | <StatusBadge status="shipped" /> | v0.2 |
+| Authentication — secure by default: local users, fixed roles (admin/editor/viewer) with per-project grants, server-side sessions, Settings → Users, opt-in anonymous viewer | <StatusBadge status="shipped" /> | v0.2 |
+| SSO — OpenID Connect (discovery, PKCE) with any IdP, group→role/project mapping (hot-reloaded), `forceSSO` | <StatusBadge status="shipped" /> | v0.2 |
 
 ## Coming
 
@@ -45,7 +47,7 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 |---|---|---|
 | Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.2 |
 | Configuration / OpAMP controls in the UI | <StatusBadge status="planned" /> | v0.2 |
-| Auth / OIDC (projects shipped in v0.1; the auth seam is already in place) | <StatusBadge status="planned" /> | v0.2 |
+| Per-project ingest keys (on the shipped auth seam) | <StatusBadge status="planned" /> | v0.2 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server

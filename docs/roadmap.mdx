@@ -84,10 +84,10 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
 
 ## Beyond v0.1 (directional)
 
-- **v0.2 — auth:** OIDC behind the existing `hub` auth provider interface (v0.1
-  ships a local admin password). The enterprise seam — auth provider, `tenant`
-  column, retention policy objects — is built in from v0.1, so this lands without
-  a rewrite.
+- **v0.2 — auth (shipped):** local users with per-project roles and OIDC SSO
+  landed on the auth seam built in from v0.1 — no rewrite needed. Per-project
+  ingest keys come next on the same seam. See the
+  [feature status](/docs/status).
 - **v0.2 — network flow enrichment (shipping):** OBI's built-in `network`
   feature enriches the service map with un-instrumented edges and per-edge
   network health — bytes, RTT, and failed/reset connections — a config toggle on

@@ -1,0 +1,50 @@
+---
+slug: authentication-sso
+title: "Sign in with your company IdP: authentication, roles and OIDC SSO"
+description: "avuru obs is now secure by default: local users with Admin/Editor/Viewer roles granted per project, server-side sessions, and enterprise SSO with any OpenID Connect identity provider — in open source, with no extra proxy to run."
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-07-28
+---
+
+avuru obs now ships **secure by default**: the hub requires login, users carry
+fixed roles — **Admin, Editor, Viewer** — granted **per project**, and
+**enterprise SSO** works with any OpenID Connect identity provider (Keycloak,
+Microsoft Entra ID, Okta, Google, Dex) — in open source, not behind an
+enterprise tier, and with no auth proxy to deploy.
+
+{/* truncate */}
+
+- **Secure by default.** New installs require login (`auth.enabled=true`); Helm
+  bootstraps an `admin` user whose password lives in the release Secret. Every
+  API route is enforced **server-side**, and the project header is validated
+  against the caller's grants — projects become a real security boundary: a
+  user granted only `staging` gets `403` anywhere else and a project switcher
+  that lists only `staging`. `auth.enabled=false` restores the previous open
+  behavior. See [Security](/docs/operations/security).
+- **Roles × projects, not an ACL maze.** Three fixed roles — Admin, Editor,
+  Viewer — granted per project (or `*` for all). A login page and a
+  **Settings → Users** admin screen come with it; the endpoint surface is in
+  the [API reference](/reference/api).
+- **Sign in with your company IdP.** The hub runs the OIDC
+  **authorization-code + PKCE** flow itself (`/api/v1/auth/oidc/start` → IdP →
+  `/api/v1/auth/oidc/callback`) — no extra pod, no proxy in front. Provider
+  discovery is **fail-loud** at startup, so a wrong issuer stops the rollout
+  instead of shipping a broken login, and an SSO login ends in the same
+  server-side session as a local one.
+- **Group-based access, zero per-user admin.** `auth.oidc.mapping` maps IdP
+  groups to a role on projects declaratively (with a `defaultRole` fallback).
+  Groups are refreshed at each SSO sign-in and the mapping is applied on every
+  request from the **hot-reloaded** config file (~15 s, no restart) — an access
+  policy change takes effect without touching individual accounts.
+- **`forceSSO` for centralized policy.** Hides the local password form so the
+  IdP is the only door for people — the local admin API login stays available
+  as break-glass. Everything is configured from Helm values (`auth.oidc.*`);
+  the client secret comes from your own Secret or a chart-managed one, never
+  the config file.
+- **Sessions you can actually revoke.** Sessions are **server-side**
+  (revocation is immediate), logins are rate-limited, and state lives in the
+  existing database — no new components.
+- **Opt-in anonymous viewing.** Grant visitors a role on an **explicit project
+  list** only: a public demo can share one project while every other project
+  stays invisible.

@@ -38,6 +38,8 @@ changements livrés le [Changelog](/changelog).
 | Santé réseau sur la carte des services — RTT + connexions échouées/réinitialisées par arête (stats TCP OBI) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Green — énergie (Wh) & carbone (gCO2e) par service via CNCF Kepler, budgets carbone, export prêt pour la CSRD (désactivé par défaut ; nécessite RAPL) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Sûreté du capteur — gate CI « do no harm » (canari sensible aux probes) + mode d'instrumentation opt-in (`discovery.mode`) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| Authentification — sécurisé par défaut : utilisateurs locaux, rôles fixes (admin/éditeur/lecteur) avec droits par projet, sessions côté serveur, Paramètres → Utilisateurs, lecteur anonyme opt-in | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| SSO — OpenID Connect (découverte, PKCE) avec n'importe quel IdP, mapping groupe→rôle/projets (rechargé à chaud), `forceSSO` | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 
 ## À venir
 
@@ -45,7 +47,7 @@ changements livrés le [Changelog](/changelog).
 |---|---|---|
 | Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 | Contrôles de configuration / OpAMP dans l'UI | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
-| Authentification / OIDC (les projets sont livrés en v0.1 ; la jointure d'auth est déjà en place) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
+| Clés d'ingestion par projet (sur la jointure d'auth livrée) | <StatusBadge status="planned" label="Prévu" /> | v0.2 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires
