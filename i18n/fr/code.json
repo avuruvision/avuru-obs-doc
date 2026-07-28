@@ -3,16 +3,31 @@
     "message": "APM & observabilité sans friction"
   },
   "home.title.lead": {
-    "message": "APM & Observabilité"
+    "message": "Tout observer."
   },
   "home.title.grad": {
-    "message": "sans friction"
+    "message": "Ne rien gaspiller."
   },
   "home.pill": {
     "message": "Énergie & carbone par service — zéro code"
   },
   "home.subtitle": {
     "message": "Traces, métriques, logs, profilage continu — et énergie & carbone par service. Une seule installation, un seul moteur, zéro changement de code."
+  },
+  "home.statement.title": {
+    "message": "Chaque watt, chaque requête, comptabilisés."
+  },
+  "home.statement.lede": {
+    "message": "Énergie et carbone par service, aux côtés de vos traces — exports prêts pour la CSRD, zéro changement de code, et aucune donnée ne quitte votre cluster."
+  },
+  "home.product.title": {
+    "message": "Un chart Helm. Une vue complète."
+  },
+  "home.product.lede": {
+    "message": "Installez en 30 secondes et la carte des services s'illumine — traces, logs, métriques, profils et énergie dans une seule interface."
+  },
+  "home.builton.label": {
+    "message": "Construit sur"
   },
   "home.copy": {
     "message": "Copier"
