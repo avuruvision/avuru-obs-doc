@@ -29,6 +29,63 @@
   "home.builton.label": {
     "message": "Construit sur"
   },
+  "home.type.w1": {
+    "message": "Pour Kubernetes."
+  },
+  "home.type.w2": {
+    "message": "Pour les SRE."
+  },
+  "home.type.w3": {
+    "message": "Pour les équipes plateforme."
+  },
+  "home.type.w4": {
+    "message": "Pour le reporting CSRD."
+  },
+  "home.type.w5": {
+    "message": "Pour le Green IT."
+  },
+  "home.pillar.1.t": {
+    "message": "Chaque signal"
+  },
+  "home.pillar.1.d": {
+    "message": "Traces, logs, métriques et profilage continu dans un seul moteur — corrélés d'origine."
+  },
+  "home.pillar.2.t": {
+    "message": "Énergie & carbone"
+  },
+  "home.pillar.2.d": {
+    "message": "Wh et gCO₂e par service, avec budgets carbone et un export prêt pour la CSRD."
+  },
+  "home.pillar.3.t": {
+    "message": "Zéro changement de code"
+  },
+  "home.pillar.3.d": {
+    "message": "Auto-instrumentation eBPF — sans SDK, sans sidecar, sans redéploiement."
+  },
+  "home.pillar.4.t": {
+    "message": "Auto-hébergé"
+  },
+  "home.pillar.4.d": {
+    "message": "AGPL-3.0 sur votre propre cluster — la télémétrie ne quitte jamais votre infrastructure."
+  },
+  "home.usecase.eng.title": {
+    "message": "Pour les équipes d'ingénierie"
+  },
+  "home.usecase.eng.desc": {
+    "message": "Installez le chart et la carte des services s'allume — traces, logs, métriques et profils corrélés dans une seule interface. OpenTelemetry en entrée et en sortie."
+  },
+  "home.usecase.eng.cta": {
+    "message": "Guide en 30 secondes →"
+  },
+  "home.usecase.green.title": {
+    "message": "Pour la durabilité & la finance"
+  },
+  "home.usecase.green.desc": {
+    "message": "Énergie et carbone par service, avec budgets et un export CSRD auditable — calculés sur votre cluster, rien n'en sort."
+  },
+  "home.usecase.green.cta": {
+    "message": "Découvrir le module green →"
+  },
   "home.copy": {
     "message": "Copier"
   },
