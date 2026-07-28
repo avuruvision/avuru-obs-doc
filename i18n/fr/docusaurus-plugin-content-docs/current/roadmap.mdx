@@ -99,6 +99,12 @@ changement de SDK ni de code.
 - **v0.2 — configuration à distance :** le serveur OpAMP du hub et les contrôles
   Configuration / OpAMP dans l'UI (en v0.1, la configuration jour-2 passe par
   Helm).
+- **v0.3 — estimation green pour les nœuds sans RAPL :** le module green mesure
+  de vrais joules via RAPL, que la plupart des nœuds virtualisés n'exposent
+  pas. Un modèle de puissance basé sur le TDP produira l'énergie et le carbone
+  par service sur ces nœuds aussi — toujours étiqueté **estimé**, jamais
+  mélangé aux valeurs mesurées, avec la méthodologie et la marge d'erreur
+  indiquées dans chaque export. Conception en brouillon, en cours de revue.
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
   qu'un client léger. Une source de données **Grafana** et une **CLI** sont
   prévues.

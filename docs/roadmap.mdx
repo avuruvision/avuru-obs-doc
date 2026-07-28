@@ -95,6 +95,11 @@ migrate by changing only the exporter endpoint, no SDK or code changes.
   doesn't emit them.)
 - **v0.2 — remote configuration:** the hub's OpAMP server and Configuration /
   OpAMP controls in the UI (day-2 config is Helm-driven in v0.1).
+- **v0.3 — green estimation for RAPL-less nodes:** the green module measures
+  real joules via RAPL, which most virtualized nodes don't expose. A TDP-based
+  power model will produce per-service energy and carbon on those nodes too —
+  always labeled **estimated**, never blended with measured values, with the
+  methodology and error band stated in every export. Draft design under review.
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
