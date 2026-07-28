@@ -86,10 +86,10 @@ changement de SDK ni de code.
 
 ## Au-delà de v0.1 (indicatif)
 
-- **v0.2 — auth :** OIDC derrière l'interface de fournisseur d'auth du `hub`
-  (v0.1 livre un mot de passe admin local). La jointure entreprise — fournisseur
-  d'auth, colonne `tenant`, objets de politique de rétention — est intégrée dès
-  v0.1, donc cela arrive sans réécriture.
+- **v0.2 — auth (livré) :** les utilisateurs locaux avec rôles par projet et le
+  SSO OIDC ont atterri sur la jointure d'auth intégrée dès v0.1 — sans
+  réécriture. Les clés d'ingestion par projet suivent sur la même jointure.
+  Voir l'[état des fonctionnalités](/docs/status).
 - **v0.2 — enrichissement par flux réseau (en cours) :** la fonctionnalité
   `network` intégrée d'OBI enrichit la carte des services avec les arêtes non
   instrumentées et la santé réseau par arête — octets, RTT et connexions
