@@ -1,0 +1,37 @@
+---
+slug: project-management
+title: "Manage projects from the UI: create, rename and delete"
+description: "Projects now have a real identity you control in the app — admins create, rename and delete them in Settings → General, while the built-in and config-defined projects stay safely read-only. No telemetry is ever rewritten."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-07-29
+---
+
+Projects are no longer only a deployment setting: admins can **create, rename
+and delete** them directly in **Settings → General**, and the switcher updates
+to match — while the built-in `default` and config-defined projects stay
+read-only.
+
+{/* truncate */}
+
+- **Create, rename, delete — from the app.** An admin-only project card on
+  Settings → General adds new projects, edits a project's display name, and
+  deletes UI-managed ones. The sidebar switcher and General tab reflect changes
+  immediately. Non-admins keep read-only visibility of the projects they're
+  granted.
+- **Deployment-owned projects stay protected.** The built-in `default` project
+  and any project declared in the chart (`projects` value / `AVURUOPS_PROJECTS`)
+  are clearly marked and **cannot be edited or deleted from the UI** — the app
+  refuses with a `409`, so your source-of-truth config always wins.
+- **A stable id, an editable name.** A project's id is an **immutable tenant
+  slug** — the partition key on every trace, log and metric; only its display
+  **label** is editable. Renaming or deleting **never rewrites telemetry**: a
+  delete removes the entry and its data ages out by the existing retention, and
+  a still-active tenant simply reappears as auto-discovered.
+- **Admin-enforced, server-side.** The new `POST` / `PUT` / `DELETE
+  /api/v1/projects` endpoints require a global admin (`403` otherwise), and
+  `GET /api/v1/projects` now returns each project's `source`, `label` and
+  `editable` flag. See the [API reference](/reference/api).
+- **Groundwork for what's next.** This is the first slice of the projects work;
+  per-project ingest keys and multi-cluster aggregate views build on the same
+  model.
