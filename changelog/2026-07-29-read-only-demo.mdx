@@ -1,0 +1,32 @@
+---
+slug: read-only-demo
+title: "See it before you install it: a one-click read-only demo"
+description: "A single 'Try the demo' button drops anyone into a live, read-only avuru obs — real traces, logs, metrics, errors, service map and energy across a running multi-service app, with no signup and no setup."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-07-29
+---
+
+You can now explore a **live avuru obs** without installing anything: one click
+on **"Try the demo"** signs you in as a read-only viewer against a running
+multi-service app, with real data across every module.
+
+{/* truncate */}
+
+- **One click, zero setup.** A **"Try the demo"** button on the login page signs
+  a visitor straight in as a read-only **viewer** scoped to a `demo` project — no
+  account to create, nothing to install. The rest of the app behaves exactly as
+  it would for a real user; write actions (triage, settings, user admin) simply
+  aren't offered.
+- **Real data, every module.** The demo is fed by the live **OpenTelemetry
+  Astronomy Shop** — a genuine multi-service application — so the service map,
+  traces, logs, RED metrics, error tracking, service health and energy views all
+  show real, moving data instead of static screenshots.
+- **Safe by construction.** The demo is a single low-privilege identity: the
+  shared password stays **server-side** (a rate-limited sign-in endpoint), never
+  reaching the browser, and the whole feature is **opt-in** — a normal install
+  ships no demo user and no demo project. Enable it with `auth.demo.enabled`.
+- **Also in this release.** The Settings **Users** tab now opens in place instead
+  of navigating away, so the tab bar no longer disappears; the login wordmark
+  reads **Avuru Obs**. See the [API reference](/reference/api) for the new
+  demo sign-in endpoint.

@@ -1,0 +1,37 @@
+---
+slug: read-only-demo
+title: "Voyez-le avant de l'installer : une démo en lecture seule, en un clic"
+description: "Un seul bouton « Essayer la démo » ouvre à quiconque un avuru obs vivant, en lecture seule — traces, logs, métriques, erreurs, carte des services et énergie réels sur une application multi-services en fonctionnement, sans inscription ni installation."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-07-29
+---
+
+Vous pouvez désormais explorer un **avuru obs vivant** sans rien installer : un
+clic sur **« Essayer la démo »** vous connecte en lecteur en lecture seule sur
+une application multi-services en fonctionnement, avec des données réelles dans
+chaque module.
+
+{/* truncate */}
+
+- **Un clic, aucune configuration.** Un bouton **« Essayer la démo »** sur la
+  page de connexion vous connecte directement en **lecteur** en lecture seule,
+  limité à un projet `demo` — aucun compte à créer, rien à installer. Le reste
+  de l'application se comporte exactement comme pour un vrai utilisateur ; les
+  actions d'écriture (triage, paramètres, administration des utilisateurs) ne
+  sont simplement pas proposées.
+- **Des données réelles, dans chaque module.** La démo est alimentée par la
+  boutique **OpenTelemetry Astronomy Shop** en direct — une véritable
+  application multi-services — de sorte que la carte des services, les traces,
+  les logs, les métriques RED, le suivi des erreurs, la santé des services et
+  les vues énergie affichent des données réelles et vivantes plutôt que des
+  captures d'écran figées.
+- **Sûre par conception.** La démo est une unique identité à faibles privilèges :
+  le mot de passe partagé reste **côté serveur** (un point de connexion à débit
+  limité) et n'atteint jamais le navigateur, et l'ensemble de la fonctionnalité
+  est **opt-in** — une installation normale n'expédie ni utilisateur ni projet de
+  démo. Activez-la avec `auth.demo.enabled`.
+- **Aussi dans cette version.** L'onglet **Utilisateurs** des Paramètres s'ouvre
+  désormais sur place au lieu de changer de page, si bien que la barre d'onglets
+  ne disparaît plus ; le logo de connexion affiche **Avuru Obs**. Voir la
+  [référence API](/reference/api) pour le nouveau point de connexion de la démo.
