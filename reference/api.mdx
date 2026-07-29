@@ -33,10 +33,11 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /healthz` | Liveness probe (always `200`, even during a ClickHouse outage). |
 | `GET /api/v1/status` | Hub build info + ClickHouse reachability. |
 | `GET /api/v1/capabilities` | The install's active module set — the UI sidebar follows it. |
-| `GET /api/v1/auth/config` | Login-page bootstrap: `{enabled, methods, forceSSO}`. Always registered, auth on or off. |
+| `GET /api/v1/auth/config` | Login-page bootstrap: `{enabled, methods, forceSSO, demoEnabled}`. Always registered, auth on or off. |
 | `POST /api/v1/auth/login` | Local login — body `{email, password}`; sets the session cookie. Rate-limited. |
 | `POST /api/v1/auth/logout` | End the current session (server-side, so revocation is immediate). |
 | `GET /api/v1/auth/me` | The caller's identity: `user` (`id`, `email`, `name`, `anonymous`) + `grants`. |
+| `POST /api/v1/auth/demo` | One-click read-only demo sign-in — starts a session as the `demo` viewer using server-held credentials (no request body). Registered only when demo mode is enabled (`auth.demo.enabled`); rate-limited. |
 | `GET /api/v1/auth/oidc/start` | Begin the OIDC authorization-code + PKCE flow — redirects to the IdP (`400` if OIDC is not configured). |
 | `GET /api/v1/auth/oidc/callback` | IdP redirect target — validates `state`, exchanges the `code`, starts the session. |
 | `GET /api/v1/users` | List users with role grants and origin (local/oidc). **Admin.** |
