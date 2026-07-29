@@ -84,21 +84,39 @@ changement de SDK ni de code.
 
 </MilestoneGrid>
 
-## Au-delà de v0.1 (indicatif)
+## v0.2 — profondeur et contrôle (publiée le 28 juillet 2026)
 
-- **v0.2 — auth (livré) :** les utilisateurs locaux avec rôles par projet et le
-  SSO OIDC ont atterri sur la jointure d'auth intégrée dès v0.1 — sans
-  réécriture. Les clés d'ingestion par projet suivent sur la même jointure.
-  Voir l'[état des fonctionnalités](/docs/status).
-- **v0.2 — enrichissement par flux réseau (en cours) :** la fonctionnalité
-  `network` intégrée d'OBI enrichit la carte des services avec les arêtes non
-  instrumentées et la santé réseau par arête — octets, RTT et connexions
-  échouées/réinitialisées — un réglage de configuration sur le sensor existant,
-  sans agent maison. (Les retransmissions ne sont pas affichées : OBI ne les
-  émet pas.)
-- **v0.2 — configuration à distance :** le serveur OpAMP du hub et les contrôles
-  Configuration / OpAMP dans l'UI (en v0.1, la configuration jour-2 passe par
-  Helm).
+Tout ce qui visait la v0.2 est livré dans la
+[v0.2.0](/docs/releases) : l'authentification sécurisée par défaut avec rôles
+par projet et SSO OIDC, le cadre de modules (choisissez vos signaux), le suivi
+des erreurs avec une voie d'ingestion navigateur, la santé des services par
+groupes avec niveaux de criticité, les webhooks d'alerte, la santé réseau sur
+les liaisons de la carte des services, le module énergie & carbone, et un
+capteur « qu'on peut laisser activé » prouvé par la CI. Le projet est sous
+licence AGPL-3.0 à partir de cette version. Le détail complet est sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-2-0).
+
+## Au-delà de v0.2 (indicatif)
+
+- **Aboutissement des projets :** des **clés d'ingestion** par projet sur la
+  jointure d'auth livrée (remplaçant la confiance topologique à la passerelle),
+  le CRUD des projets, la rétention et l'état système par projet, et des
+  interrupteurs de composants du chart pour les installations multi-clusters
+  sur un ClickHouse partagé.
+- **Plan de contrôle de la collecte à chaud :** les réglages de collecte Helm
+  deviennent commutables depuis l'UI — une surcouche bornée et validée par
+  schéma que le hub applique aux ConfigMaps du capteur, désactivée par défaut
+  et à portée restreinte. OpAMP reste la destination : d'abord la remontée
+  d'état, puis la configuration à distance quand l'amont fournira un client.
+- **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
+  courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
+  transfert pour écrire en double pendant une migration.
+- **Étiquetage automatique plus riche :** faire des labels/annotations
+  Kubernetes des étiquettes métier, filtrables sur tous les signaux.
+- **Estimation green pour les nœuds sans RAPL :** un modèle de puissance basé
+  sur le TDP produit des chiffres par service explicitement étiquetés
+  *estimés*, jamais mélangés aux joules mesurés.
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
   qu'un client léger. Une source de données **Grafana** et une **CLI** sont
   prévues.

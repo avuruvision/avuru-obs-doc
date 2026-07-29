@@ -1,0 +1,46 @@
+---
+slug: licensing-model
+title: "Ouvert pour de bon : la licence AGPL, dite en toutes lettres"
+description: "avuru obs énonce désormais sa licence en termes clairs — AGPL-3.0 pour la plateforme, Apache-2.0 pour le capteur eBPF, un CLA qui garantit que chaque contribution reste ouverte pour toujours, et une attribution des tiers générée automatiquement. L'auto-hébergement reste sans obligation."
+authors: [avuru]
+tags: [platform, docs]
+date: 2026-07-28
+---
+
+avuru obs est en **AGPL-3.0**, et toute l'histoire de sa licence tient désormais
+en un seul endroit — ce qu'elle vous demande (presque rien), pourquoi le projet
+l'a choisie, et comment il assure sa pérennité **sans verrouiller de
+fonctionnalités derrière un palier payant**.
+
+{/* truncate */}
+
+- **Une page de licence réellement lisible.** Une nouvelle page
+  [Licence et pérennité](/docs/licensing) (EN + FR) répond aux vraies questions
+  que les gens se posent : l'auto-hébergement est **sans obligation**, observer
+  vos services n'en fait jamais des œuvres dérivées, et l'AGPL ne vous demande
+  quelque chose que si vous **modifiez avuru obs lui-même et le proposez à des
+  tiers via un réseau**.
+- **Rien n'est réservé à une offre payante.** Authentification, rôles, contrôle
+  d'accès par projet et **SSO OIDC** — des capacités souvent verrouillées
+  derrière un palier payant ailleurs — sont dans l'édition open source.
+  AGPL-3.0, pour toujours.
+- **Chaque contribution reste ouverte.** Le §2.2 de l'
+  [accord de licence de contribution](https://github.com/avuruvision/avuru-obs/blob/main/CLA.md)
+  garantit juridiquement que chaque contribution reste disponible sous
+  AGPL-3.0 — l'édition open source ne peut jamais être fermée ni amputée
+  rétroactivement.
+- **Le capteur reste en Apache-2.0.** L'agent de nœud eBPF est l'
+  [OpenTelemetry eBPF Instrumentation](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation)
+  (OBI) en amont, configuré — non forké — et conserve donc sa licence
+  permissive.
+- **Attribution des tiers, générée et non tenue à la main.** Une cible
+  `make notices` produit
+  [THIRD-PARTY-NOTICES.md](https://github.com/avuruvision/avuru-obs/blob/main/THIRD-PARTY-NOTICES.md)
+  à partir des arbres de dépendances Go et TypeScript réels, intégrée à la
+  checklist de release pour que l'attribution ne s'écarte jamais de ce qui est
+  livré.
+- **Pourquoi l'AGPL, dit franchement.** Une plateforme d'observabilité détient
+  la télémétrie la plus sensible qu'une organisation produise. avuru obs est
+  conçu comme une alternative **souveraine** à la facturation SaaS par hôte — et
+  l'AGPL est ce qui empêche l'édition open source d'être enfermée dans le service
+  fermé de quelqu'un d'autre.

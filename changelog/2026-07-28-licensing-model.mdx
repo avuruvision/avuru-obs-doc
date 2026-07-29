@@ -1,0 +1,41 @@
+---
+slug: licensing-model
+title: "Open for good: the AGPL license, stated in full"
+description: "avuru obs now spells out its licensing in plain terms — AGPL-3.0 for the platform, Apache-2.0 for the eBPF sensor, a CLA that pledges every contribution stays open forever, and generated third-party attribution. Self-hosting stays zero-obligation."
+authors: [avuru]
+tags: [platform, docs]
+date: 2026-07-28
+---
+
+avuru obs is **AGPL-3.0**, and the whole licensing story now lives in one place —
+what it asks of you (almost nothing), why the project chose it, and how it stays
+sustainable **without gating features behind a paid tier**.
+
+{/* truncate */}
+
+- **A licensing page you can actually read.** A new
+  [License & sustainability](/docs/licensing) page (EN + FR) answers the
+  questions people actually have: self-hosting is **zero-obligation**, observing
+  your services never makes them derivative works, and the AGPL only asks
+  something of you if you **modify avuru obs itself and offer it to third parties
+  over a network**.
+- **Nothing is gated.** Authentication, roles, per-project access control and
+  **OIDC SSO** — capabilities frequently reserved for paid tiers elsewhere —
+  are in the open edition. AGPL-3.0, forever.
+- **Every contribution stays open.** The
+  [Contributor License Agreement](https://github.com/avuruvision/avuru-obs/blob/main/CLA.md)
+  §2.2 legally pledges that every contribution remains available under
+  AGPL-3.0 — the open edition can never be closed or stripped down
+  retroactively.
+- **The sensor stays Apache-2.0.** The eBPF node agent is upstream
+  [OpenTelemetry eBPF Instrumentation](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation)
+  (OBI), configured — not forked — so it keeps its permissive license.
+- **Third-party attribution, generated not hand-kept.** A `make notices` target
+  produces
+  [THIRD-PARTY-NOTICES.md](https://github.com/avuruvision/avuru-obs/blob/main/THIRD-PARTY-NOTICES.md)
+  from the actual Go and TypeScript dependency trees, wired into the release
+  checklist so attribution never drifts from what ships.
+- **Why the AGPL, said out loud.** An observability platform holds the most
+  sensitive telemetry an organization produces. avuru obs is built as a
+  **sovereign** alternative to per-host SaaS billing — and the AGPL is what
+  keeps the open edition from being enclosed into someone else's closed service.
