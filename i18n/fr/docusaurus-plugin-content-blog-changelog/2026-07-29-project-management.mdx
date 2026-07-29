@@ -1,0 +1,42 @@
+---
+slug: project-management
+title: "Gérez vos projets depuis l'UI : créer, renommer et supprimer"
+description: "Les projets ont désormais une vraie identité que vous contrôlez dans l'application — les administrateurs les créent, renomment et suppriment dans Paramètres → Général, tandis que les projets intégrés et définis par configuration restent en lecture seule. Aucune donnée de télémétrie n'est jamais réécrite."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-07-29
+---
+
+Les projets ne sont plus seulement un réglage de déploiement : les
+administrateurs peuvent les **créer, renommer et supprimer** directement dans
+**Paramètres → Général**, et le sélecteur se met à jour en conséquence — tandis
+que le projet intégré `default` et les projets définis par configuration
+restent en lecture seule.
+
+{/* truncate */}
+
+- **Créer, renommer, supprimer — depuis l'application.** Une carte de projet
+  réservée aux administrateurs, dans Paramètres → Général, ajoute de nouveaux
+  projets, modifie le nom d'affichage d'un projet et supprime ceux gérés par
+  l'UI. Le sélecteur de la barre latérale et l'onglet Général reflètent les
+  changements immédiatement. Les non-administrateurs conservent une visibilité
+  en lecture seule sur les projets qui leur sont accordés.
+- **Les projets définis par le déploiement restent protégés.** Le projet
+  intégré `default` et tout projet déclaré dans le chart (valeur `projects` /
+  `AVURUOPS_PROJECTS`) sont clairement identifiés et **ne peuvent être ni
+  modifiés ni supprimés depuis l'UI** — l'application refuse avec un `409`, de
+  sorte que votre configuration de référence l'emporte toujours.
+- **Un identifiant stable, un nom modifiable.** L'identifiant d'un projet est un
+  **slug de tenant immuable** — la clé de partition de chaque trace, log et
+  métrique ; seul son **libellé** d'affichage est modifiable. Renommer ou
+  supprimer **ne réécrit jamais la télémétrie** : une suppression retire
+  l'entrée et ses données expirent selon la rétention existante, et un tenant
+  encore actif réapparaît simplement en tant que découvert automatiquement.
+- **Contrôlé côté serveur, réservé aux administrateurs.** Les nouveaux points
+  d'accès `POST` / `PUT` / `DELETE /api/v1/projects` exigent un administrateur
+  global (`403` sinon), et `GET /api/v1/projects` renvoie désormais le `source`,
+  le `label` et l'indicateur `editable` de chaque projet. Voir la
+  [référence API](/reference/api).
+- **Les fondations de la suite.** Il s'agit de la première tranche du travail
+  sur les projets ; les clés d'ingestion par projet et les vues d'agrégation
+  multi-clusters s'appuient sur le même modèle.
