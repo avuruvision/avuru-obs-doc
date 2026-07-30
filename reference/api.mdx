@@ -47,6 +47,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `POST /api/v1/projects` | Create a UI-managed project — `{id, label}`, where `id` is an immutable tenant slug. A reserved (`default`/config) or duplicate id is a `409`. **Admin.** |
 | `PUT /api/v1/projects/{id}` | Rename a UI-managed project's `label` — `{label}`. `default` and config-defined projects are read-only (`409`). **Admin.** |
 | `DELETE /api/v1/projects/{id}` | Delete a UI-managed project (its telemetry ages out by retention). `default` and config-defined projects are read-only (`409`). **Admin.** |
+| `GET /api/v1/projects/{id}/keys` | List the project's ingest API keys — `prefix`, `name`, `createdBy`, `createdAt` and `keyHash` (the delete handle). **Never returns the raw secret.** **Admin.** |
+| `POST /api/v1/projects/{id}/keys` | Mint an ingest API key — `{name}`. The `201` response is the **only** place the raw `key` ever appears; only its SHA-256 is stored. **Admin.** |
+| `DELETE /api/v1/projects/{id}/keys/{hash}` | Revoke a key by its `keyHash`. Takes effect within the gateway's verdict cache TTL. `204`, or `404` if no live key matches. **Admin.** |
 | `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. **Admin.** |
 | `GET /api/v1/services` | Services with RED aggregates over the window. |
 | `GET /api/v1/service-map` | Service nodes **plus call edges** (caller→callee from trace spans, enriched with OBI network flow bytes and per-edge health — RTT p95, failed connections — when infra-metrics is active). |
@@ -81,6 +84,7 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/profiles/services` | Services with CPU profiling samples in the window, busiest first. |
 | `GET /api/v1/profiles/flamegraph` | One service's aggregated flame graph (`service` required) — inclusive values, self at leaves. |
 | `POST /v1development/profiles` | **OTLP profiles ingest** (protobuf) — the sensor's profiler exports here. Deliberately outside `/api/v1`: it is the otlphttp exporter's default profiles path, and a documented profiles-only exception to "the hub is never in the telemetry byte-path" until the ClickHouse exporter supports profiles. |
+| `POST /internal/v1/ingest-keys/validate` | **Not a client API.** The gateway's ingest-key validation call, guarded by a shared token the chart generates; it is registered only when that token is configured. Listed here so the route is not mistaken for an unauthenticated hole: it answers `{valid, project}` for a key and is the reason the hub stays out of the telemetry byte-path. |
 
 ## Trace search
 
