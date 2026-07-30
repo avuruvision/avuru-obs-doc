@@ -43,12 +43,12 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Authentication — secure by default: local users, fixed roles (admin/editor/viewer) with per-project grants, server-side sessions, Settings → Users, opt-in anonymous viewer | <StatusBadge status="shipped" /> | v0.2 |
 | SSO — OpenID Connect (discovery, PKCE) with any IdP, group→role/project mapping (hot-reloaded), `forceSSO` | <StatusBadge status="shipped" /> | v0.2 |
 | Modules — one switch per signal family (`modules.<name>.enabled`) gates schema, API, pipeline, collection and UI together; capabilities-driven sidebar | <StatusBadge status="shipped" /> | v0.2 |
+| Ingest API keys — per-project keys validated in the gateway; `enforce` makes the key's project the authoritative tenant; safe `off`/`log`/`enforce` rollout | <StatusBadge status="shipped" /> | v0.3 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Per-project ingest keys (on the shipped auth seam) | <StatusBadge status="planned" /> | v0.3 |
 | Runtime collection control plane — collection switches in the UI (OpAMP as the destination) | <StatusBadge status="planned" /> | v0.3 |
 | Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.3 |
 | Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.3 |

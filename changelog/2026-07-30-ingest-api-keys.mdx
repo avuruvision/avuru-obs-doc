@@ -1,0 +1,36 @@
+---
+slug: ingest-api-keys
+title: "Authenticate your telemetry: per-project ingest API keys"
+description: "Telemetry is now authenticated at the write side. A key belongs to a project, and in enforce mode that project becomes the authoritative tenant — a sender can no longer decide for itself which project it lands in. Rolled out through a safe three-stage dial that keeps existing senders working."
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-07-30
+---
+
+Until now, a gateway believed whatever project a sender claimed. Now you can
+issue **per-project ingest API keys** and have the key decide instead — with a
+default that changes nothing until you are ready.
+
+{/* truncate */}
+
+- **The key decides the project.** Mint keys in **Settings → General → Ingest
+  API keys** (or `POST /api/v1/projects/{project}/keys`). In `enforce` mode the
+  validated key's project becomes the **authoritative tenant**, overriding any
+  value the sender supplied. A misconfigured — or dishonest — sender can no
+  longer write into a project it was never granted.
+- **The secret is shown exactly once.** Only a SHA-256 hash is stored, so the
+  raw key cannot be recovered from the database or the API. The list view shows
+  a short prefix and metadata for identification; revoking is immediate.
+- **Your ingest path stays fast.** Keys are validated **in the gateway**, by a
+  purpose-built collector extension. The hub answers a control-plane question
+  and is never in the telemetry byte-path. Verdicts are cached, and a cached
+  verdict keeps serving through a hub restart — a control-plane blip cannot
+  drop your traffic.
+- **A three-stage rollout, not a switch.** `auth.ingest.mode` moves through
+  `off` → `log` → `enforce`. **`log` is the default**: keys are validated and
+  would-be denials counted, but nothing is rejected and the pipeline is
+  byte-identical to before. That gives you a precise list of senders that would
+  break *before* they do. Flip to `enforce` once it reads zero.
+- **Existing senders keep working.** Upgrading changes nothing on its own — the
+  drop-in promise holds. The chart also provisions and seeds a key for the node
+  sensor automatically, so turning on `enforce` never silences your own agent.
