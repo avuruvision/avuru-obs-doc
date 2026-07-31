@@ -22,7 +22,7 @@ The Helm chart installs the `sensor` DaemonSet, the `gateway` collector, the
 ## 2. Open the UI
 
 ```bash
-kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+kubectl -n avuruobs port-forward svc/avuruobs-hub 8080:80
 ```
 
 Open <strong>http://localhost:8080</strong>. Within a minute or two the
@@ -36,8 +36,8 @@ Already have OpenTelemetry SDKs? Point them at the gateway and your spans land
 next to the eBPF-discovered ones:
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
-# gRPC instead? use http://avuruops-gateway:4317
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway:4318
+# gRPC instead? use http://avuruobs-gateway:4317
 ```
 
 :::tip That's it
@@ -48,12 +48,12 @@ you get the full picture; older kernels degrade gracefully.
 ## Verify
 
 ```bash
-kubectl -n avuruops get pods
-# avuruops-sensor-xxxxx     Running
-# avuruops-gateway-xxxxx    Running
-# avuruops-hub-xxxxx        Running
-# avuruops-ui-xxxxx         Running
-# avuruops-clickhouse-0     Running
+kubectl -n avuruobs get pods
+# avuruobs-sensor-xxxxx     Running
+# avuruobs-gateway-xxxxx    Running
+# avuruobs-hub-xxxxx        Running
+# avuruobs-ui-xxxxx         Running
+# avuruobs-clickhouse-0     Running
 ```
 
 If every pod is `Running` and the Service Map shows nodes, you're done.

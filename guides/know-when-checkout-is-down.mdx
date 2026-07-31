@@ -90,7 +90,7 @@ checkout service reads `down`:
    :::info Local receivers and the SSRF guard
    The hub refuses loopback/private webhook targets **by default**. A public
    HTTPS endpoint just works; to test against a receiver on your own machine,
-   allow its range explicitly by adding the `AVURUOPS_WEBHOOK_ALLOW`
+   allow its range explicitly by adding the `AVURUOBS_WEBHOOK_ALLOW`
    environment variable (comma-separated CIDRs) to the `hub` service in the
    compose file.
    :::

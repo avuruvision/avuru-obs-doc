@@ -44,14 +44,16 @@ changements livrés le [Changelog](/changelog).
 | SSO — OpenID Connect (découverte, PKCE) avec n'importe quel IdP, mapping groupe→rôle/projets (rechargé à chaud), `forceSSO` | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Modules — un interrupteur par famille de signaux (`modules.<name>.enabled`) contrôle d'un bloc schéma, API, pipeline, collecte et interface ; barre latérale pilotée par les capacités | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Clés d'API d'ingestion — clés par projet validées dans la gateway ; en `enforce`, le projet de la clé devient le tenant qui fait autorité ; déploiement progressif `off`/`log`/`enforce` | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
+| Green sur les nœuds sans RAPL — estimation de puissance par TDP pour les VM cloud (optionnelle), étiquetée *estimée* de bout en bout et jamais mélangée à l'énergie mesurée ; panneau de couverture sur `/green` | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Plan de contrôle de la collecte à chaud — interrupteurs de collecte dans l'UI (OpAMP comme destination) | <StatusBadge status="planned" label="Prévu" /> | v0.3 |
-| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.3 |
-| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.3 |
+| Plan de contrôle de la collecte à chaud — interrupteurs de collecte dans l'UI (OpAMP comme destination). Le stockage de l'overlay, l'API validée et les droits RBAC minimaux sont livrés en v0.3 ; restent l'applicateur et l'interface éditable | <StatusBadge status="in-progress" label="En cours" /> | v0.4 |
+| Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
+| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
+| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

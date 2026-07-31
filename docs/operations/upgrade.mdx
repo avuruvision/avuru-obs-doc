@@ -12,13 +12,64 @@ avuru obs runs ClickHouse **schema migrations** as a Helm hook
 (`post-install,post-upgrade`), so a `helm upgrade` carries the schema forward.
 
 ```bash
-helm upgrade avuruops ./avuruops -n avuruops
+helm upgrade avuruobs ./avuruobs -n avuruobs
 ```
 
 :::note Pre-1.0
 Minor version bumps may include breaking changes; patch bumps are fixes only.
 Always read the [release notes](/docs/releases) before upgrading.
 :::
+
+## 0.2.x → 0.3.0 — the chart is now `avuruobs`
+
+v0.3.0 renames the deploy layer to match the project's name: the Helm chart
+(`avuruops` → **`avuruobs`**, published at
+`oci://ghcr.io/avuruvision/charts/avuruobs`), the `AVURUOPS_*` environment
+variables (→ `AVURUOBS_*`), the config mount paths, the generated Kubernetes
+resource names, and the green-quality telemetry attribute.
+
+**This is not a plain `helm upgrade`.** Resource names and the
+`app.kubernetes.io/name` selector label derive from the chart name, and
+selector labels are immutable in Kubernetes — upgrading a release installed as
+`avuruops` in place would try to rename every object and fail. Pick one of two
+paths.
+
+### Path A — keep your existing release
+
+Pin the old name so nothing is renamed:
+
+```bash
+helm upgrade avuruops oci://ghcr.io/avuruvision/charts/avuruobs \
+  --version 0.3.0 -n avuruops \
+  --set nameOverride=avuruops
+```
+
+Every object keeps the name and selector label it already has; only the chart
+behind them changes. Your OTLP endpoint (`http://avuruops-gateway:4318`) keeps
+working, so senders need no change.
+
+### Path B — start clean under the new name
+
+```bash
+helm uninstall avuruops -n avuruops
+helm install avuruobs oci://ghcr.io/avuruvision/charts/avuruobs \
+  --version 0.3.0 -n avuruobs --create-namespace
+```
+
+Senders must be re-pointed at `http://avuruobs-gateway:4318`. Helm does not
+delete the ClickHouse PersistentVolumeClaim with the release, so retained
+telemetry survives if you point the new release at that volume; otherwise the
+new install starts with an empty store.
+
+### Also check
+
+- **Environment variables you set yourself.** The chart renames its own, but
+  any `AVURUOPS_*` you set in Docker Compose, a bare `docker run`, or your own
+  manifests must become `AVURUOBS_*`.
+- **Green history.** Energy series written before the upgrade carry the old
+  quality attribute and therefore read as *unknown* quality — never as
+  measured. They age out by retention; new series are labeled correctly from
+  the first scrape.
 
 :::note This page is expanding
 Version-to-version migration notes are added here as releases ship.

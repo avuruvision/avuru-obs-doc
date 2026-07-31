@@ -22,13 +22,38 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.3.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.4.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : les clés d'ingestion par projet, un plan
-de contrôle de la collecte à chaud, une compatibilité d'ingestion élargie, un
-étiquetage automatique plus riche, et davantage de clients (source de données
-Grafana, CLI).
+[Feuille de route](/docs/roadmap)) : les projets membres multi-clusters,
+l'aboutissement du plan de contrôle de la collecte à chaud (applicateur +
+interface éditable), une compatibilité d'ingestion élargie, un étiquetage
+automatique plus riche, et davantage de clients (source de données Grafana,
+CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.3.0" date="2026-07-31" status="shipped" statusLabel="Livré">
+
+**Une multi-tenance digne de confiance.** La v0.2 avait sécurisé la lecture ;
+la v0.3 verrouille l'écriture. Les projets deviennent quelque chose que vous
+administrez — création, renommage et suppression depuis l'interface, les
+entrées natives et déclarées dans la configuration restant en lecture seule —
+et les **clés d'ingestion par projet** mettent fin à la confiance topologique :
+les clés sont validées dans la passerelle et, en mode `enforce`, le projet de
+la clé fait autorité sur le tenant, quel que soit celui que l'émetteur
+déclare (le mode `log` par défaut ne change rien au pipeline : la promesse
+OTLP « prise en charge directe » survit à la mise à jour). Une **démo en
+lecture seule en un clic** connecte un visiteur en tant que lecteur restreint
+sans que le mot de passe partagé n'atteigne jamais le navigateur. Le module
+**green** fonctionne désormais sur les VM cloud dépourvues de RAPL, chaque
+chiffre modélisé étant étiqueté *estimé* de bout en bout. Le plan de contrôle
+de la collecte à chaud pose ses fondations — stockage de la surcouche, API
+validée, droits RBAC restreints — et la couche de déploiement est renommée
+`avuruops` → **`avuruobs`** (rupture ; voir le
+[guide de mise à jour](/docs/operations/upgrade)).
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.0)
+· [changelog](/changelog/v0-3-0).
 
 </ReleaseEntry>
 

@@ -1,0 +1,40 @@
+---
+slug: green-tdp-estimation
+title: "Des chiffres d'énergie sur les VM cloud : l'estimation TDP pour les nœuds sans RAPL"
+description: "Les instances de cloud public n'exposent aucun compteur de puissance : le module green les laissait vides. Un modèle de puissance optionnel comble ce trou — et chaque chiffre modélisé est étiqueté estimé de bout en bout, jamais mélangé à l'énergie mesurée."
+authors: [avuru]
+tags: [sustainability, platform]
+date: 2026-07-30
+---
+
+Le module green ne remontait de l'énergie que là où le matériel expose RAPL —
+ce qui exclut l'écrasante majorité des VM de cloud public. Un **estimateur TDP
+optionnel** modélise désormais la puissance CPU à partir de l'utilisation sur
+ces nœuds : une flotte entièrement composée d'instances cloud ne voit plus un
+`/green` vide.
+
+{/* truncate */}
+
+- **Honnête par construction.** Chaque chiffre produit par l'estimateur est
+  marqué **estimé** sur toute la chaîne — SQL, API, interface et bloc
+  méthodologie de l'export CSRD — et n'est jamais mélangé à l'énergie mesurée
+  par RAPL. Pour un même service, énergie estimée et mesurée apparaissent en
+  lignes distinctes : un total ne peut donc pas confondre les deux
+  silencieusement. Les estimations valent pour la tendance et la détection de
+  régression (erreur typique de ±30 à 50 %), pas pour un audit.
+- **La part sans RAPL devient visible.** `/green` gagne un panneau de
+  couverture qui répartit la flotte entre nœuds connus, mesurés, estimés et
+  absents. Ce qui manquait en silence devient visible, donc actionnable.
+- **Les budgets en tiennent compte.** Les budgets carbone intègrent l'énergie
+  estimée — le budget d'une flotte 100 % VM peut donc réellement être
+  dépassé — et un dépassement précise la part modélisée face à la part
+  mesurée.
+- **Des coefficients sourcés.** La table de puissance CPU embarquée est citée
+  (Cloud Carbon Footprint, recoupée avec le notebook d'origine dérivé de
+  SPECpower), et les opérateurs peuvent surcharger `P_idle`/`P_max` par nœud ou
+  pour toute la flotte.
+
+Activez-la avec `sensor.green.estimation.enabled` (qui requiert
+`sensor.green.enabled` : l'estimateur est un repli sur le même signal
+d'énergie, pas une seconde source). Voir la
+[documentation du module green](/docs/signals/green).

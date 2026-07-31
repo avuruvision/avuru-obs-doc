@@ -16,7 +16,7 @@ import {
 import styles from './index.module.css';
 
 const INSTALL_CMD =
-  'helm install avuruops ./avuruops -n avuruops --create-namespace';
+  'helm install avuruobs ./avuruobs -n avuruobs --create-namespace';
 
 /** schema.org SoftwareApplication for rich search results. */
 const STRUCTURED_DATA = {

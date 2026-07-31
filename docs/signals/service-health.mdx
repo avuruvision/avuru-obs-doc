@@ -86,7 +86,7 @@ value from data you already collect. Turning it off removes the API routes and
 the sidebar entry, nothing else, because it owns no storage.
 
 Grouping lives in the `serviceGroups` Helm block, rendered to a ConfigMap the
-hub reads (mounted at `AVURUOPS_GROUPS_CONFIG`) and **hot-reloads within
+hub reads (mounted at `AVURUOBS_GROUPS_CONFIG`) and **hot-reloads within
 ~15 s** of a `kubectl edit`:
 
 ```yaml

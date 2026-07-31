@@ -21,12 +21,33 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.3.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.4.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
-per-project ingest keys, a runtime collection control plane, wider ingest
-compatibility, richer auto-tagging, and more clients (Grafana data source,
-CLI).
+multi-cluster member projects, the runtime collection control plane completed
+(applier + editable UI), wider ingest compatibility, richer auto-tagging, and
+more clients (Grafana data source, CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.3.0" date="2026-07-31" status="shipped">
+
+**Tenancy you can trust.** v0.2 secured the read side; v0.3 closes the write
+side. Projects become something you administer — create, rename and delete
+them from the UI, with built-in and config-defined entries kept read-only —
+and **per-project ingest keys** end topology-based trust: keys are validated
+in the gateway, and in `enforce` mode the key's project is the authoritative
+tenant, overriding whatever a sender claims (the default `log` mode changes
+nothing about the pipeline, so the drop-in OTLP promise survives the upgrade).
+A **one-click read-only demo** signs a visitor in as a scoped viewer without
+the shared password ever reaching the browser. **Green** now works on the
+RAPL-less cloud VMs most fleets run on, with every modeled number labeled
+*estimated* end to end. The runtime collection control plane lands its
+groundwork — overlay store, validated API, least-privilege RBAC — and the
+deploy layer is renamed `avuruops` → **`avuruobs`** (breaking; see the
+[upgrade guide](/docs/operations/upgrade)).
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.0)
+· [changelog](/changelog/v0-3-0).
 
 </ReleaseEntry>
 

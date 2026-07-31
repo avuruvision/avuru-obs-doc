@@ -37,13 +37,13 @@ off.
 
 ```bash
 # Traces + service map only — lighter storage, same 5-minute start.
-helm upgrade --install avuruops deploy/helm/avuruops \
+helm upgrade --install avuruobs deploy/helm/avuruobs \
   --set modules.logs.enabled=false \
   --set modules.infraMetrics.enabled=false \
   --set modules.profiling.enabled=false
 ```
 
-In Docker Compose, set the `AVURUOPS_MODULES` environment variable on the
+In Docker Compose, set the `AVURUOBS_MODULES` environment variable on the
 migrate and hub services to the comma-separated list you want (for example
 `core,logs`). An empty or unset value means every module.
 

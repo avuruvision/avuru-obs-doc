@@ -24,7 +24,7 @@ Add the OpenTelemetry Java agent (zero-code) and point it at the gateway:
 
 ```bash
 java -javaagent:opentelemetry-javaagent.jar \
-  -Dotel.exporter.otlp.endpoint=http://avuruops-gateway:4318 \
+  -Dotel.exporter.otlp.endpoint=http://avuruobs-gateway:4318 \
   -Dotel.service.name=checkout \
   -jar checkout.jar
 ```
@@ -45,7 +45,7 @@ java -javaagent:opentelemetry-javaagent.jar \
 <ConfigBuilder schema="integrations/spring" />
 
 ```properties
-otel.exporter.otlp.endpoint=http://avuruops-gateway:4318
+otel.exporter.otlp.endpoint=http://avuruobs-gateway:4318
 otel.exporter.otlp.protocol=http/protobuf
 otel.service.name=checkout
 otel.resource.attributes=deployment.environment=prod

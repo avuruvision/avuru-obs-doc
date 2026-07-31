@@ -110,7 +110,7 @@ The alert webhook is the hub's **only outbound call**, so it ships guarded:
 
 `modules.alerting.enabled` is **on by default but inert** — with no rules,
 nothing evaluates and nothing fires. Rules and channels live in the `alerting`
-Helm block, rendered to a ConfigMap (mounted at `AVURUOPS_ALERTS_CONFIG`) and
+Helm block, rendered to a ConfigMap (mounted at `AVURUOBS_ALERTS_CONFIG`) and
 hot-reloaded within ~15 s:
 
 ```yaml
@@ -125,7 +125,7 @@ alerting:
 Validation is fail-loud: an unknown `when`, a rule pointing at an undeclared
 channel, an empty selector or a malformed URL is rejected, not ignored.
 Alert history is kept **30 days** by default
-(`AVURUOPS_RETENTION_ALERTS_DAYS`).
+(`AVURUOBS_RETENTION_ALERTS_DAYS`).
 
 ## The /alerts board and API
 

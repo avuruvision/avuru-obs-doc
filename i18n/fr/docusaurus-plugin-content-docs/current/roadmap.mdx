@@ -97,26 +97,39 @@ licence AGPL-3.0 à partir de cette version. Le détail complet est sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-2-0).
 
-## Au-delà de v0.2 (indicatif)
+## v0.3 — une multi-tenance digne de confiance (publiée le 31 juillet 2026)
 
-- **Aboutissement des projets :** des **clés d'ingestion** par projet sur la
-  jointure d'auth livrée (remplaçant la confiance topologique à la passerelle),
-  le CRUD des projets, la rétention et l'état système par projet, et des
-  interrupteurs de composants du chart pour les installations multi-clusters
-  sur un ClickHouse partagé.
-- **Plan de contrôle de la collecte à chaud :** les réglages de collecte Helm
-  deviennent commutables depuis l'UI — une surcouche bornée et validée par
-  schéma que le hub applique aux ConfigMaps du capteur, désactivée par défaut
-  et à portée restreinte. OpAMP reste la destination : d'abord la remontée
-  d'état, puis la configuration à distance quand l'amont fournira un client.
+La v0.2 avait sécurisé la lecture ; la [v0.3.0](/docs/releases) verrouille
+l'écriture. Les projets deviennent quelque chose que vous administrez —
+**création, renommage et suppression depuis l'interface** — et les **clés
+d'ingestion par projet** font qu'un émetteur ne se contente plus de *déclarer*
+un tenant : en mode `enforce`, c'est la clé qui décide où atterrit sa
+télémétrie. Autour de cela : une **démo en lecture seule en un clic**, le
+**module green sur les VM cloud dépourvues de RAPL**, les fondations du plan de
+contrôle de la collecte à chaud, et le renommage de la couche de déploiement de
+`avuruops` vers **`avuruobs`** (rupture — voir le
+[guide de mise à jour](/docs/operations/upgrade)). Le détail complet est sur la
+page [état des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-3-0).
+
+## Au-delà de v0.3 (indicatif)
+
+- **Projets multi-clusters :** des projets membres agrégeant plusieurs
+  clusters, la rétention et l'état système par projet, et des interrupteurs de
+  composants du chart pour qu'un cluster secondaire n'installe que la
+  passerelle (et le capteur) sur un ClickHouse partagé. Le CRUD des projets et
+  les clés d'ingestion sont livrés en v0.3.
+- **Plan de contrôle de la collecte à chaud — aboutissement :** la v0.3 livre
+  le stockage de la surcouche, son API validée par schéma et les droits RBAC
+  restreints ; restent l'applicateur qui met à jour les ConfigMaps du capteur
+  et l'interface éditable Paramètres → Collecte, toujours désactivée par
+  défaut. OpAMP reste la destination : d'abord la remontée d'état, puis la
+  configuration à distance quand l'amont fournira un client.
 - **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
   courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
   transfert pour écrire en double pendant une migration.
 - **Étiquetage automatique plus riche :** faire des labels/annotations
   Kubernetes des étiquettes métier, filtrables sur tous les signaux.
-- **Estimation green pour les nœuds sans RAPL :** un modèle de puissance basé
-  sur le TDP produit des chiffres par service explicitement étiquetés
-  *estimés*, jamais mélangés aux joules mesurés.
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
   qu'un client léger. Une source de données **Grafana** et une **CLI** sont
   prévues.

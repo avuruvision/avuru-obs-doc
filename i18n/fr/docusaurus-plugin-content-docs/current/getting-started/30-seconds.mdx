@@ -23,7 +23,7 @@ contrôle `hub`, l'`ui` et ClickHouse.
 ## 2. Ouvrir l'UI
 
 ```bash
-kubectl -n avuruops port-forward svc/avuruops-hub 8080:80
+kubectl -n avuruobs port-forward svc/avuruobs-hub 8080:80
 ```
 
 Ouvrez <strong>http://localhost:8080</strong>. En une minute ou deux, la
@@ -38,8 +38,8 @@ Vous avez déjà des SDK OpenTelemetry ? Pointez-les vers le gateway et vos span
 atterrissent à côté de ceux découverts par eBPF :
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
-# gRPC plutôt ? utilisez http://avuruops-gateway:4317
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway:4318
+# gRPC plutôt ? utilisez http://avuruobs-gateway:4317
 ```
 
 :::tip C'est tout
@@ -51,12 +51,12 @@ dégradent proprement.
 ## Vérifier
 
 ```bash
-kubectl -n avuruops get pods
-# avuruops-sensor-xxxxx     Running
-# avuruops-gateway-xxxxx    Running
-# avuruops-hub-xxxxx        Running
-# avuruops-ui-xxxxx         Running
-# avuruops-clickhouse-0     Running
+kubectl -n avuruobs get pods
+# avuruobs-sensor-xxxxx     Running
+# avuruobs-gateway-xxxxx    Running
+# avuruobs-hub-xxxxx        Running
+# avuruobs-ui-xxxxx         Running
+# avuruobs-clickhouse-0     Running
 ```
 
 Si chaque pod est `Running` et que la carte des services affiche des nœuds, c'est
