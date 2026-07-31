@@ -30,6 +30,19 @@ more clients (Grafana data source, CLI).
 
 </ReleaseEntry>
 
+<ReleaseEntry version="0.3.1" date="2026-07-31" status="shipped">
+
+**Patch.** The chart's image defaults never matched what the release workflow
+publishes — wrong repositories *and* a tag format that was never pushed — so a
+`helm install` with no `--set` could not resolve the hub, UI, gateway or
+TDP-estimator images. Both halves are fixed; the green estimator, which
+shipped with no repository at all, now defaults like its siblings. No schema
+migration, no API or configuration change.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.1)
+· [changelog](/changelog/v0-3-1).
+
+</ReleaseEntry>
+
 <ReleaseEntry version="0.3.0" date="2026-07-31" status="shipped">
 
 **Tenancy you can trust.** v0.2 secured the read side; v0.3 closes the write

@@ -33,6 +33,20 @@ CLI).
 
 </ReleaseEntry>
 
+<ReleaseEntry version="0.3.1" date="2026-07-31" status="shipped" statusLabel="Livré">
+
+**Correctif.** Les valeurs d'images par défaut du chart n'ont jamais
+correspondu à ce que publie le workflow de release — mauvais dépôts *et* un
+format de tag jamais poussé : un `helm install` sans `--set` ne pouvait
+résoudre ni le hub, ni l'UI, ni la passerelle, ni l'estimateur TDP. Les deux
+moitiés sont corrigées ; l'estimateur green, livré sans aucun dépôt, se
+comporte désormais comme ses homologues. Aucune migration de schéma, aucun
+changement d'API ni de configuration.
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.1)
+· [changelog](/changelog/v0-3-1).
+
+</ReleaseEntry>
+
 <ReleaseEntry version="0.3.0" date="2026-07-31" status="shipped" statusLabel="Livré">
 
 **Une multi-tenance digne de confiance.** La v0.2 avait sécurisé la lecture ;

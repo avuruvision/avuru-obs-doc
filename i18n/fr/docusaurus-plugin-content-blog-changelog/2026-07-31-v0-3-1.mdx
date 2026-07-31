@@ -1,0 +1,37 @@
+---
+slug: v0-3-1
+title: "v0.3.1 : une installation par défaut retrouve ses images"
+description: "Une version corrective. Les coordonnées d'images du chart n'ont jamais correspondu à ce que publie le workflow de release : un helm install sans --set ne pouvait résoudre ni le hub, ni l'UI, ni la passerelle, ni l'estimateur TDP. Corrigé des deux côtés."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-31
+---
+
+La **v0.3.1** est une version corrective : elle répare les valeurs d'images par
+défaut du chart, qui ne désignaient pas les images réellement publiées par le
+workflow de release. Rien d'autre ne change — ni migration de schéma, ni
+surface d'API ou de configuration.
+
+{/* truncate */}
+
+- **Les deux moitiés de la référence étaient fausses.** Les dépôts nommaient
+  des coordonnées Docker Hub que personne ne publie, alors que les versions
+  sont poussées vers `ghcr.io/avuruvision/avuru-obs-<composant>` ; et le tag
+  reprenait par défaut l'`appVersion` du chart — du SemVer nu, sans `v`
+  initial — alors que seuls `vX.Y.Z` et `vX.Y` étaient poussés. Corriger l'un
+  sans l'autre n'aurait fait que remplacer une référence introuvable par une
+  autre : les deux sont donc corrigées. Les quatre dépôts internes pointent
+  vers le registre, et le workflow publie désormais aussi le tag `X.Y.Z` nu.
+- **L'estimation TDP du module green n'avait aucune image.** Son dépôt était
+  vide : activer l'estimateur produisait une référence sans nom ni tag. Elle
+  reprend maintenant le même comportement par défaut que les trois autres
+  images internes.
+
+**Si vous êtes en v0.3.0**, faites un `helm upgrade` vers `0.3.1` : vous pouvez
+alors retirer les `--set hub.repository=…` / `--set …tag=…` ajoutés pour
+contourner le problème. Les installations qui épinglent leurs images
+volontairement — registre privé via `image.registry`, miroirs hors ligne — ne
+sont concernées dans aucun des deux cas.
+
+Voir la page [Versions](/docs/releases) et la
+[version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.1).
