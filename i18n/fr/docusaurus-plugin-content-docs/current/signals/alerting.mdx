@@ -120,7 +120,7 @@ gardé :
 `modules.alerting.enabled` est **activé par défaut mais inerte** — sans
 règles, rien ne s'évalue et rien ne se déclenche. Règles et canaux vivent dans
 le bloc Helm `alerting`, rendu en ConfigMap (montée sur
-`AVURUOPS_ALERTS_CONFIG`) et rechargé à chaud en ~15 s :
+`AVURUOBS_ALERTS_CONFIG`) et rechargé à chaud en ~15 s :
 
 ```yaml
 alerting:
@@ -134,7 +134,7 @@ alerting:
 La validation échoue bruyamment : un `when` inconnu, une règle pointant vers
 un canal non déclaré, un sélecteur vide ou une URL malformée est rejeté, pas
 ignoré. L'historique d'alertes est conservé **30 jours** par défaut
-(`AVURUOPS_RETENTION_ALERTS_DAYS`).
+(`AVURUOBS_RETENTION_ALERTS_DAYS`).
 
 ## Le tableau /alerts et l'API
 

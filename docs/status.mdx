@@ -44,14 +44,16 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | SSO — OpenID Connect (discovery, PKCE) with any IdP, group→role/project mapping (hot-reloaded), `forceSSO` | <StatusBadge status="shipped" /> | v0.2 |
 | Modules — one switch per signal family (`modules.<name>.enabled`) gates schema, API, pipeline, collection and UI together; capabilities-driven sidebar | <StatusBadge status="shipped" /> | v0.2 |
 | Ingest API keys — per-project keys validated in the gateway; `enforce` makes the key's project the authoritative tenant; safe `off`/`log`/`enforce` rollout | <StatusBadge status="shipped" /> | v0.3 |
+| Green on RAPL-less nodes — opt-in TDP power estimation for cloud VMs, labeled *estimated* end to end and never blended with measured energy; `/green` coverage panel | <StatusBadge status="shipped" /> | v0.3 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Runtime collection control plane — collection switches in the UI (OpAMP as the destination) | <StatusBadge status="planned" /> | v0.3 |
-| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.3 |
-| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.3 |
+| Runtime collection control plane — collection switches in the UI (OpAMP as the destination). The overlay store, validated API and least-privilege RBAC shipped in v0.3; the applier and the editable UI are what remain | <StatusBadge status="in-progress" /> | v0.4 |
+| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.4 |
+| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.4 |
+| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.4 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server

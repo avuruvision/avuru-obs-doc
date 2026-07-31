@@ -18,7 +18,7 @@ Use the OpenTelemetry Node SDK auto-instrumentation and point the exporter at th
 gateway:
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruops-gateway:4318
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway:4318
 export OTEL_SERVICE_NAME=api
 node --require @opentelemetry/auto-instrumentations-node/register server.js
 ```

@@ -22,15 +22,15 @@ export default function TerminalDemo({
       </div>
       <div className={styles.termBody}>
         <span className={styles.prompt}>$ </span>
-        <span className={styles.out}>kubectl logs -n avuruops ds/avuruops-sensor -f</span>
+        <span className={styles.out}>kubectl logs -n avuruobs ds/avuruobs-sensor -f</span>
         {'\n'}
         <span className={styles.dim}>info  obi       zero-code tracing attached (http, grpc, sql)</span>
         {'\n'}
         <span className={styles.dim}>info  discovery found 7 services · 0 SDKs · 0 sidecars</span>
         {'\n'}
-        <span className={styles.out}>info  otlp      exporting traces  → avuruops-gateway:4317</span>
+        <span className={styles.out}>info  otlp      exporting traces  → avuruobs-gateway:4317</span>
         {'\n'}
-        <span className={styles.out}>info  otlp      exporting metrics → avuruops-gateway:4317</span>
+        <span className={styles.out}>info  otlp      exporting metrics → avuruobs-gateway:4317</span>
         {'\n'}
         <span className={styles.ok}>ok    map       frontend → cart → payment → postgres</span>
         {'\n'}

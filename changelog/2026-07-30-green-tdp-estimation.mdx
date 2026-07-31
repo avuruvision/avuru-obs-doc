@@ -1,0 +1,36 @@
+---
+slug: green-tdp-estimation
+title: "Energy numbers on cloud VMs: TDP estimation for RAPL-less nodes"
+description: "Public-cloud instances expose no power counters, so the green module used to leave them blank. An opt-in power model now fills the gap — and every modeled number is labeled estimated end to end, never blended with measured energy."
+authors: [avuru]
+tags: [sustainability, platform]
+date: 2026-07-30
+---
+
+The green module reported energy only where the hardware exposes RAPL — which
+excludes the overwhelming majority of public-cloud VMs. An **opt-in TDP
+estimator** now models CPU power from utilization on those nodes, so a fleet
+that runs entirely on cloud instances stops seeing an empty `/green`.
+
+{/* truncate */}
+
+- **Honest by construction.** Every number the estimator produces is stamped
+  **estimated** through the whole chain — the SQL, the API, the UI and the
+  CSRD export's methodology block — and is never blended with RAPL-measured
+  energy. Estimated and measured energy for the same service appear as
+  separate rows, so a total can never quietly mix the two. Treat estimates as
+  trend and regression grade (±30-50% typical error), not audit grade.
+- **The RAPL-less share becomes visible.** `/green` gains a coverage panel
+  breaking the fleet into known, measured, estimated and absent nodes. What
+  used to be silently missing is now something you can see and act on.
+- **Budgets account for it.** Carbon budgets include estimated energy, so an
+  all-VM fleet's budget can actually trip — and a breach states how much of it
+  is modeled versus measured.
+- **Sourced coefficients.** The bundled CPU power table is cited (Cloud Carbon
+  Footprint, cross-checked against the SPECpower-derived source notebook), and
+  operators can override `P_idle`/`P_max` per node or fleet-wide.
+
+Enable it with `sensor.green.estimation.enabled` (it requires
+`sensor.green.enabled` — the estimator is a fallback for the same energy
+signal, not a second source). See the
+[green module docs](/docs/signals/green).

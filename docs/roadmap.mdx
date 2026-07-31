@@ -94,25 +94,35 @@ project is licensed AGPL-3.0 as of this release. Full detail on the
 [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-2-0).
 
-## Beyond v0.2 (directional)
+## v0.3 — tenancy you can trust (released 2026-07-31)
 
-- **Projects completion:** per-project **ingest keys** on the shipped auth
-  seam (replacing topology-based trust at the gateway), project CRUD,
-  per-project retention and system status, and chart component toggles for
-  multi-cluster installs against a shared ClickHouse.
-- **Runtime collection control plane:** the Helm collection knobs become
-  switchable from the UI — a bounded, schema-validated overlay the hub applies
-  to the sensor ConfigMaps, default-off and narrowly scoped. OpAMP remains the
-  destination: status reporting first, remote-config when the upstream grows a
-  client.
+v0.2 secured the read side; [v0.3.0](/docs/releases) closes the write side.
+Projects became something you administer — **create, rename and delete them
+from the UI** — and **per-project ingest keys** mean a sender no longer just
+claims a tenant: in `enforce` mode the key decides where its telemetry lands.
+Alongside that: a **one-click read-only demo**, **green energy on RAPL-less
+cloud VMs**, the control-plane groundwork for runtime collection switches, and
+the rename of the deploy layer from `avuruops` to **`avuruobs`** (breaking —
+see the [upgrade guide](/docs/operations/upgrade)). Full detail on the
+[feature status](/docs/status) page and in the
+[changelog](/changelog/v0-3-0).
+
+## Beyond v0.3 (directional)
+
+- **Multi-cluster projects:** member projects that aggregate several clusters,
+  per-project retention and system status, and chart component toggles so a
+  secondary cluster installs gateway(+sensor)-only against a shared
+  ClickHouse. Project CRUD and ingest keys shipped in v0.3.
+- **Runtime collection control plane — completion:** v0.3 shipped the overlay
+  store, its schema-validated API and the narrowly-scoped RBAC; what remains is
+  the applier that patches the sensor ConfigMaps and the editable Settings →
+  Collection UI, still default-off. OpAMP remains the destination: status
+  reporting first, remote-config when the upstream grows a client.
 - **Wider ingest compatibility:** push receivers for the common
   tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
   exporters so avuru obs can dual-write during a migration.
 - **Richer auto-tagging:** map Kubernetes labels/annotations to business tags
   and filter by them across every signal.
-- **Green estimation for RAPL-less nodes:** a TDP-based power model produces
-  per-service numbers explicitly labeled *estimated*, never blended with
-  measured joules.
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`

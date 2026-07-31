@@ -1,0 +1,60 @@
+---
+slug: v0-3-0
+title: "v0.3.0 is out: tenancy you can trust — projects you administer, telemetry that proves whose it is"
+description: "The third release closes the write side: create, rename and delete projects from the UI, then mint per-project ingest keys so the key — not the sender — decides where telemetry lands. Plus a one-click read-only demo, green energy on RAPL-less cloud VMs, and the deploy layer renamed to avuruobs."
+authors: [avuru]
+tags: [platform, ui, sustainability]
+date: 2026-07-31
+---
+
+avuru obs **v0.3.0** is tagged. v0.2 secured the read side — login, roles,
+per-project grants, SSO. v0.3 closes the write side and turns the project into
+something you actually administer.
+
+{/* truncate */}
+
+- **Projects you administer.** Create, rename and delete projects in
+  **Settings → General**; the switcher and the General tab follow immediately,
+  while the built-in `default` and any project declared in the chart stay
+  read-only and clearly labelled. A project's id is an immutable tenant slug —
+  only its display name is editable, so no telemetry is ever rewritten or
+  lost.
+- **Telemetry that proves whose it is.** Mint **per-project ingest API keys**;
+  the raw secret is shown exactly once and only its hash is stored. Keys are
+  validated in the gateway — the hub never enters the telemetry byte-path — and
+  in `enforce` mode the key's project becomes the **authoritative tenant**: a
+  sender that lies about its tenant lands where its key says. The default `log`
+  mode leaves the pipeline byte-identical, so the drop-in OTLP promise survives
+  the upgrade.
+- **A demo you can hand to anyone.** One click on the login page signs a
+  visitor in as a read-only viewer scoped to a single project; the shared
+  password stays server-side and never reaches the browser. Pair it with the
+  astronomy-shop overlay for live data across every module.
+- **Green on cloud VMs.** Public-cloud instances expose no power counters, so
+  an opt-in power model now fills the gap — every modeled number labeled
+  *estimated* end to end, never blended with measured energy, with a new
+  coverage panel that makes the RAPL-less share of a fleet visible
+  ([details](/changelog/green-tdp-estimation)).
+- **Runtime collection control — groundwork.** The hub can now store and serve
+  a bounded, schema-validated collection overlay behind a default-off flag and
+  a least-privilege Role. The applier and the editable UI come next; collection
+  is still configured through Helm values today.
+- **Breaking: `avuruops` is now `avuruobs`.** The Helm chart, the `AVURUOBS_*`
+  environment variables, the mount paths and the generated resource names all
+  match the project's name now. Upgrading from 0.2.x is **not** a plain `helm
+  upgrade` — follow the [upgrade guide](/docs/operations/upgrade), which gives
+  you a no-rename path (`--set nameOverride=avuruops`) and a clean-install
+  path.
+
+Also fixed: a fresh install with the demo enabled could end up with **no admin
+account** (the demo viewer satisfied the bootstrap guard, so `admin` was never
+created and every sign-in failed as if the password were wrong) — affected
+installs repair themselves on the next restart. Plus a first-install Helm
+render failure, the demo visitor landing on the wrong project, and login behind
+a reverse proxy on a non-default port.
+
+See the full notes on the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.0).
+The trunk is now `0.4.0-SNAPSHOT` — next up on the
+[Roadmap](/docs/roadmap): multi-cluster member projects, the collection control
+plane finished end to end, and wider ingest compatibility.

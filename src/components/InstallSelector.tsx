@@ -9,15 +9,15 @@ const DEFAULT_SNIPPETS: Snippets = {
     lang: 'bash',
     code: `# Flagship install — the chart is published to GHCR as an OCI artifact,
 # eBPF auto-discovers your services. No repo to add.
-helm install avuruops oci://ghcr.io/avuruvision/charts/avuruops \\
-  --version <X.Y.Z> -n avuruops --create-namespace
+helm install avuruobs oci://ghcr.io/avuruvision/charts/avuruobs \\
+  --version <X.Y.Z> -n avuruobs --create-namespace
 
 # Point apps at the gateway (OTLP):
-#   http://avuruops-gateway:4318   (HTTP)
-#   http://avuruops-gateway:4317   (gRPC)
+#   http://avuruobs-gateway:4318   (HTTP)
+#   http://avuruobs-gateway:4317   (gRPC)
 
 # Open the UI:
-kubectl -n avuruops port-forward svc/avuruops-ui 8080:80`,
+kubectl -n avuruobs port-forward svc/avuruobs-ui 8080:80`,
   },
   Docker: {
     lang: 'bash',

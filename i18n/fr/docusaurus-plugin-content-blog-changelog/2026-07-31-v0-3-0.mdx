@@ -1,0 +1,67 @@
+---
+slug: v0-3-0
+title: "La v0.3.0 est là : une multi-tenance digne de confiance — des projets que vous administrez, une télémétrie qui prouve son origine"
+description: "La troisième version verrouille l'écriture : créez, renommez et supprimez vos projets depuis l'interface, puis émettez des clés d'ingestion par projet pour que ce soit la clé — et non l'émetteur — qui décide où atterrit la télémétrie. Plus une démo en lecture seule en un clic, le module green sur les VM cloud sans RAPL, et la couche de déploiement renommée avuruobs."
+authors: [avuru]
+tags: [platform, ui, sustainability]
+date: 2026-07-31
+---
+
+avuru obs **v0.3.0** est publiée. La v0.2 avait sécurisé la lecture —
+connexion, rôles, droits par projet, SSO. La v0.3 verrouille l'écriture et
+fait du projet quelque chose que vous administrez vraiment.
+
+{/* truncate */}
+
+- **Des projets que vous administrez.** Créez, renommez et supprimez vos
+  projets dans **Paramètres → Général** ; le sélecteur et l'onglet Général
+  suivent immédiatement, tandis que le projet natif `default` et tout projet
+  déclaré dans le chart restent en lecture seule et clairement identifiés.
+  L'identifiant d'un projet est un slug de tenant immuable — seul son nom
+  d'affichage est modifiable : aucune télémétrie n'est jamais réécrite ni
+  perdue.
+- **Une télémétrie qui prouve son origine.** Émettez des **clés d'API
+  d'ingestion par projet** ; le secret en clair n'est affiché qu'une seule fois
+  et seule son empreinte est stockée. Les clés sont validées dans la passerelle
+  — le hub n'entre jamais dans le chemin des octets de télémétrie — et en mode
+  `enforce`, le projet de la clé devient le **tenant qui fait autorité** : un
+  émetteur qui ment sur son tenant atterrit là où sa clé l'indique. Le mode
+  `log` par défaut laisse le pipeline strictement identique : la promesse OTLP
+  « prise en charge directe » survit à la mise à jour.
+- **Une démo que vous pouvez donner à n'importe qui.** Un clic sur la page de
+  connexion ouvre une session de lecteur en lecture seule, restreinte à un seul
+  projet ; le mot de passe partagé reste côté serveur et n'atteint jamais le
+  navigateur. À combiner avec la surcouche astronomy-shop pour des données
+  réelles dans tous les modules.
+- **Le module green sur les VM cloud.** Les instances de cloud public
+  n'exposent aucun compteur de puissance : un modèle optionnel comble
+  désormais ce trou — chaque chiffre modélisé étant étiqueté *estimé* de bout
+  en bout, jamais mélangé à l'énergie mesurée, avec un panneau de couverture
+  qui rend visible la part de flotte sans RAPL
+  ([détails](/changelog/green-tdp-estimation)).
+- **Contrôle de la collecte à chaud — les fondations.** Le hub sait désormais
+  stocker et servir une surcouche de collecte bornée et validée par schéma,
+  derrière un réglage désactivé par défaut et des droits minimaux.
+  L'applicateur et l'interface éditable arrivent ensuite ; aujourd'hui, la
+  collecte se configure toujours par les valeurs Helm.
+- **Rupture : `avuruops` devient `avuruobs`.** Le chart Helm, les variables
+  d'environnement `AVURUOBS_*`, les chemins de montage et les noms de
+  ressources générés correspondent enfin au nom du projet. Une mise à jour
+  depuis une 0.2.x n'est **pas** un simple `helm upgrade` — suivez le
+  [guide de mise à jour](/docs/operations/upgrade), qui propose une voie sans
+  renommage (`--set nameOverride=avuruops`) et une voie d'installation propre.
+
+Également corrigé : une installation neuve avec la démo activée pouvait se
+retrouver **sans compte administrateur** (le lecteur de démo satisfaisait la
+condition d'amorçage : `admin` n'était jamais créé et chaque connexion échouait
+comme si le mot de passe était faux) — les installations concernées se
+réparent d'elles-mêmes au redémarrage suivant. Plus : un échec de rendu Helm à
+la première installation, le visiteur de démo qui atterrissait sur le mauvais
+projet, et la connexion derrière un reverse proxy sur un port non standard.
+
+Les notes complètes sont sur la page [Versions](/docs/releases) et dans la
+[version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.0).
+Le tronc est désormais en `0.4.0-SNAPSHOT` — la suite sur la
+[feuille de route](/docs/roadmap) : les projets membres multi-clusters, le plan
+de contrôle de la collecte terminé de bout en bout, et une compatibilité
+d'ingestion élargie.
