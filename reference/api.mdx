@@ -25,6 +25,17 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
   Read endpoints need viewer, mutations need editor, and rows marked **admin**
   need the global admin role. `GET /healthz` and `GET /api/v1/auth/config` are
   always open.
+- **Login rate limiting** — failed password attempts are counted on three axes:
+  `email + address`, `address`, and (since v0.4.0) the **account alone**, so
+  guesses spread across many addresses can no longer walk past the per-account
+  lockout. A tripped limit returns `429` and blocks only *login* for that
+  account, over a self-healing one-minute window; established sessions and
+  successful logins are unaffected.
+- **Cross-origin writes** — mutating requests are checked with `Origin` against
+  the `Host` the hub received. Behind a proxy that rewrites `Host`, name the
+  real origins in `auth.trustedOrigins` or relax the check with
+  `auth.originCheck` (`enforce` | `log` | `off`); an OIDC `publicUrl` is trusted
+  automatically.
 
 ## Endpoints
 
@@ -36,13 +47,15 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/auth/config` | Login-page bootstrap: `{enabled, methods, forceSSO, demoEnabled}`. Always registered, auth on or off. |
 | `POST /api/v1/auth/login` | Local login — body `{email, password}`; sets the session cookie. Rate-limited. |
 | `POST /api/v1/auth/logout` | End the current session (server-side, so revocation is immediate). |
-| `GET /api/v1/auth/me` | The caller's identity: `user` (`id`, `email`, `name`, `anonymous`) + `grants`. |
+| `GET /api/v1/auth/me` | The caller's identity: `user` (`id`, `email`, `name`, `anonymous`, `origin`) + `grants`. |
+| `POST /api/v1/auth/password` | **Self-service password change** — body `{currentPassword, newPassword}`. The current password is required; every *other* session of the caller is ended and the calling session's cookie is re-minted, so you stay signed in. Local accounts only (`origin=local`); SSO callers get a `409` — their credential lives at the IdP. Rate-limited per account. |
 | `POST /api/v1/auth/demo` | One-click read-only demo sign-in — starts a session as the `demo` viewer using server-held credentials (no request body). Registered only when demo mode is enabled (`auth.demo.enabled`); rate-limited. |
 | `GET /api/v1/auth/oidc/start` | Begin the OIDC authorization-code + PKCE flow — redirects to the IdP (`400` if OIDC is not configured). |
 | `GET /api/v1/auth/oidc/callback` | IdP redirect target — validates `state`, exchanges the `code`, starts the session. |
 | `GET /api/v1/users` | List users with role grants and origin (local/oidc). **Admin.** |
 | `POST /api/v1/users` | Create a local user — `{email, name, password, grants}`. **Admin.** |
-| `PUT /api/v1/users/{id}` | Update a user — any of `name`, `password`, `disabled`, `grants`. **Admin.** |
+| `PUT /api/v1/users/{id}` | Update a user — any of `name`, `password`, `disabled`, `grants`. A `password` is accepted **only** for local accounts; setting one on an SSO user is refused, so an admin cannot mint a credential that bypasses the identity provider. **Admin.** |
+| `DELETE /api/v1/users/{id}` | Delete a user. Permitted **only once the user is disabled** — a deliberate second step, so removal is never one click. For an SSO user this removes the local record only; because `disabled` is what the SSO callback checks, deleting a *disabled* SSO user **undoes** their lockout. **Admin.** |
 | `GET /api/v1/projects` | Project list: `default`, config-defined projects (`projects` chart value / `AVURUOBS_PROJECTS`), UI-managed projects, and tenants auto-discovered from data. Each entry carries a `source`, a `label` and an `editable` flag. |
 | `POST /api/v1/projects` | Create a UI-managed project — `{id, label}`, where `id` is an immutable tenant slug. A reserved (`default`/config) or duplicate id is a `409`. **Admin.** |
 | `PUT /api/v1/projects/{id}` | Rename a UI-managed project's `label` — `{label}`. `default` and config-defined projects are read-only (`409`). **Admin.** |
@@ -51,9 +64,9 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `POST /api/v1/projects/{id}/keys` | Mint an ingest API key — `{name}`. The `201` response is the **only** place the raw `key` ever appears; only its SHA-256 is stored. **Admin.** |
 | `DELETE /api/v1/projects/{id}/keys/{hash}` | Revoke a key by its `keyHash`. Takes effect within the gateway's verdict cache TTL. `204`, or `404` if no live key matches. **Admin.** |
 | `GET /api/v1/collection/overlay` | The stored collection overlay — per-signal on/off plus the shared namespace-exclusion list. Registered **only** when `collection.runtimeControl.enabled` (default off); its state is echoed in `GET /api/v1/capabilities`. **Admin.** |
-| `PUT /api/v1/collection/overlay` | Replace the overlay. A **closed schema**: anything outside it — including free-form collector config — is rejected, so the endpoint adds no injection surface. As of v0.3.0 the overlay is stored but **not yet applied** — collection is still driven by Helm values. **Admin.** |
+| `PUT /api/v1/collection/overlay` | Replace the overlay. A **closed schema**: anything outside it — including free-form collector config — is rejected, so the endpoint adds no injection surface. As of v0.4.0 the overlay is stored but **not yet applied** — collection is still driven by Helm values. **Admin.** |
 | `DELETE /api/v1/collection/overlay` | Clear the overlay, returning collection to the chart defaults. **Admin.** |
-| `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. **Admin.** |
+| `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. Includes a **Schema** component reporting applied versus expected migrations, so a half-migrated install names itself instead of failing every query. **Admin.** |
 | `GET /api/v1/services` | Services with RED aggregates over the window. |
 | `GET /api/v1/service-map` | Service nodes **plus call edges** (caller→callee from trace spans, enriched with OBI network flow bytes and per-edge health — RTT p95, failed connections — when infra-metrics is active). |
 | `GET /api/v1/traces` | Search traces (filters + keyset pagination — see below). |
@@ -108,6 +121,6 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 `severity`, `q` (full-text), `limit` and `cursor`.
 
 :::note Planned
-Remote configuration (**OpAMP**) and streaming (**WebSocket**) surfaces land
-with v0.2 and will be documented as their UIs arrive.
+Remote configuration (**OpAMP**) and streaming (**WebSocket**) surfaces are on
+the [roadmap](/docs/roadmap) and will be documented as their UIs arrive.
 :::

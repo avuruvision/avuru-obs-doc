@@ -1,0 +1,93 @@
+---
+slug: v0-4-0
+title: "v0.4.0: manage users end to end — and three ways into an account, closed"
+description: "Settings gains full user management and self-service password change, three authentication bypasses are fixed, and an install whose schema migration never ran now repairs itself instead of failing every query forever."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-08-07
+---
+
+**v0.4.0** finishes the account lifecycle you started in v0.2: users can now be
+edited, reset and deleted from the UI, and anyone can change their own password.
+Reviewing that surface turned up three ways to get into an account that
+shouldn't have worked — all three are closed. Alongside them, an install that
+silently lost its schema migration now heals itself.
+
+{/* truncate */}
+
+- **Users, managed end to end.** Settings → Users now edits a user's name and
+  role grants, resets a password, and **deletes** a user — an explicit second
+  step, available only after disabling, so removal is never a single misclick.
+  A new Settings → Account tab lets any signed-in local user rotate their own
+  password: the current password is required, other sessions are evicted, and
+  the one you are using stays alive. Password operations are refused for SSO
+  users, whose credential lives at the identity provider.
+
+- **An admin could mint a working local password for an SSO-only account.**
+  `PUT /api/v1/users/{id}` accepted a password for any user regardless of
+  origin, and the login path never filtered on origin either — so the new
+  credential was a real, working login that walked around the identity provider
+  along with its MFA and conditional-access policy. Password edits are now
+  allow-listed on local accounts, on both the admin route and the new
+  self-service one.
+
+- **Rotating IP addresses walked straight past the login lockout.** Both
+  rate-limit axes keyed on the client address, so guesses spread across N
+  addresses bought N × 5 attempts per minute against one account and tripped
+  neither — any cloud NAT pool was enough to make the per-account lockout
+  decorative. A third axis now counts failures against the account itself
+  (20 per minute), for password login and self-service change alike. It is a
+  deliberate trade: sustained failures will keep that account's *login* blocked
+  for a self-healing one-minute window, never touching established sessions or
+  successful logins.
+
+- **An SSO login could take over a local account's email.** An identity-provider
+  user whose email matched a local account added a second row sharing that
+  address, and the password lookup then resolved to an arbitrary one of the two
+  — so anyone able to set their own email claim could aim it at the bootstrap
+  admin. The lookup is now local-first, and password login is allow-listed on
+  local accounts rather than trusting SSO rows to carry an empty password hash.
+
+- **An install whose schema migration never ran now repairs itself.** Schema is
+  applied by a Helm `post-install`/`post-upgrade` hook — and Helm runs those
+  only *after* `--wait` succeeds, so a release that timed out on any slow
+  component never created the job, while the deployments Helm had already
+  applied rolled out normally. The result looked healthy and answered *unknown
+  table* to everything. The hub now checks its schema on connect and applies
+  what is missing itself (`hub.autoMigrate`, on by default; the migrations are
+  idempotent). When it cannot — no DDL rights, or self-heal switched off — it
+  logs **one** error naming the remedy instead of a warning flood, and
+  Settings → Status gains a **Schema** component showing applied versus
+  expected.
+
+- **A non-default ClickHouse database name no longer breaks the install
+  silently.** `clickhouse.external.database` is documented and schema-checked,
+  but every migration hardcoded the `otel` prefix: the tables landed in one
+  database while the hub queried another and found it empty. Migrations now
+  name their database through a placeholder, and the configured name is
+  validated as an identifier at boot. Installs on the default are unaffected.
+
+- **Green no longer takes the sensor down on nodes without RAPL.** The measured
+  power source exits at startup when it finds no powercap zones, and a container
+  that terminates itself keeps the whole pod out of Ready — so enabling green
+  collection on a fleet of VMs took logs, traces and metrics down with an
+  optional energy signal. The measured source can now be dropped on its own
+  with `sensor.green.kepler.enabled=false`, leaving TDP estimation to feed the
+  Green page. RAPL hardware is unaffected.
+
+- **Logging in through a reverse proxy that rewrites `Host` no longer 403s.**
+  The CSRF check compared the browser's `Origin` against the `Host` the hub
+  received, so a proxy handing the cluster its ingress address turned every
+  write — the login POST first of all — into a rejected cross-origin request.
+  `auth.trustedOrigins` names the origins that are legitimate despite not
+  matching `Host`, and `auth.originCheck` (`enforce` | `log` | `off`) lowers the
+  check when they cannot be enumerated; `log` allows the write and records the
+  `Origin`/`Host` pair, which is how you find out what your proxy actually
+  sends. The default stays strict, and an OIDC `publicUrl` is trusted
+  automatically.
+
+**Upgrading from v0.3.x** is a normal `helm upgrade`. Schema migration `0015`
+applies automatically. If you run a hardened ClickHouse user without DDL rights,
+keep the migrate job as-is and leave `hub.autoMigrate` on — it will report
+cleanly rather than fail. See the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.4.0).

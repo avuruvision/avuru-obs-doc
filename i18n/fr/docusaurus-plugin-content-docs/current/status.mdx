@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.1.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.4.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -38,22 +38,26 @@ changements livrés le [Changelog](/changelog).
 | Santé des services — santé de groupe avec niveaux de criticité et propagation des dépendances critiques, dérivée du RED | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Alerting — notifications par webhook quand un service/groupe passe dans un mauvais état | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Santé réseau sur la carte des services — RTT + connexions échouées/réinitialisées par arête (stats TCP OBI) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
-| Green — énergie (Wh) & carbone (gCO2e) par service via CNCF Kepler, budgets carbone, export prêt pour la CSRD (désactivé par défaut ; nécessite RAPL) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| Green — énergie (Wh) & carbone (gCO2e) par service via CNCF Kepler, budgets carbone, export prêt pour la CSRD (désactivé par défaut ; mesuré sur matériel RAPL) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Sûreté du capteur — gate CI « do no harm » (canari sensible aux probes) + mode d'instrumentation opt-in (`discovery.mode`) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Authentification — sécurisé par défaut : utilisateurs locaux, rôles fixes (admin/éditeur/lecteur) avec droits par projet, sessions côté serveur, Paramètres → Utilisateurs, lecteur anonyme opt-in | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | SSO — OpenID Connect (découverte, PKCE) avec n'importe quel IdP, mapping groupe→rôle/projets (rechargé à chaud), `forceSSO` | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Modules — un interrupteur par famille de signaux (`modules.<name>.enabled`) contrôle d'un bloc schéma, API, pipeline, collecte et interface ; barre latérale pilotée par les capacités | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Clés d'API d'ingestion — clés par projet validées dans la gateway ; en `enforce`, le projet de la clé devient le tenant qui fait autorité ; déploiement progressif `off`/`log`/`enforce` | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
-| Green sur les nœuds sans RAPL — estimation de puissance par TDP pour les VM cloud (optionnelle), étiquetée *estimée* de bout en bout et jamais mélangée à l'énergie mesurée ; panneau de couverture sur `/green` | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
+| Green sur les nœuds sans RAPL — estimation de puissance par TDP pour les VM cloud (optionnelle), étiquetée *estimée* de bout en bout et jamais mélangée à l'énergie mesurée ; panneau de couverture sur `/green`. La source mesurée peut être retirée entièrement (`sensor.green.kepler.enabled=false`) pour qu'une flotte sans RAPL conserve ses autres signaux | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
+| Gestion des utilisateurs — modifier le nom et les rôles d'un utilisateur, réinitialiser les mots de passe et supprimer un compte selon la règle « désactiver d'abord » ; opérations de mot de passe refusées aux comptes SSO | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
+| Changement de mot de passe en libre-service — Paramètres → Compte, mot de passe actuel exigé, autres sessions fermées pendant que la vôtre reste ouverte | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
+| Auto-réparation du schéma — le hub applique les migrations manquantes à la connexion (`hub.autoMigrate`) et signale l'état appliqué face à l'attendu via un composant **Schéma** dans Paramètres → État | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
+| Connexion derrière un reverse proxy — `auth.trustedOrigins` et un contrôle d'origine `enforce`/`log`/`off` pour les proxys qui réécrivent `Host` | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Plan de contrôle de la collecte à chaud — interrupteurs de collecte dans l'UI (OpAMP comme destination). Le stockage de l'overlay, l'API validée et les droits RBAC minimaux sont livrés en v0.3 ; restent l'applicateur et l'interface éditable | <StatusBadge status="in-progress" label="En cours" /> | v0.4 |
-| Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
-| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
-| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.4 |
+| Plan de contrôle de la collecte à chaud — interrupteurs de collecte dans l'UI (OpAMP comme destination). Le stockage de l'overlay, l'API validée et les droits RBAC minimaux sont livrés en v0.3 ; restent l'applicateur et l'interface éditable | <StatusBadge status="in-progress" label="En cours" /> | v0.5 |
+| Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
+| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
+| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

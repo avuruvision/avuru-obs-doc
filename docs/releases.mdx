@@ -21,12 +21,33 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.4.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.5.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
 multi-cluster member projects, the runtime collection control plane completed
 (applier + editable UI), wider ingest compatibility, richer auto-tagging, and
 more clients (Grafana data source, CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.4.0" date="2026-08-07" status="shipped">
+
+**Accounts you can administer.** v0.2 created users; v0.4 finishes their
+lifecycle. **Settings → Users** edits a name and role grants, resets passwords
+and **deletes** an account behind a disable-first rule, while a new
+**Settings → Account** tab lets anyone rotate their own password — current
+password required, other sessions evicted, yours kept alive. Password
+operations are refused for SSO users, whose credential lives at the identity
+provider. Reviewing that surface closed **three ways into an account**: a local
+password that could be minted on an SSO-only user, a login lockout that
+rotating IP addresses walked straight past, and an SSO login able to take over
+a local account's email. Operationally, an install whose schema migration never
+ran now **repairs itself** (`hub.autoMigrate`) and reports applied-versus-expected
+schema in Settings → Status; a non-default ClickHouse database name works;
+green survives nodes without RAPL; and login works behind a reverse proxy that
+rewrites `Host`. Upgrading is a normal `helm upgrade`.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.4.0)
+· [changelog](/changelog/v0-4-0).
 
 </ReleaseEntry>
 

@@ -107,7 +107,24 @@ see the [upgrade guide](/docs/operations/upgrade)). Full detail on the
 [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-3-0).
 
-## Beyond v0.3 (directional)
+## v0.4 — accounts you can administer (released 2026-08-07)
+
+[v0.4.0](/docs/releases) finishes the account lifecycle v0.2 began: **user
+management from the UI** — edit a user's name and role grants, reset a password,
+delete an account behind a disable-first rule — plus a **self-service password
+change** in Settings → Account, with password operations refused for SSO users
+whose credential lives at the identity provider. Reviewing that surface closed
+**three ways into an account**: a local password that could be minted on an
+SSO-only account, a login lockout that rotating IP addresses walked straight
+past, and an SSO login able to take over a local account's email. On the
+operations side, an install whose schema migration never ran now **repairs
+itself** and reports applied-versus-expected schema in Settings → Status; green
+no longer takes the sensor down on nodes without RAPL; and login works behind a
+reverse proxy that rewrites `Host`. Full detail on the
+[feature status](/docs/status) page and in the
+[changelog](/changelog/v0-4-0).
+
+## Beyond v0.4 (directional)
 
 - **Multi-cluster projects:** member projects that aggregate several clusters,
   per-project retention and system status, and chart component toggles so a

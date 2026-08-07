@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.1.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.4.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -38,22 +38,26 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Service health — group health with criticality tiers and critical-dependency propagation, derived from RED | <StatusBadge status="shipped" /> | v0.2 |
 | Alerting — webhook notifications when a service/group crosses into a bad state | <StatusBadge status="shipped" /> | v0.2 |
 | Network health on the service map — per-edge RTT + failed/reset connections (OBI TCP stats) | <StatusBadge status="shipped" /> | v0.2 |
-| Green — per-service energy (Wh) & carbon (gCO2e) via CNCF Kepler, carbon budgets, CSRD-ready export (off by default; needs RAPL) | <StatusBadge status="shipped" /> | v0.2 |
+| Green — per-service energy (Wh) & carbon (gCO2e) via CNCF Kepler, carbon budgets, CSRD-ready export (off by default; measured on RAPL hardware) | <StatusBadge status="shipped" /> | v0.2 |
 | Sensor safety — CI-proven "do no harm" gate (probe-sensitive canary) + opt-in instrumentation mode (`discovery.mode`) | <StatusBadge status="shipped" /> | v0.2 |
 | Authentication — secure by default: local users, fixed roles (admin/editor/viewer) with per-project grants, server-side sessions, Settings → Users, opt-in anonymous viewer | <StatusBadge status="shipped" /> | v0.2 |
 | SSO — OpenID Connect (discovery, PKCE) with any IdP, group→role/project mapping (hot-reloaded), `forceSSO` | <StatusBadge status="shipped" /> | v0.2 |
 | Modules — one switch per signal family (`modules.<name>.enabled`) gates schema, API, pipeline, collection and UI together; capabilities-driven sidebar | <StatusBadge status="shipped" /> | v0.2 |
 | Ingest API keys — per-project keys validated in the gateway; `enforce` makes the key's project the authoritative tenant; safe `off`/`log`/`enforce` rollout | <StatusBadge status="shipped" /> | v0.3 |
-| Green on RAPL-less nodes — opt-in TDP power estimation for cloud VMs, labeled *estimated* end to end and never blended with measured energy; `/green` coverage panel | <StatusBadge status="shipped" /> | v0.3 |
+| Green on RAPL-less nodes — opt-in TDP power estimation for cloud VMs, labeled *estimated* end to end and never blended with measured energy; `/green` coverage panel. The measured source can be dropped entirely (`sensor.green.kepler.enabled=false`) so a RAPL-less fleet keeps its other signals | <StatusBadge status="shipped" /> | v0.3 |
+| User management — edit a user's name and role grants, reset passwords, and delete users behind a disable-first rule; password operations refused for SSO accounts | <StatusBadge status="shipped" /> | v0.4 |
+| Self-service password change — Settings → Account, current password required, other sessions evicted while yours stays live | <StatusBadge status="shipped" /> | v0.4 |
+| Schema self-healing — the hub applies missing migrations on connect (`hub.autoMigrate`) and reports applied vs. expected as a **Schema** component in Settings → Status | <StatusBadge status="shipped" /> | v0.4 |
+| Reverse-proxy support for login — `auth.trustedOrigins` plus an `enforce`/`log`/`off` origin check for proxies that rewrite `Host` | <StatusBadge status="shipped" /> | v0.4 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Runtime collection control plane — collection switches in the UI (OpAMP as the destination). The overlay store, validated API and least-privilege RBAC shipped in v0.3; the applier and the editable UI are what remain | <StatusBadge status="in-progress" /> | v0.4 |
-| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.4 |
-| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.4 |
-| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.4 |
+| Runtime collection control plane — collection switches in the UI (OpAMP as the destination). The overlay store, validated API and least-privilege RBAC shipped in v0.3; the applier and the editable UI are what remain | <StatusBadge status="in-progress" /> | v0.5 |
+| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.5 |
+| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.5 |
+| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.5 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server
