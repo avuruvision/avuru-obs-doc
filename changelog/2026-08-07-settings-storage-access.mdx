@@ -50,16 +50,6 @@ instead of presenting a model that nothing is enforcing.
 ## One thing this found
 
 Building the matrix meant indexing every route's guard — which is how we
-noticed that three of them had none. The **green endpoints**
-(`/api/v1/green/summary`, `/green/budgets`, `/green/report`) were registered
-without the session middleware every other signal route uses, so an
-unauthenticated caller could read any project's per-service energy, carbon and
-budget figures on an install with authentication switched on. They are
-read-only, so nothing could be changed through them, but the data is a fair map
-of what an estate runs and how hard.
-
-All three now require the viewer role and honour project grants, like every
-other signal. If you run the [green module](/docs/signals/green) with
-authentication enabled and your hub is reachable beyond your cluster, upgrade.
-A test now asserts that every project-data route answers `401` without a
-session — the gap survived because nothing checked the whole set at once.
+noticed that three of them had none. See
+[the security note](/changelog/green-endpoints-auth): if you run the green
+module with authentication enabled, it is worth two minutes of your time.
