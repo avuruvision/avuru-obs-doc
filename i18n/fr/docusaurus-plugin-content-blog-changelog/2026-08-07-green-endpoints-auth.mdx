@@ -63,7 +63,7 @@ version contenant ce changement.
 Un test vérifie maintenant que **toutes** les routes de données de projet
 répondent `401` sans session, au lieu de les contrôler une par une : la faille
 avait survécu parce que rien n'avait jamais vérifié l'ensemble d'un seul tenant.
-Elle a été trouvée en indexant la garde de chaque route pour construire le
-nouvel [onglet Accès](/changelog/settings-storage-access) — la même idée
-appliquée au produit : déduire les règles de ce que le serveur applique, plutôt
-que de les écrire deux fois.
+Elle a été trouvée en indexant la garde de chaque route pour construire une vue
+des permissions dans les Paramètres — la même idée appliquée au produit :
+déduire les règles de ce que le serveur applique, plutôt que de les écrire deux
+fois.

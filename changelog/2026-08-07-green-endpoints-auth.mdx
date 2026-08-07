@@ -58,7 +58,6 @@ exactly like every other signal. Upgrade to a build containing this change.
 A test now asserts that **every** project-data route answers `401` without a
 session, rather than checking them one at a time — the gap survived because
 nothing had ever asserted over the whole set. It was found while indexing every
-route's guard to build the new
-[Access tab](/changelog/settings-storage-access), which is the same idea
+route's guard to build a permissions view for Settings, which is the same idea
 applied to the product: derive what the rules are from what the server
 enforces, instead of writing them down twice.
