@@ -141,10 +141,12 @@ app they are already looking at.
   Groups creates, edits and deletes them, and the change applies to the next
   health read. Chart-declared groups stay read-only and win a name collision,
   and auto-grouping by namespace is unchanged.
-- **A real configuration surface:** storage usage, retention and cluster
-  topology at a glance; an access view showing which role may do what; the
-  identity-provider group mapping made editable; and API tokens for scripts and
-  CI.
+- **A real configuration surface — partly done.** Settings → Storage and
+  Settings → Access [have shipped](/changelog/settings-storage-access): where
+  telemetry is stored and how much of it there is, with configured retention
+  shown against what the tables actually enforce; and which role may do what,
+  derived from the hub's own route guards. Still to come: making the
+  identity-provider group mapping editable, and API tokens for scripts and CI.
 - **An overview screen, and a topology worth reading:** one page answering "how
   is the estate doing?", plus a clearer service map. Sorting and filtering
   [have arrived](/changelog/nodes-sort-filter) on the Nodes screen.

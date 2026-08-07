@@ -1,0 +1,73 @@
+---
+slug: settings-storage-access
+title: "Voir où vivent vos données, et qui peut y toucher"
+description: "Deux nouveaux onglets de Paramètres : Stockage (connexion, occupation par signal et rétention fiable) et Accès (ce que chaque rôle a le droit de faire, dérivé des gardes du hub)."
+authors: [avuru]
+tags: [ui, platform, security]
+date: 2026-08-07
+---
+
+Deux questions que l'on se pose dès la première semaine d'exploitation — *où
+mes données sont-elles réellement stockées ?* et *que peut faire ce rôle ?* —
+ont désormais chacune leur écran.
+
+{/* truncate */}
+
+## Stockage
+
+- **La connexion, en lecture seule.** Adresse, base et utilisateur du
+  ClickHouse auquel ce hub parle. La lecture seule est la réponse honnête, pas
+  une fonctionnalité manquante : ClickHouse *est* le magasin de données, il ne
+  peut donc pas contenir sa propre chaîne de connexion. La carte le dit et vous
+  donne la ligne `--set`, au lieu d'un formulaire qui échouerait en silence.
+  Elle s'affiche même quand ClickHouse est injoignable — le moment précis où
+  « quelle adresse n'a-t-on pas réussi à joindre ? » est la première question.
+
+- **L'occupation par signal**, déplacée depuis l'onglet État : taille sur
+  disque, taux de compression, nombre de lignes, ancienneté des données. Chaque
+  onglet répond maintenant à une seule question — État, c'est *est-ce que ça va
+  bien en ce moment* ; Stockage, c'est *qu'y a-t-il dedans*.
+
+- **Une rétention à laquelle se fier.** Le nombre de jours dans vos valeurs est
+  ce que l'installation est *configurée* pour conserver. Le TTL des tables est
+  ce que ClickHouse *applique* réellement — et modifier une valeur de rétention
+  ne change rien aux tables déjà créées tant que la migration ne réapplique pas
+  le TTL. D'ici là, le nombre configuré est un vœu. Quand les deux divergent, la
+  colonne affiche `30j → 7j` plutôt que de répéter le vœu, et une base dont la
+  rétention n'a pas encore été appliquée affiche `→ aucune`.
+
+## Accès
+
+Quel rôle peut lire, et lequel peut modifier, chaque domaine du produit — carte
+des services, traces, suivi des erreurs, alerting, utilisateurs, et le reste.
+
+Chaque case vient du hub, qui la déduit des autorisations avec lesquelles ses
+routes sont réellement enregistrées. Rien n'est recopié dans le navigateur :
+ajoutez un point d'API réservé aux administrateurs et il apparaît ici ; changez
+ce qu'une route exige et ce tableau change avec elle. Un tableau de permissions
+qui peut contredire ce que le serveur applique est pire que pas de tableau du
+tout, parce qu'on le croit.
+
+Une installation qui tourne sans authentification l'annonce en haut de
+l'onglet, au lieu de présenter un modèle que rien n'applique.
+
+## Ce que cela a permis de trouver
+
+Construire cette matrice a exigé d'indexer la garde de chaque route — c'est
+ainsi que l'on a vu que trois d'entre elles n'en avaient aucune. Les **points
+d'API green** (`/api/v1/green/summary`, `/green/budgets`, `/green/report`)
+étaient enregistrés sans l'intergiciel de session que toutes les autres routes
+de signal utilisent : un appelant non authentifié pouvait donc lire l'énergie,
+le carbone et les budgets par service de n'importe quel projet, sur une
+installation dont l'authentification est pourtant activée. Ces routes sont en
+lecture seule, rien ne pouvait donc être modifié par ce biais, mais la donnée
+elle-même dessine assez fidèlement ce que fait tourner un parc, et à quelle
+intensité.
+
+Les trois exigent désormais le rôle lecteur et respectent les droits par
+projet, comme tous les autres signaux. Si vous utilisez le [module
+green](/docs/signals/green) avec l'authentification activée et que votre hub
+est joignable au-delà de votre cluster, mettez à jour. Un test vérifie
+maintenant que **toutes** les routes de données de projet répondent `401` sans
+session — la faille avait survécu parce que rien ne vérifiait l'ensemble d'un
+seul tenant.

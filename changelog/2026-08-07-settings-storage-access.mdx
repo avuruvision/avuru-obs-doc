@@ -1,0 +1,65 @@
+---
+slug: settings-storage-access
+title: "See where your data lives, and who can touch it"
+description: "Two new Settings tabs: Storage (connection, per-signal usage, and retention you can trust) and Access (which role may do what, derived from the hub's own guards)."
+authors: [avuru]
+tags: [ui, platform, security]
+date: 2026-08-07
+---
+
+Two questions an operator asks in the first week — *where is my telemetry
+actually stored?* and *what can this role do?* — now have a screen each.
+
+{/* truncate */}
+
+## Storage
+
+- **The connection, read-only.** Address, database and user for the ClickHouse
+  this hub is talking to. Read-only is the honest answer rather than a missing
+  feature: ClickHouse is the store, so it cannot hold its own connection
+  string. The card says so and gives you the `--set` line, instead of a form
+  that would quietly fail. It is shown even while ClickHouse is unreachable,
+  which is when "which address did we fail to reach?" is the first question.
+
+- **Per-signal usage**, moved here from Status: size on disk, compression
+  ratio, row count, how far back the data goes. Each tab now answers one
+  question — Status is *is it healthy right now*, Storage is *what is in it*.
+
+- **Retention you can trust.** The days in your values are what the install is
+  *configured* to keep. The TTL on the tables is what ClickHouse is *enforcing*
+  — and changing a retention value does nothing to tables that already exist
+  until the migration re-applies it. Until then the configured number is a
+  wish. When the two disagree the column says `30d → 7d` rather than repeating
+  the wish, and a database whose retention has not been applied yet reads
+  `→ none`.
+
+## Access
+
+Which role may read, and which may change, each area of the product — service
+map, traces, error tracking, alerting, users, and the rest.
+
+Every cell comes from the hub, which derives it from the authorization its
+routes are actually registered with. Nothing is transcribed into the browser:
+add an admin-only endpoint anywhere and it appears here; change what a route
+requires and this changes with it. A permissions table that can disagree with
+what the server enforces is worse than none at all, because it gets believed.
+
+An install running without authentication says so at the top of the tab,
+instead of presenting a model that nothing is enforcing.
+
+## One thing this found
+
+Building the matrix meant indexing every route's guard — which is how we
+noticed that three of them had none. The **green endpoints**
+(`/api/v1/green/summary`, `/green/budgets`, `/green/report`) were registered
+without the session middleware every other signal route uses, so an
+unauthenticated caller could read any project's per-service energy, carbon and
+budget figures on an install with authentication switched on. They are
+read-only, so nothing could be changed through them, but the data is a fair map
+of what an estate runs and how hard.
+
+All three now require the viewer role and honour project grants, like every
+other signal. If you run the [green module](/docs/signals/green) with
+authentication enabled and your hub is reachable beyond your cluster, upgrade.
+A test now asserts that every project-data route answers `401` without a
+session — the gap survived because nothing checked the whole set at once.
