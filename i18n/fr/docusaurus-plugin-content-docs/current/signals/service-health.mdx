@@ -82,10 +82,10 @@ La propagation se fait sur un saut, sans risque de cycle, et uniquement pour
 - **Encoder la règle d'or au lieu de la re-déduire.** « Checkout dépend de
   payments » vit dans la topologie, pas dans la tradition orale. Les nouveaux
   arrivants voient la chaîne de dépendances dans le panneau de détail.
-- **Re-classer en plein incident.** La classification vit dans une ConfigMap
-  que le hub recharge à chaud (~15 s). Promouvez en T0 un service devenu
-  soudain critique avec un `kubectl edit` — sans restart, sans redéploiement,
-  sans PR.
+- **Re-classer en plein incident.** Promouvez en T0 un service devenu soudain
+  critique dans Paramètres → Groupes, et la lecture de santé suivante en tient
+  compte — sans restart, sans redéploiement, sans PR. Les installations GitOps
+  peuvent continuer à le faire depuis les valeurs du chart.
 - **Alimenter une status page.** `GET /api/v1/health/groups` renvoie tout le
   tableau en JSON — statut global, consolidations par groupe, raisons.
   Branchez-le sur une status page externe ou un écran mural.
@@ -97,9 +97,24 @@ de la valeur gratuite tirée de données que vous collectez déjà. Le désactiv
 retire les routes d'API et l'entrée de menu, rien d'autre, car il ne possède
 aucun stockage.
 
-Le regroupement vit dans le bloc Helm `serviceGroups`, rendu en ConfigMap que
-le hub lit (montée sur `AVURUOBS_GROUPS_CONFIG`) et **recharge à chaud en
-~15 s** après un `kubectl edit` :
+### Les groupes, depuis l'interface
+
+**Paramètres → Groupes** est l'endroit où la plupart des équipes devraient
+définir leurs groupes : un nom, un niveau de criticité et les espaces de noms ou
+services couverts. L'enregistrement s'applique à la lecture de santé suivante.
+Les écritures exigent le rôle administrateur ; quiconque peut voir le tableau
+peut voir les définitions qui le sous-tendent.
+
+Les services qu'aucun groupe ne revendique sont toujours rassemblés par espace
+de noms au niveau `defaultTier` : une installation qui ne configure rien
+conserve la vue qu'elle a aujourd'hui.
+
+### Les groupes, depuis les valeurs du chart
+
+Le regroupement vit aussi dans le bloc Helm `serviceGroups`, rendu en ConfigMap
+que le hub lit (montée sur `AVURUOBS_GROUPS_CONFIG`) et **recharge à chaud en
+~15 s** après un `kubectl edit` — la bonne primitive pour une installation
+GitOps :
 
 ```yaml
 serviceGroups:
@@ -128,7 +143,27 @@ serviceGroups:
 
 La validation échoue bruyamment : un tier invalide ou un sélecteur vide est
 rejeté au démarrage (et un tier invalide échoue déjà au `helm template` contre
-le schéma de valeurs du chart).
+le schéma de valeurs du chart). L'interface est tenue aux mêmes règles : rien de
+ce que vous y enregistrez ne fera échouer le prochain démarrage du hub.
+
+Les seuils, `criticalEdges` et `defaultTier` restent pour l'instant réservés au
+chart — ils vivent dans le même objet mais forment une surface plus tranchante
+que l'appartenance à un groupe.
+
+### Quand les deux définissent le même nom
+
+**Le chart l'emporte.** Une installation qui gère ses groupes dans Git ne doit
+pas les voir écrasés depuis un navigateur : les groupes déclarés dans le chart
+s'affichent en lecture seule et toute tentative d'en créer ou d'en modifier un
+est refusée plutôt qu'enregistrée — le conflit apparaît au moment de
+l'enregistrement, pas au prochain `helm upgrade`. Si les valeurs du chart
+revendiquent plus tard un nom que vous aviez déjà créé, ce groupe est signalé
+comme remplacé dans l'éditeur au lieu de cesser silencieusement de regrouper
+quoi que ce soit : vous pouvez le déplacer ou le supprimer.
+
+Les deux sources sont fusionnées dans un unique résolveur partagé par l'API de
+santé et l'évaluateur d'alertes : le regroupement sur lequel les alertes se
+déclenchent est donc toujours celui qu'affiche le tableau.
 
 ## API
 
@@ -148,7 +183,8 @@ Voir la [référence API](/reference/api).
 - **La latence de groupe est le p95 du pire membre**, pas un vrai quantile au
   niveau du groupe.
 - **Les services sans label se rassemblent** dans `(unlabeled)` jusqu'à ce
-  qu'un groupe de configuration les nomme.
+  qu'un groupe les nomme.
+- **Les groupes sont valables pour toute l'instance**, pas par projet.
 
 :::note Cette page s'étoffe
 La santé des services est le signal dont se nourrissent les

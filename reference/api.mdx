@@ -79,6 +79,10 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
 | `GET /api/v1/health/groups` | Consolidated group health over the window: per-service status from RED, tier-grouped, with critical-dependency propagation. Module `service-health`. `includeAux`. |
 | `GET /api/v1/health/groups/{name}` | One group's health, including each member's base vs. effective status and its critical-dependency chain (`404` if the group is absent). |
+| `GET /api/v1/service-groups` | The group *definitions* (name, tier, selector) as opposed to their health: chart-declared groups tagged `source: config` and read-only, UI-authored ones `source: db`. Module `service-health`. |
+| `POST /api/v1/service-groups` | Create a group. Admin role. `409` when the name is chart-declared or already taken. |
+| `PUT /api/v1/service-groups/{name}` | Edit a group's tier and selector. Admin role. `409` on a chart-declared name, `404` if no authored group has it. |
+| `DELETE /api/v1/service-groups/{name}` | Delete a group. Admin role. Same `409`/`404` rules as the update. |
 | `GET /api/v1/alerts` | Currently-firing alerts + recent fire/resolve history. Module `alerting`. |
 | `GET /api/v1/alerts/rules` | The configured alerting rules and channels (channel secrets redacted). Module `alerting`. |
 | `GET /api/v1/alerts/channels` | The configured notification channels (secrets redacted). Module `alerting`. |

@@ -37,6 +37,7 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Runtime collection control — switch each signal on or off from Settings → Collection and the sensor follows in seconds, no `helm upgrade`; shows the effective config and resets to chart defaults. Opt-in, behind a namespace-scoped Role over the hub's own sensor resources | <StatusBadge status="shipped" /> | v0.5 |
 | Error tracking — deduplicated issues from spans/logs, triage lifecycle, Sentry-protocol ingest | <StatusBadge status="shipped" /> | v0.2 |
 | Service health — group health with criticality tiers and critical-dependency propagation, derived from RED | <StatusBadge status="shipped" /> | v0.2 |
+| Service groups from the UI — create, edit and delete health groups in Settings → Groups; applies to the next health read, no `helm upgrade`. Chart-declared groups stay read-only and win a name collision; auto-grouping by namespace is unchanged | <StatusBadge status="shipped" /> | v0.5 |
 | Alerting — webhook notifications when a service/group crosses into a bad state | <StatusBadge status="shipped" /> | v0.2 |
 | Network health on the service map — per-edge RTT + failed/reset connections (OBI TCP stats) | <StatusBadge status="shipped" /> | v0.2 |
 | Green — per-service energy (Wh) & carbon (gCO2e) via CNCF Kepler, carbon budgets, CSRD-ready export (off by default; measured on RAPL hardware) | <StatusBadge status="shipped" /> | v0.2 |

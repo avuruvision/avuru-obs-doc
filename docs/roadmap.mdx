@@ -136,9 +136,11 @@ app they are already looking at.
   still default-off and still behind a narrowly-scoped Role. OpAMP remains the
   destination: status reporting first, remote-config when the upstream grows a
   client.
-- **Service groups from the UI:** author and edit health groups and their
-  criticality tiers in the app. Chart-declared groups stay read-only and
-  auto-grouping keeps working.
+- **Service groups from the UI — done.** Health groups and their criticality
+  tiers [are now authored in the app](/changelog/service-groups-ui): Settings →
+  Groups creates, edits and deletes them, and the change applies to the next
+  health read. Chart-declared groups stay read-only and win a name collision,
+  and auto-grouping by namespace is unchanged.
 - **A real configuration surface:** storage usage, retention and cluster
   topology at a glance; an access view showing which role may do what; the
   identity-provider group mapping made editable; and API tokens for scripts and

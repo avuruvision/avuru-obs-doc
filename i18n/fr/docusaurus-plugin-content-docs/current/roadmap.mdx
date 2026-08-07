@@ -143,10 +143,13 @@ avuru obs le changent depuis l'application qu'ils ont déjà sous les yeux.
   quelques secondes, toujours désactivé par défaut et toujours derrière un rôle
   restreint. OpAMP reste la destination : d'abord la remontée d'état, puis la
   configuration à distance quand l'amont fournira un client.
-- **Groupes de services depuis l'interface :** créer et modifier les groupes de
-  santé et leurs niveaux de criticité dans l'application. Les groupes déclarés
-  dans le chart restent en lecture seule et le regroupement automatique
-  continue de fonctionner.
+- **Groupes de services depuis l'interface — fait.** Les groupes de santé et
+  leurs niveaux de criticité [s'écrivent désormais dans
+  l'application](/changelog/service-groups-ui) : Paramètres → Groupes permet de
+  les créer, les modifier et les supprimer, et le changement s'applique dès la
+  lecture de santé suivante. Les groupes déclarés dans le chart restent en
+  lecture seule et l'emportent en cas de collision de nom ; le regroupement
+  automatique par espace de noms est inchangé.
 - **Une vraie surface de configuration :** l'occupation du stockage, la
   rétention et la topologie du cluster d'un coup d'œil ; une vue des accès
   montrant ce que chaque rôle a le droit de faire ; le mappage des groupes du
