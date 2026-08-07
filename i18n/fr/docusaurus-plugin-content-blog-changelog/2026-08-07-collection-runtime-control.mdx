@@ -1,0 +1,49 @@
+---
+slug: collection-runtime-control
+title: "Activez et coupez les signaux depuis l'interface — sans redéploiement ni accès au cluster"
+description: "Réglages → Collecte devient modifiable : activez ou coupez les traces, les logs, les métriques, le profilage ou l'énergie, et le capteur suit en quelques secondes — derrière une option explicite et un rôle volontairement étroit."
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-08-07
+---
+
+Décider de ce qu'Avuru Obs collecte imposait jusqu'ici de modifier
+`values.yaml`, de lancer `helm upgrade` et de disposer des droits nécessaires
+sur le cluster — en pratique, la collecte restait donc celle du jour de
+l'installation. Désormais un administrateur la change depuis l'application, et
+le capteur suit en quelques secondes.
+
+{/* truncate */}
+
+- **La collecte devient un réglage, plus un déploiement.** Réglages → Collecte
+  active ou coupe les traces eBPF, les logs, les métriques d'infrastructure, le
+  profilage et la mesure d'énergie, et modifie la liste des espaces de noms
+  exclus. Coupez le profilage à 2 h du matin parce qu'il vous coûte plus qu'il
+  ne vous apprend, et rallumez-le au matin — sans toucher au chart.
+
+- **Ce que l'écran affiche est ce que le capteur fait vraiment.** Il présente la
+  configuration *effective* : les valeurs de votre chart avec votre surcharge
+  appliquée, et non l'une ou l'autre. « Réinitialiser » efface la surcharge et
+  ramène le cluster exactement à ce que déclare le chart — une réinitialisation
+  qui se contenterait d'oublier le réglage laisserait les deux en désaccord
+  silencieux.
+
+- **Désactivé par défaut, et étroit une fois activé.** La fonctionnalité dépend
+  de `collection.runtimeControl.enabled`. L'activer autorise le hub à mettre à
+  jour **ses quatre ConfigMaps de capteur nommées** et à modifier **son
+  DaemonSet de capteur nommé**, dans son propre espace de noms — rien à
+  l'échelle du cluster, rien qui appartienne à autrui. Le hub redéploie le
+  capteur via sa propre annotation et laisse intacte celle du chart : un
+  `helm upgrade` ultérieur se comporte donc comme avant. Option désactivée,
+  rien ne change et aucun droit supplémentaire n'est accordé.
+
+- **Vérifié sur un vrai cluster, pas sur une simulation.** Le test d'installation
+  Helm installe désormais la fonctionnalité activée, écrit un réglage via l'API
+  et vérifie qu'il atteint la configuration du capteur et redéploie le DaemonSet
+  — puis réinitialise et vérifie que le cluster revient en arrière. Un réglage
+  enregistré mais qui n'atteint jamais le capteur est précisément la panne qui
+  compte ici, et ce test est fait pour l'attraper.
+
+La configuration se trouve dans le chart sous `collection.runtimeControl`. Voir
+l'[installation Kubernetes](/docs/setup/kubernetes) pour l'option, et les
+[modules](/docs/setup/modules) pour la façon dont chaque signal est activé.

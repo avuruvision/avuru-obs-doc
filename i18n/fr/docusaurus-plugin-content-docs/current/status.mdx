@@ -28,14 +28,16 @@ changements livrés le [Changelog](/changelog).
 | DaemonSet sensor — traces + RED eBPF **zéro-code** (OBI), collecte de logs **zéro-config** | <StatusBadge status="shipped" label="Livré" /> | M2 |
 | Inventaire des services — table RED triable, exploration vers les traces | <StatusBadge status="shipped" label="Livré" /> | M2 |
 | Tableau de bord RED — graphiques débit/erreurs/durée par service | <StatusBadge status="shipped" label="Livré" /> | M3 |
-| Santé des nœuds / pods — CPU, mémoire, réseau par nœud & pod (kubeletstats) | <StatusBadge status="shipped" label="Livré" /> | M3 |
+| Santé des nœuds / pods — CPU, mémoire, réseau par nœud & pod (kubeletstats), triables sur chaque colonne et filtrables par nom, espace de noms ou charge de travail | <StatusBadge status="shipped" label="Livré" /> | M3 |
 | Profilage continu — flame graphs CPU par service (expérimental, opt-in) | <StatusBadge status="shipped" label="Livré" /> | M4 |
 | Projets — portée par environnement, sélecteur dans la barre latérale, liens `?project=` partageables | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
 | Gestion des projets — créer, renommer et supprimer des projets depuis l'UI ; les projets `default` et définis par configuration restent en lecture seule | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
 | Démo en lecture seule — lecteur « Essayer la démo » en un clic, alimenté par des données réelles (OpenTelemetry Astronomy Shop) ; opt-in, connexion côté serveur | <StatusBadge status="shipped" label="Livré" /> | v0.3 |
 | Contrôles de collecte — par signal/namespace/pod/nœud, avec inventaire des agents par nœud | <StatusBadge status="shipped" label="Livré" /> | v0.1 |
+| Collecte pilotable à chaud — activez ou coupez chaque signal depuis Réglages → Collecte et le capteur suit en quelques secondes, sans `helm upgrade` ; affiche la configuration effective et revient aux valeurs du chart. Optionnelle, derrière un rôle limité à l'espace de noms et aux ressources de capteur du hub | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Suivi des erreurs — problèmes dédupliqués depuis spans/logs, cycle de triage, ingestion au protocole Sentry | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Santé des services — santé de groupe avec niveaux de criticité et propagation des dépendances critiques, dérivée du RED | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
+| Groupes de services depuis l'interface — créez, modifiez et supprimez les groupes de santé dans Paramètres → Groupes ; effectif dès la lecture de santé suivante, sans `helm upgrade`. Les groupes déclarés dans le chart restent en lecture seule et l'emportent en cas de collision de nom ; le regroupement automatique par espace de noms est inchangé | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Alerting — notifications par webhook quand un service/groupe passe dans un mauvais état | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Santé réseau sur la carte des services — RTT + connexions échouées/réinitialisées par arête (stats TCP OBI) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
 | Green — énergie (Wh) & carbone (gCO2e) par service via CNCF Kepler, budgets carbone, export prêt pour la CSRD (désactivé par défaut ; mesuré sur matériel RAPL) | <StatusBadge status="shipped" label="Livré" /> | v0.2 |
@@ -49,14 +51,15 @@ changements livrés le [Changelog](/changelog).
 | Changement de mot de passe en libre-service — Paramètres → Compte, mot de passe actuel exigé, autres sessions fermées pendant que la vôtre reste ouverte | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
 | Auto-réparation du schéma — le hub applique les migrations manquantes à la connexion (`hub.autoMigrate`) et signale l'état appliqué face à l'attendu via un composant **Schéma** dans Paramètres → État | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
 | Connexion derrière un reverse proxy — `auth.trustedOrigins` et un contrôle d'origine `enforce`/`log`/`off` pour les proxys qui réécrivent `Host` | <StatusBadge status="shipped" label="Livré" /> | v0.4 |
+| Vue Stockage — connexion ClickHouse (lecture seule), taille, compression et ancienneté par signal, et rétention configurée confrontée au TTL réellement appliqué par les tables | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
+| Vue Accès — quel rôle peut lire et lequel peut modifier chaque domaine, déduit par le hub des gardes avec lesquelles ses routes sont enregistrées : impossible de diverger de ce qui est appliqué | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Plan de contrôle de la collecte à chaud — interrupteurs de collecte dans l'UI (OpAMP comme destination). Le stockage de l'overlay, l'API validée et les droits RBAC minimaux sont livrés en v0.3 ; restent l'applicateur et l'interface éditable | <StatusBadge status="in-progress" label="En cours" /> | v0.5 |
-| Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
-| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
+| Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
+| Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
 | Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
 
 :::info La carte des services aujourd'hui

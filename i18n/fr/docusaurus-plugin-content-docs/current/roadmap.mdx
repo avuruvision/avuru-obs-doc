@@ -131,27 +131,52 @@ réécrit `Host`. Le détail complet est sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-4-0).
 
-## Au-delà de v0.4 (indicatif)
+## v0.5 — piloter depuis l'interface (indicatif)
 
+Presque tout ce que l'on administre aujourd'hui exige de modifier les valeurs
+puis de redéployer. La v0.5 comble cet écart : celles et ceux qui exploitent
+avuru obs le changent depuis l'application qu'ils ont déjà sous les yeux.
+
+- **Collecte pilotable à chaud — fait.** L'applicateur et l'interface éditable
+  Paramètres → Collecte [sont livrés](/changelog/collection-runtime-control) :
+  chaque signal s'active ou se coupe depuis l'application et le capteur suit en
+  quelques secondes, toujours désactivé par défaut et toujours derrière un rôle
+  restreint. OpAMP reste la destination : d'abord la remontée d'état, puis la
+  configuration à distance quand l'amont fournira un client.
+- **Groupes de services depuis l'interface — fait.** Les groupes de santé et
+  leurs niveaux de criticité [s'écrivent désormais dans
+  l'application](/changelog/service-groups-ui) : Paramètres → Groupes permet de
+  les créer, les modifier et les supprimer, et le changement s'applique dès la
+  lecture de santé suivante. Les groupes déclarés dans le chart restent en
+  lecture seule et l'emportent en cas de collision de nom ; le regroupement
+  automatique par espace de noms est inchangé.
+- **Une vraie surface de configuration — en partie faite.** Paramètres →
+  Stockage et Paramètres → Accès [sont livrés](/changelog/settings-storage-access) :
+  où vivent les données et quelle place elles occupent, avec la rétention
+  configurée confrontée à celle que les tables appliquent vraiment ; et ce que
+  chaque rôle a le droit de faire, déduit des gardes de routes du hub lui-même.
+  Restent à venir : rendre modifiable le mappage des groupes du fournisseur
+  d'identité, et des jetons d'API pour les scripts et l'intégration continue.
+- **Un écran de synthèse, et une topologie lisible :** une page qui répond à
+  « comment se porte le parc ? », et une carte des services plus claire. Le tri
+  et les filtres [sont arrivés](/changelog/nodes-sort-filter) sur l'écran
+  Nœuds.
+
+## Au-delà de v0.5 (indicatif)
+
+- **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
+  courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
+  transfert pour écrire en double pendant une migration.
+- **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
+  qu'un client léger. Une source de données **Grafana** et une **CLI** sont
+  prévues, toutes deux portées par les jetons d'API de la v0.5.
 - **Projets multi-clusters :** des projets membres agrégeant plusieurs
   clusters, la rétention et l'état système par projet, et des interrupteurs de
   composants du chart pour qu'un cluster secondaire n'installe que la
   passerelle (et le capteur) sur un ClickHouse partagé. Le CRUD des projets et
   les clés d'ingestion sont livrés en v0.3.
-- **Plan de contrôle de la collecte à chaud — aboutissement :** la v0.3 livre
-  le stockage de la surcouche, son API validée par schéma et les droits RBAC
-  restreints ; restent l'applicateur qui met à jour les ConfigMaps du capteur
-  et l'interface éditable Paramètres → Collecte, toujours désactivée par
-  défaut. OpAMP reste la destination : d'abord la remontée d'état, puis la
-  configuration à distance quand l'amont fournira un client.
-- **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
-  courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
-  transfert pour écrire en double pendant une migration.
 - **Étiquetage automatique plus riche :** faire des labels/annotations
   Kubernetes des étiquettes métier, filtrables sur tous les signaux.
-- **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
-  qu'un client léger. Une source de données **Grafana** et une **CLI** sont
-  prévues.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
 

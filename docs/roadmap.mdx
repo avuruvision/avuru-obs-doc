@@ -124,24 +124,47 @@ reverse proxy that rewrites `Host`. Full detail on the
 [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-4-0).
 
-## Beyond v0.4 (directional)
+## v0.5 — operate it from the UI (directional)
 
+Almost everything you administer today needs a values edit and a redeploy.
+v0.5 closes that gap, so the people who run avuru obs can change it from the
+app they are already looking at.
+
+- **Runtime collection control — done.** The applier and the editable Settings →
+  Collection UI [have shipped](/changelog/collection-runtime-control): each
+  signal switches on or off from the app and the sensor follows in seconds,
+  still default-off and still behind a narrowly-scoped Role. OpAMP remains the
+  destination: status reporting first, remote-config when the upstream grows a
+  client.
+- **Service groups from the UI — done.** Health groups and their criticality
+  tiers [are now authored in the app](/changelog/service-groups-ui): Settings →
+  Groups creates, edits and deletes them, and the change applies to the next
+  health read. Chart-declared groups stay read-only and win a name collision,
+  and auto-grouping by namespace is unchanged.
+- **A real configuration surface — partly done.** Settings → Storage and
+  Settings → Access [have shipped](/changelog/settings-storage-access): where
+  telemetry is stored and how much of it there is, with configured retention
+  shown against what the tables actually enforce; and which role may do what,
+  derived from the hub's own route guards. Still to come: making the
+  identity-provider group mapping editable, and API tokens for scripts and CI.
+- **An overview screen, and a topology worth reading:** one page answering "how
+  is the estate doing?", plus a clearer service map. Sorting and filtering
+  [have arrived](/changelog/nodes-sort-filter) on the Nodes screen.
+
+## Beyond v0.5 (directional)
+
+- **Wider ingest compatibility:** push receivers for the common
+  tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
+  exporters so avuru obs can dual-write during a migration.
+- **More clients:** the hub API is the client-agnostic contract; the SPA is one
+  thin client. A **Grafana** data source and a **CLI** are planned, both riding
+  v0.5's API tokens.
 - **Multi-cluster projects:** member projects that aggregate several clusters,
   per-project retention and system status, and chart component toggles so a
   secondary cluster installs gateway(+sensor)-only against a shared
   ClickHouse. Project CRUD and ingest keys shipped in v0.3.
-- **Runtime collection control plane — completion:** v0.3 shipped the overlay
-  store, its schema-validated API and the narrowly-scoped RBAC; what remains is
-  the applier that patches the sensor ConfigMaps and the editable Settings →
-  Collection UI, still default-off. OpAMP remains the destination: status
-  reporting first, remote-config when the upstream grows a client.
-- **Wider ingest compatibility:** push receivers for the common
-  tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
-  exporters so avuru obs can dual-write during a migration.
 - **Richer auto-tagging:** map Kubernetes labels/annotations to business tags
   and filter by them across every signal.
-- **More clients:** the hub API is the client-agnostic contract; the SPA is one
-  thin client. A **Grafana** data source and a **CLI** are planned.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
   code.

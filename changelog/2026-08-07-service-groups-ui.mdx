@@ -1,0 +1,48 @@
+---
+slug: service-groups-ui
+title: "Say which services matter, without a redeploy"
+description: "Service health groups — name, criticality tier and selector — are now created, edited and deleted in Settings → Groups, and apply to the next health read."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-08-07
+---
+
+Deciding that `payments` is your most critical service used to mean editing
+`values.yaml`, running `helm upgrade`, and holding the cluster permissions to do
+it. So in practice it never happened: the Service Health board showed one
+auto-discovered group per namespace and the tier lanes sat empty. Groups are now
+authored in the app.
+
+{/* truncate */}
+
+- **Settings → Groups.** Create a group from a name, a criticality tier (T0–T3)
+  and the namespaces or services it covers; edit or delete it later. The change
+  applies to the next health read — no restart, no redeploy, no PR. The Service
+  Health board links straight to the editor instead of naming a config key.
+
+- **Auto-grouping still works.** Services no group claims keep falling into
+  their namespace at the default tier, exactly as before, so nothing disappears
+  while you organize.
+
+- **Groups declared in the chart keep working, and win.** They render read-only,
+  because an install that manages its groups in Git must not have them quietly
+  overridden from a browser. The conflict is refused when you try to save it,
+  rather than discovered at the next upgrade — and if the chart later claims a
+  name you already authored, that group is flagged as overridden instead of
+  silently ceasing to group anything.
+
+- **Alerting and the board cannot disagree.** The two sources are merged in one
+  place shared by the health API and the alert evaluator. That matters because
+  the evaluator does not read the API: merging anywhere else would have meant a
+  group you created showing as critical on the board while nothing ever paged on
+  it. A test drives both paths and then fires a real rule on a group that exists
+  only in the database.
+
+- **Safe by construction.** Writes are admin-only and validated against the same
+  rules the chart config is checked with at startup, so nothing you can save
+  here will fail the hub's next boot. Everyone else can read the definitions —
+  seeing how the estate is organized is not a privilege.
+
+Thresholds, critical edges and the default tier stay in
+[`serviceGroups`](/docs/signals/service-health) for now; groups are the part
+people need daily.

@@ -72,9 +72,9 @@ Propagation is one hop, cycle-safe, and down-only — deliberate v1 boundaries
 - **Encode the golden rule instead of re-deriving it.** "Checkout depends on
   payments" lives in the topology, not in tribal knowledge. New team members
   see the dependency chain in the member detail panel.
-- **Re-tier mid-incident.** Classification lives in a ConfigMap the hub
-  hot-reloads (~15 s). Promote a suddenly-critical service to T0 with a
-  `kubectl edit` — no restart, no redeploy, no PR.
+- **Re-tier mid-incident.** Promote a suddenly-critical service to T0 in
+  Settings → Groups and the next health read uses it — no restart, no redeploy,
+  no PR. GitOps installs can keep doing the same from chart values.
 - **Drive a status page.** `GET /api/v1/health/groups` returns the whole board
   as JSON — overall status, per-group rollups, reasons. Feed it to an external
   status page or a wallboard.
@@ -85,9 +85,21 @@ The module is **on by default** (`modules.serviceHealth.enabled`) — it's free
 value from data you already collect. Turning it off removes the API routes and
 the sidebar entry, nothing else, because it owns no storage.
 
-Grouping lives in the `serviceGroups` Helm block, rendered to a ConfigMap the
-hub reads (mounted at `AVURUOBS_GROUPS_CONFIG`) and **hot-reloads within
-~15 s** of a `kubectl edit`:
+### Groups, from the UI
+
+**Settings → Groups** is where most people should define groups: a name, a
+criticality tier and the namespaces or services it covers. Saving applies to the
+next health read. Writes need the admin role; anyone who can see the board can
+see the definitions behind it.
+
+Services no group claims still fall into their namespace at `defaultTier`, so an
+install that configures nothing keeps the view it has today.
+
+### Groups, from chart values
+
+Grouping also lives in the `serviceGroups` Helm block, rendered to a ConfigMap
+the hub reads (mounted at `AVURUOBS_GROUPS_CONFIG`) and **hot-reloads within
+~15 s** of a `kubectl edit` — the right primitive for a GitOps install:
 
 ```yaml
 serviceGroups:
@@ -116,7 +128,25 @@ serviceGroups:
 
 Validation is fail-loud: a bad tier or an empty selector is rejected at
 startup (and a bad tier already fails `helm template` against the chart's
-values schema).
+values schema). The UI is held to the same rules, so nothing you can save there
+will fail the hub's next boot.
+
+Thresholds, `criticalEdges` and `defaultTier` are chart-only for now — they sit
+in the same object but are a sharper edge than group membership.
+
+### When both define the same name
+
+**The chart wins.** An install that manages its groups in Git must not have them
+overridden from a browser, so chart-declared groups render read-only and an
+attempt to create or edit one is refused rather than stored — the conflict shows
+up when you try to save it, not at the next `helm upgrade`. If chart values
+later claim a name you had already authored, that group is flagged as overridden
+in the editor instead of quietly ceasing to group anything, so you can move it
+or remove it.
+
+Both sources are merged in a single resolver shared by the health API and the
+alert evaluator, so the grouping alerts fire on is always the grouping the board
+shows.
 
 ## API
 
@@ -133,8 +163,8 @@ See the [API reference](/reference/api).
   propagate, and transitive chains (A→B→C) don't cascade past the first hop.
 - **Group latency is the worst member's p95**, not a true group-level
   quantile.
-- **Unlabeled services pool together** in `(unlabeled)` until a config group
-  names them.
+- **Unlabeled services pool together** in `(unlabeled)` until a group names them.
+- **Groups are instance-wide**, not per-project.
 
 :::note This page is expanding
 Service health is where [alerting](/docs/signals/alerting) gets its signal —

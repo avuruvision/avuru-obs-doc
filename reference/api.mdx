@@ -66,7 +66,7 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/collection/overlay` | The stored collection overlay — per-signal on/off plus the shared namespace-exclusion list. Registered **only** when `collection.runtimeControl.enabled` (default off); its state is echoed in `GET /api/v1/capabilities`. **Admin.** |
 | `PUT /api/v1/collection/overlay` | Replace the overlay. A **closed schema**: anything outside it — including free-form collector config — is rejected, so the endpoint adds no injection surface. As of v0.4.0 the overlay is stored but **not yet applied** — collection is still driven by Helm values. **Admin.** |
 | `DELETE /api/v1/collection/overlay` | Clear the overlay, returning collection to the chart defaults. **Admin.** |
-| `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, retention) and disk usage. Includes a **Schema** component reporting applied versus expected migrations, so a half-migrated install names itself instead of failing every query. **Admin.** |
+| `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, configured retention *and* the TTL the tables enforce) disk usage, and the ClickHouse connection (address, database, user — never the password). Includes a **Schema** component reporting applied versus expected migrations, so a half-migrated install names itself instead of failing every query. **Admin.** |
 | `GET /api/v1/services` | Services with RED aggregates over the window. |
 | `GET /api/v1/service-map` | Service nodes **plus call edges** (caller→callee from trace spans, enriched with OBI network flow bytes and per-edge health — RTT p95, failed connections — when infra-metrics is active). |
 | `GET /api/v1/traces` | Search traces (filters + keyset pagination — see below). |
@@ -79,6 +79,11 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/metrics/red` | Bucketed RED series per service — `service` (empty = busiest `top`), `points`, `includeAux`. |
 | `GET /api/v1/health/groups` | Consolidated group health over the window: per-service status from RED, tier-grouped, with critical-dependency propagation. Module `service-health`. `includeAux`. |
 | `GET /api/v1/health/groups/{name}` | One group's health, including each member's base vs. effective status and its critical-dependency chain (`404` if the group is absent). |
+| `GET /api/v1/auth/permissions` | The role model and, per area of the product, the lowest role that can read it and the lowest that can change it — derived by the hub from the guards its routes registered with. Any signed-in caller. |
+| `GET /api/v1/service-groups` | The group *definitions* (name, tier, selector) as opposed to their health: chart-declared groups tagged `source: config` and read-only, UI-authored ones `source: db`. Module `service-health`. |
+| `POST /api/v1/service-groups` | Create a group. Admin role. `409` when the name is chart-declared or already taken. |
+| `PUT /api/v1/service-groups/{name}` | Edit a group's tier and selector. Admin role. `409` on a chart-declared name, `404` if no authored group has it. |
+| `DELETE /api/v1/service-groups/{name}` | Delete a group. Admin role. Same `409`/`404` rules as the update. |
 | `GET /api/v1/alerts` | Currently-firing alerts + recent fire/resolve history. Module `alerting`. |
 | `GET /api/v1/alerts/rules` | The configured alerting rules and channels (channel secrets redacted). Module `alerting`. |
 | `GET /api/v1/alerts/channels` | The configured notification channels (secrets redacted). Module `alerting`. |

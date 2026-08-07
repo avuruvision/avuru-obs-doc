@@ -1,0 +1,55 @@
+---
+slug: service-groups-ui
+title: "Dire quels services comptent, sans redéployer"
+description: "Les groupes de santé de services — nom, niveau de criticité et sélecteur — se créent, se modifient et se suppriment dans Paramètres → Groupes, et s'appliquent dès la lecture de santé suivante."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-08-07
+---
+
+Décider que `payments` est votre service le plus critique imposait jusqu'ici de
+modifier `values.yaml`, de lancer un `helm upgrade` et d'avoir les droits
+cluster pour le faire. Dans les faits, personne ne le faisait : l'écran Santé
+des services affichait un groupe auto-découvert par espace de noms et les
+couloirs de criticité restaient vides. Les groupes s'écrivent désormais depuis
+l'application.
+
+{/* truncate */}
+
+- **Paramètres → Groupes.** Créez un groupe à partir d'un nom, d'un niveau de
+  criticité (T0–T3) et des espaces de noms ou services qu'il couvre ; modifiez-le
+  ou supprimez-le ensuite. Le changement s'applique à la lecture de santé
+  suivante — sans redémarrage, sans redéploiement, sans pull request. L'écran
+  Santé des services renvoie directement vers l'éditeur au lieu de citer une clé
+  de configuration.
+
+- **Le regroupement automatique fonctionne toujours.** Les services qu'aucun
+  groupe ne revendique continuent d'être rassemblés par espace de noms au niveau
+  par défaut, exactement comme avant : rien ne disparaît pendant que vous
+  organisez.
+
+- **Les groupes déclarés dans le chart continuent de fonctionner, et
+  l'emportent.** Ils s'affichent en lecture seule, car une installation qui gère
+  ses groupes dans Git ne doit pas les voir écrasés discrètement depuis un
+  navigateur. Le conflit est refusé au moment de l'enregistrement plutôt que
+  découvert à la mise à jour suivante — et si le chart revendique plus tard un
+  nom que vous aviez déjà créé, ce groupe est signalé comme remplacé au lieu de
+  cesser silencieusement de regrouper quoi que ce soit.
+
+- **L'alerting et l'écran ne peuvent plus diverger.** Les deux sources sont
+  fusionnées à un seul endroit, partagé par l'API de santé et l'évaluateur
+  d'alertes. C'est ce qui compte : l'évaluateur ne passe pas par l'API, donc
+  fusionner ailleurs aurait signifié qu'un groupe créé par vos soins s'affiche
+  comme critique à l'écran sans jamais déclencher la moindre alerte. Un test
+  parcourt les deux chemins puis déclenche une vraie règle sur un groupe qui
+  n'existe qu'en base.
+
+- **Sûr par construction.** Les écritures sont réservées aux administrateurs et
+  validées avec les mêmes règles que la configuration du chart au démarrage :
+  rien de ce que vous enregistrez ici ne fera échouer le prochain démarrage du
+  hub. Tous les autres peuvent lire les définitions — voir comment le parc est
+  organisé n'est pas un privilège.
+
+Les seuils, les arêtes critiques et le niveau par défaut restent pour l'instant
+dans [`serviceGroups`](/docs/signals/service-health) ; les groupes sont la
+partie dont on a besoin au quotidien.
