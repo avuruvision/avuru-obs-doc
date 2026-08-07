@@ -1,0 +1,107 @@
+---
+slug: v0-4-0
+title: "v0.4.0 : gérer les utilisateurs de bout en bout — et trois portes d'entrée refermées"
+description: "Les Réglages accueillent la gestion complète des utilisateurs et le changement de mot de passe en libre-service, trois contournements d'authentification sont corrigés, et une installation dont la migration de schéma n'a jamais tourné se répare désormais d'elle-même."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-08-07
+---
+
+La **v0.4.0** termine le cycle de vie des comptes entamé en v0.2 : les
+utilisateurs peuvent maintenant être modifiés, réinitialisés et supprimés depuis
+l'interface, et chacun peut changer son propre mot de passe. En passant cette
+surface en revue, trois manières d'entrer dans un compte qui n'auraient pas dû
+fonctionner sont apparues — les trois sont refermées. À leurs côtés, une
+installation qui avait silencieusement perdu sa migration de schéma se répare
+désormais toute seule.
+
+{/* truncate */}
+
+- **Les utilisateurs, gérés de bout en bout.** Réglages → Utilisateurs permet
+  désormais de modifier le nom et les rôles d'un utilisateur, de réinitialiser
+  son mot de passe et de le **supprimer** — une seconde étape explicite,
+  accessible seulement après désactivation, pour qu'une suppression ne tienne
+  jamais à un clic malheureux. Un nouvel onglet Réglages → Compte permet à tout
+  utilisateur local connecté de changer son propre mot de passe : le mot de
+  passe actuel est exigé, les autres sessions sont fermées, et celle que vous
+  utilisez reste ouverte. Ces opérations sont refusées aux utilisateurs SSO,
+  dont l'identifiant appartient au fournisseur d'identité.
+
+- **Un administrateur pouvait créer un mot de passe local fonctionnel sur un
+  compte SSO.** `PUT /api/v1/users/{id}` acceptait un mot de passe pour
+  n'importe quel utilisateur, quelle que soit son origine, et le chemin de
+  connexion ne filtrait pas davantage sur cette origine — le nouvel identifiant
+  constituait donc une véritable connexion, contournant le fournisseur
+  d'identité ainsi que son MFA et sa politique d'accès conditionnel. La
+  modification de mot de passe est désormais réservée aux comptes locaux, aussi
+  bien sur la route d'administration que sur la nouvelle route en libre-service.
+
+- **Changer d'adresse IP suffisait à contourner le verrouillage des
+  connexions.** Les deux axes de limitation portaient sur l'adresse du client :
+  des tentatives réparties sur N adresses offraient N × 5 essais par minute
+  contre un même compte sans déclencher ni l'un ni l'autre — un simple pool NAT
+  cloud rendait le verrouillage par compte décoratif. Un troisième axe compte
+  désormais les échecs sur le compte lui-même (20 par minute), aussi bien pour
+  la connexion que pour le changement de mot de passe en libre-service. C'est un
+  arbitrage assumé : des échecs répétés maintiendront la *connexion* à ce compte
+  bloquée sur une fenêtre d'une minute qui se réinitialise seule, sans jamais
+  toucher aux sessions déjà ouvertes ni aux connexions réussies.
+
+- **Une connexion SSO pouvait s'approprier l'adresse e-mail d'un compte
+  local.** Un utilisateur du fournisseur d'identité dont l'e-mail correspondait
+  à un compte local ajoutait une seconde ligne partageant cette adresse, et la
+  recherche par mot de passe retenait ensuite indifféremment l'une ou l'autre —
+  quiconque pouvait fixer sa propre revendication d'e-mail pouvait donc viser
+  l'administrateur d'amorçage. La recherche donne maintenant la priorité au
+  compte local, et la connexion par mot de passe est réservée aux comptes
+  locaux, au lieu de compter sur le fait que les lignes SSO portent une
+  empreinte de mot de passe vide.
+
+- **Une installation dont la migration de schéma n'a jamais tourné se répare
+  d'elle-même.** Le schéma est appliqué par un hook Helm
+  `post-install`/`post-upgrade` — que Helm n'exécute qu'*après* le succès de
+  `--wait`. Une release qui expirait sur un composant lent ne créait donc jamais
+  le job, alors que les déploiements déjà appliqués par Helm, eux, démarraient
+  normalement. Le résultat avait l'air en bonne santé et répondait *table
+  inconnue* à tout. Le hub vérifie désormais son schéma à la connexion et
+  applique lui-même ce qui manque (`hub.autoMigrate`, actif par défaut ; les
+  migrations sont idempotentes). Quand il ne le peut pas — pas de droits DDL, ou
+  auto-réparation désactivée — il émet **une seule** erreur nommant le remède au
+  lieu d'un flot d'avertissements, et Réglages → État gagne un composant
+  **Schéma** indiquant l'état appliqué face à l'état attendu.
+
+- **Un nom de base ClickHouse autre que celui par défaut ne casse plus
+  silencieusement l'installation.** `clickhouse.external.database` est une
+  valeur documentée et validée, mais chaque migration codait en dur le préfixe
+  `otel` : les tables atterrissaient dans une base pendant que le hub
+  interrogeait l'autre et la trouvait vide. Les migrations nomment désormais
+  leur base via un paramètre substitué, et le nom configuré est validé comme
+  identifiant au démarrage. Les installations sur la base par défaut ne sont pas
+  concernées.
+
+- **Green ne fait plus tomber la sonde sur les nœuds sans RAPL.** La source de
+  mesure s'arrête au démarrage lorsqu'elle ne trouve aucune zone powercap, et un
+  conteneur qui s'interrompt lui-même empêche tout le pod de passer Ready :
+  activer la collecte green sur une flotte de VM emportait donc les logs, les
+  traces et les métriques avec un signal énergétique pourtant optionnel. La
+  source mesurée peut maintenant être retirée seule via
+  `sensor.green.kepler.enabled=false`, l'estimation TDP continuant d'alimenter
+  la page Green. Le matériel doté de RAPL n'est pas concerné.
+
+- **Se connecter derrière un reverse proxy qui réécrit `Host` ne renvoie plus
+  403.** La vérification CSRF comparait l'`Origin` du navigateur au `Host` reçu
+  par le hub : un proxy transmettant au cluster son adresse d'ingress
+  transformait toute écriture — à commencer par le POST de connexion — en requête
+  inter-origine rejetée. `auth.trustedOrigins` déclare les origines légitimes
+  malgré un `Host` différent, et `auth.originCheck` (`enforce` | `log` | `off`)
+  abaisse le contrôle lorsqu'on ne peut pas les énumérer ; `log` autorise
+  l'écriture et enregistre le couple `Origin`/`Host`, ce qui permet justement de
+  découvrir ce que votre proxy envoie réellement. Le comportement par défaut
+  reste strict, et une `publicUrl` OIDC est approuvée automatiquement.
+
+**La montée depuis une v0.3.x** est un `helm upgrade` ordinaire. La migration de
+schéma `0015` s'applique automatiquement. Si vous utilisez un compte ClickHouse
+durci sans droits DDL, conservez le job de migration tel quel et laissez
+`hub.autoMigrate` actif : il signalera proprement au lieu d'échouer. Voir la
+page [Versions](/docs/releases) et la
+[release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.4.0).

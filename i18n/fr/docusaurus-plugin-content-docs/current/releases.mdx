@@ -22,7 +22,7 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.4.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.5.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)) : les projets membres multi-clusters,
@@ -30,6 +30,44 @@ l'aboutissement du plan de contrôle de la collecte à chaud (applicateur +
 interface éditable), une compatibilité d'ingestion élargie, un étiquetage
 automatique plus riche, et davantage de clients (source de données Grafana,
 CLI).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.4.0" date="2026-08-07" status="shipped" statusLabel="Livré">
+
+**Des comptes que vous administrez.** La v0.2 créait les utilisateurs ; la v0.4
+termine leur cycle de vie. **Paramètres → Utilisateurs** permet de modifier un
+nom et des rôles, de réinitialiser un mot de passe et de **supprimer** un compte
+selon la règle « désactiver d'abord », tandis qu'un nouvel onglet
+**Paramètres → Compte** permet à chacun de changer son propre mot de passe — le
+mot de passe actuel est exigé, les autres sessions sont fermées, la vôtre reste
+ouverte. Ces opérations sont refusées aux utilisateurs SSO, dont l'identifiant
+appartient au fournisseur d'identité. La revue de cette surface a refermé
+**trois portes d'entrée** : un mot de passe local que l'on pouvait créer sur un
+compte purement SSO, un verrouillage des connexions que la rotation d'adresses
+IP contournait, et une connexion SSO capable de s'approprier l'e-mail d'un
+compte local. Côté exploitation : une installation dont la migration de schéma
+n'a jamais tourné **se répare d'elle-même** (`hub.autoMigrate`) et publie l'état
+du schéma dans Paramètres → État ; un nom de base ClickHouse autre que celui par
+défaut fonctionne ; green survit aux nœuds sans RAPL ; et la connexion
+fonctionne derrière un reverse proxy qui réécrit `Host`. La montée de version
+est un `helm upgrade` ordinaire.
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.4.0)
+· [changelog](/changelog/v0-4-0).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.3.1" date="2026-07-31" status="shipped" statusLabel="Livré">
+
+**Correctif.** Les valeurs d'images par défaut du chart n'ont jamais
+correspondu à ce que publie le workflow de release — mauvais dépôts *et* un
+format de tag jamais poussé : un `helm install` sans `--set` ne pouvait
+résoudre ni le hub, ni l'UI, ni la passerelle, ni l'estimateur TDP. Les deux
+moitiés sont corrigées ; l'estimateur green, livré sans aucun dépôt, se
+comporte désormais comme ses homologues. Aucune migration de schéma, aucun
+changement d'API ni de configuration.
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.1)
+· [changelog](/changelog/v0-3-1).
 
 </ReleaseEntry>
 

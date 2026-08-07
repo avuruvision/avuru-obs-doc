@@ -1,0 +1,34 @@
+---
+slug: v0-3-1
+title: "v0.3.1: a default install pulls its images again"
+description: "A patch release. The chart's image coordinates never matched what the release workflow publishes, so a helm install with no --set could not resolve the hub, UI, gateway or TDP-estimator images. Fixed on both halves."
+authors: [avuru]
+tags: [platform]
+date: 2026-07-31
+---
+
+**v0.3.1** is a patch: it fixes the chart's image defaults, which never pointed
+at the images the release workflow actually publishes. Nothing else changes —
+no schema migration, no API or configuration surface.
+
+{/* truncate */}
+
+- **Both halves of the reference were wrong.** The repositories named Docker
+  Hub coordinates that nothing publishes, while releases push to
+  `ghcr.io/avuruvision/avuru-obs-<component>`; and the tag defaulted to the
+  chart's `appVersion` — bare SemVer, no leading `v` — while only `vX.Y.Z` and
+  `vX.Y` were ever pushed. Fixing one without the other would only have
+  swapped one unresolvable reference for another, so both are fixed: the four
+  first-party repositories point at the registry, and the release workflow now
+  also publishes the bare `X.Y.Z` tag.
+- **Green TDP estimation had no image at all.** Its repository shipped empty,
+  so enabling the estimator rendered a reference with no name and no tag. It
+  now defaults like the other three first-party images.
+
+**If you are on v0.3.0**, `helm upgrade` to `0.3.1` and you can drop any
+`--set hub.repository=…` / `--set …tag=…` you added to work around this.
+Installs that pin images deliberately — a private registry through
+`image.registry`, or air-gapped mirrors — are unaffected either way.
+
+See the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.3.1).

@@ -23,6 +23,11 @@ platform:
   permalink: /platform
   description: Backend, stockage & exploitation
 
+security:
+  label: Sécurité
+  permalink: /security
+  description: Authentification, autorisations & durcissement
+
 sustainability:
   label: Durabilité
   permalink: /sustainability

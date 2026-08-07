@@ -112,7 +112,26 @@ contrôle de la collecte à chaud, et le renommage de la couche de déploiement 
 page [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-3-0).
 
-## Au-delà de v0.3 (indicatif)
+## v0.4 — des comptes que vous administrez (publiée le 7 août 2026)
+
+La [v0.4.0](/docs/releases) termine le cycle de vie des comptes entamé en
+v0.2 : la **gestion des utilisateurs depuis l'interface** — modifier le nom et
+les rôles, réinitialiser un mot de passe, supprimer un compte selon la règle
+« désactiver d'abord » — et le **changement de mot de passe en libre-service**
+dans Paramètres → Compte, ces opérations restant refusées aux utilisateurs SSO
+dont l'identifiant appartient au fournisseur d'identité. La revue de cette
+surface a refermé **trois portes d'entrée** : un mot de passe local que l'on
+pouvait créer sur un compte purement SSO, un verrouillage des connexions que la
+rotation d'adresses IP contournait, et une connexion SSO capable de s'approprier
+l'e-mail d'un compte local. Côté exploitation : une installation dont la
+migration de schéma n'a jamais tourné **se répare d'elle-même** et publie l'état
+du schéma dans Paramètres → État ; green ne fait plus tomber la sonde sur les
+nœuds sans RAPL ; et la connexion fonctionne derrière un reverse proxy qui
+réécrit `Host`. Le détail complet est sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-4-0).
+
+## Au-delà de v0.4 (indicatif)
 
 - **Projets multi-clusters :** des projets membres agrégeant plusieurs
   clusters, la rétention et l'état système par projet, et des interrupteurs de
