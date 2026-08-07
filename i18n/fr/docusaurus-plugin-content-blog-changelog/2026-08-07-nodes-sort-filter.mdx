@@ -1,0 +1,41 @@
+---
+slug: nodes-sort-filter
+title: "Retrouver le pod que vous cherchez : tri et filtres sur l'écran Nœuds"
+description: "Les tableaux Nœuds et Pods se trient sur n'importe quelle colonne et se filtrent par nom, espace de noms ou charge de travail — le filtre reste dans l'URL, si bien qu'une vue restreinte devient un lien à partager."
+authors: [avuru]
+tags: [ui]
+date: 2026-08-07
+---
+
+Sur un vrai cluster, le tableau des pods compte plus d'une centaine de lignes
+sans ordre particulier, et le seul moyen de s'y retrouver était la recherche du
+navigateur. Les deux tableaux de l'écran Nœuds se trient et se filtrent
+désormais.
+
+{/* truncate */}
+
+- **Un tri sur chaque colonne.** Les nœuds par nom, processeur, mémoire, réseau
+  ou nombre de pods ; les pods par nom, espace de noms, charge de travail,
+  nœud, processeur ou mémoire. Les nœuds restent par défaut dans l'ordre
+  alphabétique, pour que la liste ne se réorganise pas d'un rafraîchissement à
+  l'autre, et le classement par charge n'est qu'à un clic. Le réseau se trie sur
+  l'émission et la réception cumulées — trier sur la seule réception ferait
+  passer pour calme un nœud qui émet beaucoup.
+
+- **Un filtre à la frappe.** Les nœuds par nom ; les pods par nom, espace de
+  noms *ou* charge de travail, avec un sélecteur d'espace de noms qui apparaît
+  dès qu'il y a plus d'un choix possible. Rien n'attend une requête : les
+  lignes sont déjà dans le navigateur.
+
+- **Une vue filtrée est un lien.** Le filtre vit dans l'URL, comme partout
+  ailleurs ici : vous envoyez à un collègue le tableau exact que vous avez sous
+  les yeux au lieu de le décrire.
+
+- **Des compteurs qui ne trompent pas.** Filtre actif, l'en-tête indique « N sur
+  M » : un tableau restreint ne se confond jamais avec un cluster qui rétrécit.
+  Et un filtre sans résultat le dit — au lieu d'afficher le message « installez
+  le capteur pour collecter les métriques », qui vous enverrait diagnostiquer
+  une installation en parfaite santé.
+
+Voir les [métriques d'infrastructure](/docs/signals/metrics) pour ce que
+l'écran Nœuds collecte, et comment.

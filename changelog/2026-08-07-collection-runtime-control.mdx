@@ -1,0 +1,47 @@
+---
+slug: collection-runtime-control
+title: "Turn signals on and off from the UI — no redeploy, no cluster access"
+description: "Settings → Collection becomes writable: switch traces, logs, metrics, profiling or energy collection on or off and the sensor picks it up in seconds, behind an opt-in flag and a deliberately narrow Role."
+authors: [avuru]
+tags: [platform, ui]
+date: 2026-08-07
+---
+
+Deciding what Avuru Obs collects used to mean editing `values.yaml`, running
+`helm upgrade`, and holding the cluster permissions to do it — so in practice
+collection stayed whatever it was on install day. Now an admin changes it from
+the app, and the sensor follows within seconds.
+
+{/* truncate */}
+
+- **Collection is a setting, not a deployment.** Settings → Collection switches
+  eBPF traces, logs, infrastructure metrics, profiling and energy collection on
+  or off, and edits the excluded-namespace list. Turn profiling off at 2 a.m.
+  because it is costing you more than it is telling you, and turn it back on in
+  the morning — without touching the chart.
+
+- **What the screen shows is what the sensor is doing.** It reports the
+  *effective* configuration: your chart values with the overlay applied, not one
+  or the other. "Reset to defaults" clears the overlay and reconciles the
+  cluster back to exactly what the chart declares — a reset that only forgot
+  the setting would leave the two quietly disagreeing.
+
+- **Off by default, and narrow when you turn it on.** The feature is gated on
+  `collection.runtimeControl.enabled`. Opting in grants the hub permission to
+  update its **own four named sensor ConfigMaps** and patch its **own named
+  sensor DaemonSet**, in its own namespace — nothing cluster-wide, nothing
+  belonging to anyone else. The hub rolls the sensor using its own annotation
+  and leaves the chart's ownership untouched, so a later `helm upgrade` behaves
+  exactly as before. With the flag off, nothing changes and no extra permission
+  is granted.
+
+- **Verified against a real cluster, not a mock.** The Helm smoke gate now
+  installs with the feature on, writes a setting through the API, and asserts it
+  reaches the sensor's configuration and rolls the DaemonSet — then resets and
+  asserts the cluster comes back. A change that is saved but never reaches the
+  sensor is the failure that matters here, and the gate is built to catch
+  exactly that.
+
+Configuration lives in the chart under `collection.runtimeControl`. See
+[Kubernetes setup](/docs/setup/kubernetes) for the flag, and
+[modules](/docs/setup/modules) for how each signal is gated.

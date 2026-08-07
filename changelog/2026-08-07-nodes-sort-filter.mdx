@@ -1,0 +1,37 @@
+---
+slug: nodes-sort-filter
+title: "Find the pod you are looking for: sorting and filtering on Nodes"
+description: "The Nodes and Pods tables now sort by any column and filter by name, namespace or workload, with the filter kept in the URL so a narrowed view is a link you can send."
+authors: [avuru]
+tags: [ui]
+date: 2026-08-07
+---
+
+On a real cluster the Pods table is a hundred-plus rows in no particular order,
+and the only way through it was the browser's own find-in-page. Both tables on
+the Nodes screen now sort and filter.
+
+{/* truncate */}
+
+- **Sort by any column.** Nodes by name, CPU, memory, network or pod count;
+  pods by name, namespace, workload, node, CPU or memory. Nodes stay in name
+  order by default, so the roster does not rearrange itself between refreshes,
+  and busiest-first is one click away. Network sorts on send and receive
+  together — ranking on receive alone would file a send-heavy node as quiet.
+
+- **Filter as you type.** Nodes by name; pods by name, namespace *or* workload,
+  plus a namespace picker that appears once there is more than one namespace to
+  choose between. Nothing waits on a query: the rows are already in the browser.
+
+- **A filtered view is a link.** The filter lives in the URL, like every other
+  view here, so you can send a colleague the exact table you are looking at
+  rather than describing it.
+
+- **Counts that cannot mislead.** With a filter active the heading reads "N of
+  M", so a narrowed table is never mistaken for a shrinking cluster. And a
+  filter that matches nothing says so — instead of showing the "install the
+  sensor to collect node metrics" empty state, which would send you off to debug
+  a perfectly healthy install.
+
+See [infrastructure metrics](/docs/signals/metrics) for what the Nodes screen
+collects and how.

@@ -28,12 +28,13 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Sensor DaemonSet — **zero-code** eBPF traces + RED (OBI), **zero-config** log collection | <StatusBadge status="shipped" /> | M2 |
 | Service inventory — sortable RED table, drill-down to traces | <StatusBadge status="shipped" /> | M2 |
 | RED metrics dashboard — rate/errors/duration charts per service | <StatusBadge status="shipped" /> | M3 |
-| Node / pod health — CPU, memory, network per node & pod (kubeletstats) | <StatusBadge status="shipped" /> | M3 |
+| Node / pod health — CPU, memory, network per node & pod (kubeletstats), sortable on every column and filterable by name, namespace or workload | <StatusBadge status="shipped" /> | M3 |
 | Continuous profiling — CPU flame graphs per service (experimental, opt-in) | <StatusBadge status="shipped" /> | M4 |
 | Projects — per-environment scoping, sidebar switcher, shareable `?project=` links | <StatusBadge status="shipped" /> | v0.1 |
 | Project management — create, rename and delete projects from the UI; `default` and config-defined projects stay read-only | <StatusBadge status="shipped" /> | v0.3 |
 | Read-only demo — one-click "Try the demo" viewer backed by live data (OpenTelemetry Astronomy Shop); opt-in, server-side sign-in | <StatusBadge status="shipped" /> | v0.3 |
 | Collection controls — per signal/namespace/pod/node, with a per-node agent inventory | <StatusBadge status="shipped" /> | v0.1 |
+| Runtime collection control — switch each signal on or off from Settings → Collection and the sensor follows in seconds, no `helm upgrade`; shows the effective config and resets to chart defaults. Opt-in, behind a namespace-scoped Role over the hub's own sensor resources | <StatusBadge status="shipped" /> | v0.5 |
 | Error tracking — deduplicated issues from spans/logs, triage lifecycle, Sentry-protocol ingest | <StatusBadge status="shipped" /> | v0.2 |
 | Service health — group health with criticality tiers and critical-dependency propagation, derived from RED | <StatusBadge status="shipped" /> | v0.2 |
 | Alerting — webhook notifications when a service/group crosses into a bad state | <StatusBadge status="shipped" /> | v0.2 |
@@ -54,9 +55,8 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 
 | Capability | Status | Target |
 |---|---|---|
-| Runtime collection control plane — collection switches in the UI (OpAMP as the destination). The overlay store, validated API and least-privilege RBAC shipped in v0.3; the applier and the editable UI are what remain | <StatusBadge status="in-progress" /> | v0.5 |
-| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.5 |
-| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.5 |
+| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.6 |
+| Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.6 |
 | Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.5 |
 
 :::info Service map today
