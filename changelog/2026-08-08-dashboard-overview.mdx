@@ -1,0 +1,60 @@
+---
+slug: dashboard-overview
+title: "Open the app and know how your estate is doing"
+description: "A Dashboard that answers the first question — service group health, topology, firing alerts and Kubernetes capacity on one screen. It is now where the product opens."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-08-08
+---
+
+Until now the product opened on a screen that needed you to already have a
+hypothesis. The new **Dashboard** gives you one, and it is where the app now
+lands.
+
+{/* truncate */}
+
+## One screen, three answers
+
+- **Are my services healthy?** A card per service group — the groups *you*
+  authored in Settings → Groups — with its criticality tier, its status, and
+  the rate, latency and error rate behind that status. Worst status sorts
+  first, so a group in trouble is never the one pushed off the end of the row.
+
+- **What is talking to what, and is anything firing?** The service map at
+  overview scale, side by side with everything currently alerting. Not a
+  screenshot of the map: the same graph, so a service that goes red here is red
+  there.
+
+- **Is the cluster under strain?** Nodes, pods, namespaces and workloads at a
+  glance, plus memory utilisation per node, busiest first.
+
+Every card is a link into the screen that explains it. The Dashboard is where
+you notice; the existing screens are where you investigate.
+
+## It works on the install you actually run
+
+Each band belongs to a module, and a band whose module is off simply isn't
+there — the screen never shows you a panel it can't fill, and never calls an
+API your install doesn't run. Turn off service health and the first band falls
+back to your busiest services rather than disappearing. Run nothing but the
+core and the Dashboard still opens, with the map and your services on it.
+
+Those fallback cards deliberately carry **no** health status. Thresholds and
+critical-dependency propagation belong to the service-health module; inventing
+a second set of them for this screen would put two different answers to the
+same question in front of you.
+
+## What capacity does and does not claim
+
+The capacity band reports what the sensor measures. Memory shows a real
+utilisation bar, because both halves — used and available — are collected.
+
+CPU is reported as **cores in use**, not a percentage, because no node capacity
+figure exists to divide by: node metrics come from the kubelet, which does not
+publish allocatable CPU. A percentage here would have had to invent its own
+denominator, and a capacity reading you cannot trust is worse than an honest
+absolute. Each bar carries its number as well as its colour, so nothing on this
+screen has to be read by hue alone.
+
+See the [feature status](/docs/status) page for where the Dashboard sits among
+the other screens.
