@@ -1,0 +1,69 @@
+---
+slug: green-endpoints-auth
+title: "Sécurité : les points d'API green n'exigeaient aucune session"
+description: "Trois points d'API énergie et carbone étaient enregistrés sans l'intergiciel de session : un appelant non authentifié pouvait lire les chiffres de n'importe quel projet, sur une installation dont l'authentification est activée. Corrigé ; mettez à jour si vous utilisez le module green."
+authors: [avuru]
+tags: [security, platform]
+date: 2026-08-07
+---
+
+`GET /api/v1/green/summary`, `/green/budgets` et `/green/report` étaient
+enregistrés sans l'intergiciel de session que toutes les autres routes de
+signal utilisent. Sur une installation dont l'authentification est pourtant
+**activée**, les trois répondaient `200` à un appelant sans aucune session.
+
+{/* truncate */}
+
+## Ce qui était exposé
+
+Pour n'importe quel projet nommé dans l'en-tête de la requête, sans connexion :
+
+- l'énergie par service en wattheures et le carbone en gCO2e,
+- l'utilisation des budgets carbone mensuels,
+- l'export de rapport prêt pour la CSRD.
+
+Ces routes sont en lecture seule : rien ne pouvait être modifié par ce biais.
+Mais la donnée dessine assez fidèlement ce que fait tourner un parc et à quelle
+intensité — noms de services, charge relative, et la forme d'une activité dans
+le temps.
+
+Rien d'autre n'était concerné : toutes les autres routes de signal — traces,
+logs, métriques, carte des services, santé, alerting, suivi des erreurs,
+infrastructure — passaient déjà par l'intergiciel de session et appliquaient
+les droits par projet.
+
+## Pourquoi
+
+Ces routes étaient câblées avec l'enveloppe de gestionnaire nue plutôt qu'avec
+celle qui garde l'accès : aucune identité n'était donc jamais attachée à la
+requête. Le contrôle de portée par projet interprète alors « pas d'identité »
+comme « l'authentification est désactivée » — la branche qui existe pour qu'une
+installation en `auth.enabled=false` continue de fonctionner — et laissait
+passer la requête.
+
+## Suis-je concerné ?
+
+Oui si **toutes** ces conditions sont réunies :
+
+- le [module green](/docs/signals/green) est activé (il est **désactivé par
+  défaut** : une installation qui ne l'a jamais allumé n'a jamais été exposée),
+- l'authentification est activée, et
+- l'API du hub est joignable par quelqu'un à qui vous ne donneriez pas le rôle
+  lecteur.
+
+Une installation dont le hub n'est joignable qu'à l'intérieur du cluster
+n'était pas exposée à quelqu'un qui n'atteignait pas déjà bien davantage.
+
+## Le correctif
+
+Les trois routes exigent désormais le rôle lecteur et respectent les droits par
+projet, exactement comme tous les autres signaux. Mettez à jour vers une
+version contenant ce changement.
+
+Un test vérifie maintenant que **toutes** les routes de données de projet
+répondent `401` sans session, au lieu de les contrôler une par une : la faille
+avait survécu parce que rien n'avait jamais vérifié l'ensemble d'un seul tenant.
+Elle a été trouvée en indexant la garde de chaque route pour construire une vue
+des permissions dans les Paramètres — la même idée appliquée au produit :
+déduire les règles de ce que le serveur applique, plutôt que de les écrire deux
+fois.

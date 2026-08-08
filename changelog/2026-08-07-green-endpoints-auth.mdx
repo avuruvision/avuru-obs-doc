@@ -1,0 +1,63 @@
+---
+slug: green-endpoints-auth
+title: "Security: the green endpoints required no session"
+description: "Three energy and carbon endpoints were registered without the session middleware, so an unauthenticated caller could read any project's figures on an install with authentication enabled. Fixed; upgrade if you run the green module."
+authors: [avuru]
+tags: [security, platform]
+date: 2026-08-07
+---
+
+`GET /api/v1/green/summary`, `/green/budgets` and `/green/report` were
+registered without the session middleware that every other signal route uses.
+On an install with authentication **enabled**, all three answered `200` to a
+caller with no session at all.
+
+{/* truncate */}
+
+## What was exposed
+
+For any project named in the request header, without signing in:
+
+- per-service energy in watt-hours and carbon in gCO2e,
+- monthly carbon budget usage,
+- the CSRD-ready report export.
+
+The routes are read-only, so nothing could be changed through them. But the
+data is a fair map of what an estate runs and how hard it works — service
+names, relative load, and the shape of a workload over time.
+
+Nothing else was affected: every other signal route — traces, logs, metrics,
+service map, health, alerting, error tracking, infrastructure — was already
+behind the session middleware and enforcing per-project grants.
+
+## Why it happened
+
+The routes were wired with the bare handler wrapper rather than the guarded
+one, so no identity was ever attached to the request. The per-project scope
+check then treats "no identity" as "authentication is switched off" — the
+branch that exists so an `auth.enabled=false` install keeps working — and
+allowed the request through.
+
+## Am I affected?
+
+You are if **all** of these hold:
+
+- the [green module](/docs/signals/green) is enabled (it is **off by default**,
+  so an install that never turned it on was never exposed),
+- authentication is enabled, and
+- the hub's API is reachable by someone you would not grant a viewer role.
+
+An install where the hub is only reachable inside the cluster was not exposed
+to anyone who could not already reach far more.
+
+## The fix
+
+All three routes now require the viewer role and honour per-project grants,
+exactly like every other signal. Upgrade to a build containing this change.
+
+A test now asserts that **every** project-data route answers `401` without a
+session, rather than checking them one at a time — the gap survived because
+nothing had ever asserted over the whole set. It was found while indexing every
+route's guard to build a permissions view for Settings, which is the same idea
+applied to the product: derive what the rules are from what the server
+enforces, instead of writing them down twice.
