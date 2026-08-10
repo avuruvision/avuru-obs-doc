@@ -54,20 +54,6 @@ l'onglet, au lieu de présenter un modèle que rien n'applique.
 ## Ce que cela a permis de trouver
 
 Construire cette matrice a exigé d'indexer la garde de chaque route — c'est
-ainsi que l'on a vu que trois d'entre elles n'en avaient aucune. Les **points
-d'API green** (`/api/v1/green/summary`, `/green/budgets`, `/green/report`)
-étaient enregistrés sans l'intergiciel de session que toutes les autres routes
-de signal utilisent : un appelant non authentifié pouvait donc lire l'énergie,
-le carbone et les budgets par service de n'importe quel projet, sur une
-installation dont l'authentification est pourtant activée. Ces routes sont en
-lecture seule, rien ne pouvait donc être modifié par ce biais, mais la donnée
-elle-même dessine assez fidèlement ce que fait tourner un parc, et à quelle
-intensité.
-
-Les trois exigent désormais le rôle lecteur et respectent les droits par
-projet, comme tous les autres signaux. Si vous utilisez le [module
-green](/docs/signals/green) avec l'authentification activée et que votre hub
-est joignable au-delà de votre cluster, mettez à jour. Un test vérifie
-maintenant que **toutes** les routes de données de projet répondent `401` sans
-session — la faille avait survécu parce que rien ne vérifiait l'ensemble d'un
-seul tenant.
+ainsi que l'on a vu que trois d'entre elles n'en avaient aucune. Voir [la note
+de sécurité](/changelog/green-endpoints-auth) : si vous utilisez le module
+green avec l'authentification activée, elle vaut deux minutes de votre temps.

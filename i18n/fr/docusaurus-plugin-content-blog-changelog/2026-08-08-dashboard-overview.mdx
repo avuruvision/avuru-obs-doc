@@ -1,0 +1,64 @@
+---
+slug: dashboard-overview
+title: "Ouvrez l'application et sachez comment se porte votre parc"
+description: "Un Tableau de bord qui répond à la première question — santé des groupes de services, topologie, alertes actives et capacité Kubernetes sur un seul écran. C'est désormais là que le produit s'ouvre."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-08-08
+---
+
+Jusqu'ici, le produit s'ouvrait sur un écran qui supposait que vous aviez déjà
+une hypothèse. Le nouveau **Tableau de bord** vous en donne une, et c'est
+désormais là que l'application arrive.
+
+{/* truncate */}
+
+## Un écran, trois réponses
+
+- **Mes services sont-ils en bonne santé ?** Une carte par groupe de services —
+  les groupes que *vous* avez créés dans Paramètres → Groupes — avec son niveau
+  de criticité, son état, et le débit, la latence et le taux d'erreur qui
+  fondent cet état. Les pires états passent en tête : un groupe en difficulté
+  n'est jamais celui qui déborde en fin de rangée.
+
+- **Qui parle à qui, et quelque chose se déclenche-t-il ?** La carte des
+  services à l'échelle d'une vue d'ensemble, à côté de tout ce qui alerte en ce
+  moment. Ce n'est pas une capture de la carte : c'est le même graphe, donc un
+  service rouge ici l'est aussi là-bas.
+
+- **Le cluster est-il sous tension ?** Nœuds, pods, namespaces et charges de
+  travail en un coup d'œil, plus l'utilisation mémoire par nœud, les plus
+  chargés en premier.
+
+Chaque carte est un lien vers l'écran qui l'explique. Le Tableau de bord est là
+où l'on remarque ; les écrans existants sont là où l'on enquête.
+
+## Il fonctionne sur l'installation que vous exploitez vraiment
+
+Chaque bande dépend d'un module, et une bande dont le module est désactivé n'est
+tout simplement pas là — l'écran ne présente jamais un panneau qu'il ne peut pas
+remplir, et n'appelle jamais une API que votre installation ne fait pas tourner.
+Désactivez la santé des services et la première bande se rabat sur vos services
+les plus actifs plutôt que de disparaître. N'exécutez que le cœur, et le Tableau
+de bord s'ouvre quand même, avec la carte et vos services.
+
+Ces cartes de repli ne portent délibérément **aucun** état de santé. Les seuils
+et la propagation des dépendances critiques appartiennent au module de santé des
+services ; en inventer un second jeu pour cet écran reviendrait à afficher deux
+réponses différentes à la même question.
+
+## Ce que la capacité affirme, et ce qu'elle n'affirme pas
+
+La bande de capacité rapporte ce que le sensor mesure. La mémoire affiche une
+vraie barre d'utilisation, parce que ses deux moitiés — utilisée et disponible —
+sont collectées.
+
+Le CPU est indiqué en **cœurs utilisés**, pas en pourcentage, faute d'une
+capacité de nœud par laquelle diviser : les métriques de nœud viennent du
+kubelet, qui ne publie pas le CPU allouable. Un pourcentage aurait dû inventer
+son propre dénominateur, et une lecture de capacité à laquelle on ne peut pas se
+fier vaut moins qu'une valeur absolue honnête. Chaque barre porte son chiffre
+autant que sa couleur : rien sur cet écran ne se lit à la teinte seule.
+
+Voir l'[état des fonctionnalités](/docs/status) pour situer le Tableau de bord
+parmi les autres écrans.
