@@ -15,9 +15,14 @@ OBI — sans traces, sans SDK, sans changement d'application.
 
 ## Sur l'arête
 
-Survolez n'importe quelle arête de la carte pour voir son volume d'appels plus
-son **p95 de RTT** et ses **connexions échouées**. Une arête passe **ambre et
-en pointillés** quand le RTT est élevé ou que des connexions échouent ; si les
+Survolez un nœud pour focaliser son voisinage : tout le reste s'estompe, ses
+arêtes s'épaississent, et chacune s'étiquette directement sur le trait avec
+son rpm, son **p95** (la latence propre à ce chemin, vue par l'appelant — un
+chiffre distinct du **p95 de RTT**), son taux d'erreur et son RTT quand OBI l'a
+mesuré, avec une flèche à mi-arête pour indiquer le sens. Survolez une arête
+directement pour l'infobulle complète, qui ajoute les connexions échouées et
+les octets de flux. Dans les deux cas, une arête passe **ambre et en
+pointillés** quand le RTT est élevé ou que des connexions échouent ; si les
 traces marquent déjà l'arête en rouge avec des erreurs applicatives, le rouge
 l'emporte — une panne applicative prime sur un fil lent.
 

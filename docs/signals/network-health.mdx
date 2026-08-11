@@ -15,10 +15,15 @@ no traces, no SDKs, no app changes.
 
 ## On the edge
 
-Hover any service-map edge for its call volume plus **RTT p95** and **failed
-connections**. An edge turns **amber and dashed** when RTT is high or
-connections are failing; if traces already mark the edge red with application
-errors, red takes precedence — an app failure outranks a slow wire.
+Hover a node to focus its neighbourhood: everything else fades, its edges
+thicken, and each one is labelled right on the line with rpm, **p95** (the
+caller's own latency for that path — a separate number from **RTT p95**),
+error rate and RTT where OBI measured it, with a mid-line arrowhead for
+direction. Hover an edge directly for the fuller tooltip, which adds failed
+connections and flow bytes. Either way, an edge turns **amber and dashed**
+when RTT is high or connections are failing; if traces already mark the edge
+red with application errors, red takes precedence — an app failure outranks a
+slow wire.
 
 ## How it works
 

@@ -1,0 +1,55 @@
+---
+slug: service-map-restyle
+title: "Voir d'un coup d'œil ce qui va vraiment mal sur la carte des services"
+description: "L'anneau d'un nœud lit désormais la même consolidation de santé que l'écran Santé des services, les arêtes portent la latence vue par l'appelant, le survol recentre le graphe, et chaque filtre devient un lien à partager."
+authors: [avuru]
+tags: [service-map, ui]
+date: 2026-08-11
+---
+
+Un nœud passait au rouge dès qu'**une** erreur survenait dans la fenêtre — sans
+jamais dire si le service était réellement en difficulté. La carte des
+services répond maintenant à cette question, et à quelques autres.
+
+{/* truncate */}
+
+- **Un anneau de santé, pas un point d'erreur.** L'anneau d'un nœud reflète sa
+  vraie santé — healthy, degraded, down ou idle — lue directement dans la même
+  [consolidation sensible aux dépendances](/docs/signals/service-health) que
+  l'écran Santé des services. La carte ne recalcule plus ses propres seuils :
+  les deux écrans ne peuvent donc plus se contredire. Un service que la
+  consolidation ne couvre pas s'affiche *unknown*, jamais healthy.
+
+- **Une vraie latence par arête.** Chaque arête porte désormais un p50 et un
+  p95 mesurés du côté de l'**appelant** — ce que cet appel a réellement coûté,
+  réseau et attente compris. C'est volontairement différent du p95 que le nœud
+  affiche pour son propre travail côté serveur, et l'écart entre les deux est
+  souvent l'information utile : dans les données de démonstration, le nœud
+  affiche `p95 200ms` tandis que l'arête qui y entre affiche `p95 220ms` —
+  20ms que l'appelant a payés et que l'appelé n'a jamais vus. Les arêtes issues
+  des flux réseau, et non de spans, omettent simplement le champ plutôt que
+  d'afficher un faux zéro.
+
+- **Le survol recentre le regard.** Survoler un nœud estompe tout ce qui est
+  hors de son voisinage, épaissit ses arêtes, et étiquette chacune avec son
+  rpm, son p95, son taux d'erreur et son [RTT TCP](/docs/signals/network-health)
+  quand il est mesuré — une flèche à mi-arête indique le sens sans avoir à
+  suivre le trait.
+
+- **Filtres et contrôles, tout dans l'URL.** Une recherche par nom, une case
+  « problèmes seulement » et un filtre par groupe de services — chacun
+  atterrit dans la chaîne de requête, si bien qu'une carte restreinte devient
+  un lien à coller à un collègue plutôt qu'un écran à décrire. Zoom, ajustement
+  à la vue, nouvelle disposition et une légende complètent l'ensemble. Les
+  filtres de statut et de groupe n'apparaissent que si la santé des services
+  tourne, puisque tous deux lisent sa consolidation.
+
+- **Le carbone est passé sur un halo.** L'anneau était jusqu'ici la seule
+  bordure d'un nœud ; la [vision carbone](/docs/signals/green) dessine
+  désormais son gCO2e en un halo doux autour du nœud — qui peut ainsi montrer
+  à la fois son anneau de santé et son halo carbone.
+
+- **La carte compacte du Tableau de bord en profite aussi.** La topologie
+  compacte du Tableau de bord affiche le même composant : elle hérite des
+  anneaux et du survol focalisé sans effort, avec les données de santé que le
+  Tableau de bord récupérait déjà.
