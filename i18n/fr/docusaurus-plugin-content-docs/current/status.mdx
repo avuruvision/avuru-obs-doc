@@ -19,7 +19,7 @@ changements livrés le [Changelog](/changelog).
 
 | Capacité | État | Depuis |
 |---|---|---|
-| Carte des services (arêtes d'appel **dérivées des traces**) | <StatusBadge status="shipped" label="Livré" /> | M1 |
+| Carte des services — arêtes d'appel **dérivées des traces**, anneaux de santé issus de la consolidation service-health, latence p50/p95 par arête côté appelant, survol focalisé, et filtres de recherche/statut/groupe partageables | <StatusBadge status="shipped" label="Livré" /> | M1 |
 | Traces — recherche, filtres (tags, ordre, durée, statut), heatmap de latence, aperçu RED par opération | <StatusBadge status="shipped" label="Livré" /> | M1 |
 | Visualiseur de traces — chronologie, table des spans, flamegraph, statistiques, graphe, JSON | <StatusBadge status="shipped" label="Livré" /> | M4 |
 | Comparaison de traces — diff structurel de deux traces | <StatusBadge status="shipped" label="Livré" /> | M4 |
@@ -69,5 +69,8 @@ Client/Server inter-services) — et avec le DaemonSet sensor, chaque service
 HTTP/gRPC est tracé zéro-code : les applications non instrumentées apparaissent
 aussi. La fonctionnalité **`network`** intégrée d'OBI enrichit encore la carte
 avec les arêtes non instrumentées et la santé réseau par arête lorsqu'elle est
-activée.
+activée. L'anneau d'un nœud est lu depuis la consolidation
+[service-health](/docs/signals/service-health), jamais recalculé sur la
+carte — un service hors de la couverture de cette consolidation s'affiche
+*unknown*, jamais healthy.
 :::

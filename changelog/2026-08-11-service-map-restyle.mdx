@@ -1,0 +1,50 @@
+---
+slug: service-map-restyle
+title: "See what's actually wrong on the service map, at a glance"
+description: "Node rings now read the same health rollup as the Service Health screen, edges carry the caller's own latency, hovering focuses the graph, and every filter is a link you can share."
+authors: [avuru]
+tags: [service-map, ui]
+date: 2026-08-11
+---
+
+A node used to turn red the moment *any* error happened in the window — never
+telling you whether the service was actually in trouble. The service map now
+answers that question, and a few more.
+
+{/* truncate */}
+
+- **Status rings, not error dots.** A node's ring is its real health —
+  healthy, degraded, down or idle — read straight from the same
+  [dependency-aware rollup](/docs/signals/service-health) the Service Health
+  screen uses. The map no longer re-derives thresholds of its own, so the two
+  screens can't disagree. A service the rollup doesn't cover reads as
+  *unknown*, never as healthy.
+
+- **Real per-edge latency.** Edges now carry p50 and p95 measured from the
+  **caller's** side of the call — what that path actually cost, network and
+  queueing included. That's deliberately different from the p95 a node shows
+  for its own server-side work, and the gap between the two is often the
+  point: in the demo data the node reads `p95 200ms` while the edge into it
+  reads `p95 220ms` — the caller paid 20ms the callee never saw. Edges derived
+  from network flows, not spans, simply omit the field rather than show a
+  false zero.
+
+- **Hover to focus.** Hovering a node fades everything outside its
+  neighbourhood, thickens its edges, and labels each one with rpm, p95, error
+  rate and [TCP RTT](/docs/signals/network-health) where measured, arrowheads
+  showing direction without your having to trace the line.
+
+- **Filters and controls, all in the URL.** Search by name, a "problems only"
+  toggle and a service-group filter — each one lands in the query string, so a
+  narrowed map is a link you can paste to a teammate instead of a screen you
+  describe. Zoom, fit-to-view, re-layout and a legend round it out. The status
+  and group filters only appear when service health is running, since both
+  read its rollup.
+
+- **Carbon moved to a halo.** The ring was the only border a node had, so the
+  [carbon lens](/docs/signals/green) now draws its gCO2e as a soft halo around
+  it instead — a node can show its health ring and its carbon halo at once.
+
+- **The Dashboard's map gets it too.** The compact topology on the Dashboard
+  renders the same component, so it picks up rings and hover focus for free,
+  using health data the Dashboard was already fetching.
