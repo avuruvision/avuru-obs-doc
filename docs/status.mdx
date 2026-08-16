@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.4.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.5.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -54,6 +54,8 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Storage view — ClickHouse connection (read-only), per-signal size, compression and age, and configured retention shown against the TTL the tables actually enforce | <StatusBadge status="shipped" /> | v0.5 |
 | Access view — which role may read and which may change each area, derived by the hub from the guards its routes registered with, so it cannot drift from what is enforced | <StatusBadge status="shipped" /> | v0.5 |
 | Dashboard — the landing screen: service-group health, compact topology, firing alerts and Kubernetes capacity in one view. Each band follows its module, and falls back to the busiest services rather than disappearing when service health is off | <StatusBadge status="shipped" /> | v0.5 |
+| SSO group mapping from the UI — Settings → Access shows the chart-declared OIDC group→role rules and lets an admin author, edit and delete rules beside them; the chart wins a name collision and an overridden rule says why. A change applies on the group's next sign-in or token refresh, cluster-wide within ~15 s | <StatusBadge status="shipped" /> | v0.5 |
+| Personal API tokens — mint, list and revoke bearer tokens in Settings → Access; only the SHA-256 is stored and the raw value is shown once. A token resolves to its owner's live grants, so disabling a user disables every token they hold; a bad token is a clean 401, never an anonymous downgrade | <StatusBadge status="shipped" /> | v0.5 |
 
 ## Coming
 
@@ -61,7 +63,7 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 |---|---|---|
 | Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.6 |
 | Wider ingest compatibility — push receivers for the common tracing/metrics/logging wire protocols alongside OTLP, plus forwarding exporters for dual-write migrations | <StatusBadge status="planned" /> | v0.6 |
-| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.5 |
+| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.6 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server

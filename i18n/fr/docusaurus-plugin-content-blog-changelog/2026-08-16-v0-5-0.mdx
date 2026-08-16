@@ -1,0 +1,97 @@
+---
+slug: v0-5-0
+title: "v0.5.0 : piloter depuis l'interface"
+description: "La collecte, les groupes de services, le mapping des rôles SSO et les accréditations d'API s'administrent désormais depuis l'application ; le Tableau de bord répond en un écran à « comment se porte le parc ? » ; et la carte des services dit ce qui ne va pas, pas seulement que quelque chose ne va pas."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-08-16
+---
+
+**v0.5.0** referme l'écart entre *exploiter* avuru obs et *le modifier*.
+Presque tout ce qu'un opérateur atteignait par `values.yaml` puis un
+redéploiement — la collecte, les groupes de services, le mapping des rôles SSO,
+les accréditations d'API — vit désormais dans l'application, et celle-ci
+s'ouvre sur un écran qui répond à *comment se porte le parc ?*
+
+{/* truncate */}
+
+- **Activer et couper les signaux depuis l'interface.**
+  [Paramètres → Collecte est devenu éditable](/changelog/collection-runtime-control) :
+  activez ou coupez les traces OBI, les logs, les métriques d'infrastructure,
+  le profilage ou la collecte d'énergie, modifiez les espaces de noms exclus,
+  et le capteur suit en quelques secondes — sans `helm upgrade`. Désactivé par
+  défaut ; l'activer n'accorde au hub qu'un rôle étroit sur ses propres
+  ConfigMaps de capteur et son DaemonSet, rien d'autre, et le chemin d'écriture
+  est prouvé de bout en bout contre un vrai cluster en CI.
+
+- **Dire quels services comptent, depuis l'application.**
+  [Les groupes de santé s'écrivent dans Paramètres → Groupes](/changelog/service-groups-ui)
+  — nom, niveau de criticité, espaces de noms ou services couverts — et
+  s'appliquent dès la lecture de santé suivante. Les groupes déclarés dans le
+  chart restent en lecture seule et l'emportent en cas de collision de nom ;
+  le regroupement automatique par espace de noms est inchangé, rien ne
+  disparaît pendant que vous organisez.
+
+- **Un seul écran pour l'état du parc.** Le
+  [Tableau de bord](/changelog/dashboard-overview) est la page d'accueil :
+  santé des groupes de services, topologie vivante à côté des alertes actives,
+  et capacité Kubernetes, en trois bandes. Chaque bande suit son module — une
+  bande dont le module est coupé ne se monte simplement pas — et sans santé
+  des services, la synthèse se rabat sur les services les plus actifs plutôt
+  que d'inventer un second modèle de statut.
+
+- **La carte des services dit ce qui ne va pas, pas seulement que quelque
+  chose ne va pas.** Les anneaux des nœuds affichent désormais le statut réel
+  du service,
+  [lu depuis la même consolidation que le tableau Santé des services](/changelog/service-map-restyle) ;
+  les arêtes portent le p50/p95 côté appelant réellement coûté par ce chemin
+  d'appel ; survoler un nœud focalise son voisinage ; et la recherche, le
+  filtre « problèmes seulement » et le filtre de groupe vivent dans l'URL —
+  une carte réduite est un lien. La loupe carbone est devenue un halo : santé
+  et gCO2e sont visibles en même temps.
+
+- **Accorder les accès depuis l'application.** Le
+  [mapping OIDC groupe→rôle s'édite désormais dans Paramètres → Accès](/changelog/oidc-mapping-api-tokens)
+  — les règles du chart restent la référence et une règle éclipsée dit
+  pourquoi — et le même onglet émet des **jetons d'API personnels** : hachés
+  au repos, montrés une seule fois, résolus à chaque requête vers les
+  permissions vivantes de leur propriétaire, si bien que désactiver un
+  utilisateur désactive tous ses jetons.
+
+- **Où vivent les données, et qui peut y toucher.**
+  [Paramètres → Stockage et Paramètres → Accès](/changelog/settings-storage-access) :
+  la connexion ClickHouse en lecture seule avec l'occupation par signal et la
+  rétention confrontée au TTL que les tables appliquent vraiment, et une
+  matrice de permissions que le hub déduit de ses propres gardes de routes —
+  elle ne peut pas diverger de ce qui est appliqué.
+
+- **Trouver un pod sur l'écran Nœuds.** Les deux tables
+  [se trient sur chaque colonne et se filtrent](/changelog/nodes-sort-filter)
+  par nom, espace de noms ou charge de travail ; les filtres vivent dans l'URL
+  et les compteurs affichent « N sur M » — une table réduite ne peut pas être
+  prise pour un cluster qui rétrécit.
+
+### Sécurité
+
+- **Trois points d'API green répondaient sans authentification.**
+  `GET /api/v1/green/summary`, `/green/budgets` et `/green/report` étaient
+  enregistrés sans le middleware de session : une installation avec
+  l'authentification *activée* servait l'énergie et le carbone de n'importe
+  quel projet à un appelant non authentifié. Les trois exigent désormais le
+  rôle lecteur et respectent les droits par projet, et un test couvre
+  l'ensemble des routes de données de projet. Détails dans la
+  [note de sécurité](/changelog/green-endpoints-auth).
+
+### Corrigé
+
+- **Le compte de démo partagé se voyait proposer un formulaire de mot de passe
+  qu'il ne pouvait jamais soumettre.** Le hub avait raison de refuser le
+  changement — l'identifiant de démo est partagé et régénéré à chaque
+  démarrage — mais l'interface n'en savait rien. `/api/v1/auth/me` indique
+  désormais si la rotation en libre-service s'applique et sinon pourquoi, et
+  l'onglet Compte affiche l'explication au lieu du formulaire.
+
+**La mise à niveau depuis v0.4.x** est un `helm upgrade` normal. Les
+migrations de schéma `0016` à `0018` s'appliquent automatiquement
+(`hub.autoMigrate`). Voir la page [Versions](/docs/releases) et la
+[release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.5.0).

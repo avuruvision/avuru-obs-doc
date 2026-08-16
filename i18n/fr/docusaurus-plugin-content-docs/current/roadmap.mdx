@@ -131,48 +131,42 @@ réécrit `Host`. Le détail complet est sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-4-0).
 
-## v0.5 — piloter depuis l'interface (indicatif)
+## v0.5 — piloter depuis l'interface (publiée le 16/08/2026)
 
-Presque tout ce que l'on administre aujourd'hui exige de modifier les valeurs
-puis de redéployer. La v0.5 comble cet écart : celles et ceux qui exploitent
-avuru obs le changent depuis l'application qu'ils ont déjà sous les yeux.
+Presque tout ce que l'on administrait exigeait de modifier les valeurs puis de
+redéployer ; [v0.5.0](/docs/releases) le fait entrer dans l'application. La
+**[collecte pilotable à chaud](/changelog/collection-runtime-control)** est
+livrée au complet : chaque signal s'active ou se coupe depuis Paramètres →
+Collecte et le capteur suit en quelques secondes, toujours désactivée par
+défaut derrière un rôle étroitement délimité. Les
+**[groupes de services](/changelog/service-groups-ui)** s'écrivent dans
+l'application, les groupes déclarés dans le chart restant en lecture seule et
+l'emportant en cas de collision de nom.
+**[Paramètres → Stockage et Accès](/changelog/settings-storage-access)**
+montrent où vivent les données et qui peut toucher à quoi ; le
+**[mapping SSO groupe→rôle s'édite](/changelog/oidc-mapping-api-tokens)** à
+côté des règles du chart ; et les **jetons d'API personnels** donnent aux
+scripts et aux futurs clients une accréditation qui suit les permissions
+vivantes de son propriétaire. Le
+**[Tableau de bord](/changelog/dashboard-overview)** répond en un écran à
+« comment se porte le parc ? », la
+**[carte des services](/changelog/service-map-restyle)** porte de vrais
+anneaux de santé, une latence par arête côté appelant et des filtres
+partageables, et l'écran Nœuds [se trie et se
+filtre](/changelog/nodes-sort-filter). OpAMP reste la destination pour le
+contrôle de la collecte : d'abord la remontée d'état, puis la configuration à
+distance quand l'amont fournira un client. Le détail complet est sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-5-0).
 
-- **Collecte pilotable à chaud — fait.** L'applicateur et l'interface éditable
-  Paramètres → Collecte [sont livrés](/changelog/collection-runtime-control) :
-  chaque signal s'active ou se coupe depuis l'application et le capteur suit en
-  quelques secondes, toujours désactivé par défaut et toujours derrière un rôle
-  restreint. OpAMP reste la destination : d'abord la remontée d'état, puis la
-  configuration à distance quand l'amont fournira un client.
-- **Groupes de services depuis l'interface — fait.** Les groupes de santé et
-  leurs niveaux de criticité [s'écrivent désormais dans
-  l'application](/changelog/service-groups-ui) : Paramètres → Groupes permet de
-  les créer, les modifier et les supprimer, et le changement s'applique dès la
-  lecture de santé suivante. Les groupes déclarés dans le chart restent en
-  lecture seule et l'emportent en cas de collision de nom ; le regroupement
-  automatique par espace de noms est inchangé.
-- **Une vraie surface de configuration — en partie faite.** Paramètres →
-  Stockage et Paramètres → Accès [sont livrés](/changelog/settings-storage-access) :
-  où vivent les données et quelle place elles occupent, avec la rétention
-  configurée confrontée à celle que les tables appliquent vraiment ; et ce que
-  chaque rôle a le droit de faire, déduit des gardes de routes du hub lui-même.
-  Restent à venir : rendre modifiable le mappage des groupes du fournisseur
-  d'identité, et des jetons d'API pour les scripts et l'intégration continue.
-- **Un écran de synthèse, et une topologie lisible — fait.** Le
-  [Tableau de bord](/changelog/dashboard-overview) répond en une page à
-  « comment se porte le parc ? », et la
-  [carte des services affiche désormais de vrais anneaux de santé, une
-  latence par arête côté appelant et des filtres partageables](/changelog/service-map-restyle)
-  au lieu d'une simple topologie. Le tri et les filtres
-  [sont arrivés](/changelog/nodes-sort-filter) sur l'écran Nœuds.
-
-## Au-delà de v0.5 (indicatif)
+## v0.6 et au-delà (indicatif)
 
 - **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
   courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
   transfert pour écrire en double pendant une migration.
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
   qu'un client léger. Une source de données **Grafana** et une **CLI** sont
-  prévues, toutes deux portées par les jetons d'API de la v0.5.
+  prévues, toutes deux portées par les jetons d'API personnels livrés en v0.5.
 - **Projets multi-clusters :** des projets membres agrégeant plusieurs
   clusters, la rétention et l'état système par projet, et des interrupteurs de
   composants du chart pour qu'un cluster secondaire n'installe que la

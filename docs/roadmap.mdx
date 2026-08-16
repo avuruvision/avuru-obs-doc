@@ -124,45 +124,37 @@ reverse proxy that rewrites `Host`. Full detail on the
 [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-4-0).
 
-## v0.5 — operate it from the UI (directional)
+## v0.5 — operate it from the UI (released 2026-08-16)
 
-Almost everything you administer today needs a values edit and a redeploy.
-v0.5 closes that gap, so the people who run avuru obs can change it from the
-app they are already looking at.
+Almost everything you administered needed a values edit and a redeploy;
+[v0.5.0](/docs/releases) moves it into the app.
+**[Runtime collection control](/changelog/collection-runtime-control)** shipped
+complete: each signal switches on or off from Settings → Collection and the
+sensor follows in seconds, still default-off behind a narrowly-scoped Role.
+**[Service groups](/changelog/service-groups-ui)** are authored in the app,
+with chart-declared groups read-only and winning name collisions.
+**[Settings → Storage and Access](/changelog/settings-storage-access)** show
+where telemetry lives and who may touch what; the
+**[SSO group→role mapping is editable](/changelog/oidc-mapping-api-tokens)**
+beside the chart's rules; and **personal API tokens** give scripts and future
+clients a credential that follows its owner's live permissions. The
+**[Dashboard](/changelog/dashboard-overview)** answers "how is the estate
+doing?" on one screen, the
+**[service map](/changelog/service-map-restyle)** carries real health rings,
+caller-side per-edge latency and shareable filters, and the Nodes screen
+[sorts and filters](/changelog/nodes-sort-filter). OpAMP remains the
+destination for collection control: status reporting first, remote-config when
+the upstream grows a client. Full detail on the
+[feature status](/docs/status) page and in the [changelog](/changelog/v0-5-0).
 
-- **Runtime collection control — done.** The applier and the editable Settings →
-  Collection UI [have shipped](/changelog/collection-runtime-control): each
-  signal switches on or off from the app and the sensor follows in seconds,
-  still default-off and still behind a narrowly-scoped Role. OpAMP remains the
-  destination: status reporting first, remote-config when the upstream grows a
-  client.
-- **Service groups from the UI — done.** Health groups and their criticality
-  tiers [are now authored in the app](/changelog/service-groups-ui): Settings →
-  Groups creates, edits and deletes them, and the change applies to the next
-  health read. Chart-declared groups stay read-only and win a name collision,
-  and auto-grouping by namespace is unchanged.
-- **A real configuration surface — partly done.** Settings → Storage and
-  Settings → Access [have shipped](/changelog/settings-storage-access): where
-  telemetry is stored and how much of it there is, with configured retention
-  shown against what the tables actually enforce; and which role may do what,
-  derived from the hub's own route guards. Still to come: making the
-  identity-provider group mapping editable, and API tokens for scripts and CI.
-- **An overview screen, and a topology worth reading — done.** The
-  [Dashboard](/changelog/dashboard-overview) answers "how is the estate
-  doing?" on one page, and the
-  [service map now carries real health rings, per-edge caller-side latency and
-  shareable filters](/changelog/service-map-restyle) instead of a plain
-  topology. Sorting and filtering [have arrived](/changelog/nodes-sort-filter)
-  on the Nodes screen.
-
-## Beyond v0.5 (directional)
+## v0.6 and beyond (directional)
 
 - **Wider ingest compatibility:** push receivers for the common
   tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
   exporters so avuru obs can dual-write during a migration.
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
   thin client. A **Grafana** data source and a **CLI** are planned, both riding
-  v0.5's API tokens.
+  the personal API tokens v0.5 shipped.
 - **Multi-cluster projects:** member projects that aggregate several clusters,
   per-project retention and system status, and chart component toggles so a
   secondary cluster installs gateway(+sensor)-only against a shared

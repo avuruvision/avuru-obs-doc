@@ -24,7 +24,10 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
   selected project is validated against the caller's grants (`403` otherwise).
   Read endpoints need viewer, mutations need editor, and rows marked **admin**
   need the global admin role. `GET /healthz` and `GET /api/v1/auth/config` are
-  always open.
+  always open. Since v0.5.0, a **personal API token** sent as
+  `Authorization: Bearer avurut_…` authenticates a request as its owner, with
+  the owner's live roles and grants; the bearer path never falls through — a
+  bad or expired token is a `401`, not an anonymous session.
 - **Login rate limiting** — failed password attempts are counted on three axes:
   `email + address`, `address`, and (since v0.4.0) the **account alone**, so
   guesses spread across many addresses can no longer walk past the per-account
@@ -52,6 +55,13 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `POST /api/v1/auth/demo` | One-click read-only demo sign-in — starts a session as the `demo` viewer using server-held credentials (no request body). Registered only when demo mode is enabled (`auth.demo.enabled`); rate-limited. |
 | `GET /api/v1/auth/oidc/start` | Begin the OIDC authorization-code + PKCE flow — redirects to the IdP (`400` if OIDC is not configured). |
 | `GET /api/v1/auth/oidc/callback` | IdP redirect target — validates `state`, exchanges the `code`, starts the session. |
+| `GET /api/v1/auth/oidc/mapping` | The merged OIDC group→role mapping: chart-declared rules (`source: config`, read-only) and UI-authored ones (`source: db`), each with `editable` and `shadowed` flags — a shadowed rule names a group the chart also declares; it stays visible but never grants. Registered **only when OIDC is configured** — no provider means nothing to map, so the honest answer is `404`. **Admin.** |
+| `PUT /api/v1/auth/oidc/mapping/{group}` | Create or update an authored rule — `{role, projects}`. On a chart collision the rule is stored and marked shadowed rather than silently ignored or refused. Applies at the group's next sign-in or token refresh; reaches every replica within ~15 s. **Admin.** |
+| `DELETE /api/v1/auth/oidc/mapping/{group}` | Delete an authored rule (`404` if none has that group). Chart-declared rules cannot be deleted here. **Admin.** |
+| `POST /api/v1/auth/oidc/mapping/reset` | Delete every authored rule, returning the mapping to exactly what the chart declares. **Admin.** |
+| `GET /api/v1/tokens` | The caller's personal API tokens — `prefix`, `name`, `createdAt`, `expiresAt`, `lastUsedAt` and `tokenHash` (the revoke handle). **Never the raw token.** A global admin may list another user's with `?user=`. Any signed-in user — deliberately no role floor, so a user whose grants were revoked can still clean up the credentials they handed out. |
+| `POST /api/v1/tokens` | Mint a token — `{name, expiresInDays}` (`0` or omitted = never expires). The `201` response is the **only** place the raw `avurut_…` value ever appears; only its SHA-256 is stored. The token authenticates as its owner's **live** identity on every request, so disabling the owner disables the token. |
+| `DELETE /api/v1/tokens/{hash}` | Revoke a token by its `tokenHash`. Self-service; a global admin may revoke anyone's. An unknown — or another user's — hash answers `404`, not `403`, which would confirm the hash exists. |
 | `GET /api/v1/users` | List users with role grants and origin (local/oidc). **Admin.** |
 | `POST /api/v1/users` | Create a local user — `{email, name, password, grants}`. **Admin.** |
 | `PUT /api/v1/users/{id}` | Update a user — any of `name`, `password`, `disabled`, `grants`. A `password` is accepted **only** for local accounts; setting one on an SSO user is refused, so an admin cannot mint a credential that bypasses the identity provider. **Admin.** |
@@ -64,7 +74,7 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `POST /api/v1/projects/{id}/keys` | Mint an ingest API key — `{name}`. The `201` response is the **only** place the raw `key` ever appears; only its SHA-256 is stored. **Admin.** |
 | `DELETE /api/v1/projects/{id}/keys/{hash}` | Revoke a key by its `keyHash`. Takes effect within the gateway's verdict cache TTL. `204`, or `404` if no live key matches. **Admin.** |
 | `GET /api/v1/collection/overlay` | The stored collection overlay — per-signal on/off plus the shared namespace-exclusion list. Registered **only** when `collection.runtimeControl.enabled` (default off); its state is echoed in `GET /api/v1/capabilities`. **Admin.** |
-| `PUT /api/v1/collection/overlay` | Replace the overlay. A **closed schema**: anything outside it — including free-form collector config — is rejected, so the endpoint adds no injection surface. As of v0.4.0 the overlay is stored but **not yet applied** — collection is still driven by Helm values. **Admin.** |
+| `PUT /api/v1/collection/overlay` | Replace the overlay. A **closed schema**: anything outside it — including free-form collector config — is rejected, so the endpoint adds no injection surface. Since v0.5.0 the overlay is **applied at runtime**: the hub writes it through to its own sensor ConfigMaps and rolls the DaemonSet, so the sensor follows within seconds. **Admin.** |
 | `DELETE /api/v1/collection/overlay` | Clear the overlay, returning collection to the chart defaults. **Admin.** |
 | `GET /api/v1/system/status` | Component health, per-signal storage (rows, bytes, compression, configured retention *and* the TTL the tables enforce) disk usage, and the ClickHouse connection (address, database, user — never the password). Includes a **Schema** component reporting applied versus expected migrations, so a half-migrated install names itself instead of failing every query. **Admin.** |
 | `GET /api/v1/services` | Services with RED aggregates over the window. |

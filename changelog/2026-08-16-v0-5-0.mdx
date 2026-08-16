@@ -1,0 +1,87 @@
+---
+slug: v0-5-0
+title: "v0.5.0: operate it from the UI"
+description: "Collection, service groups, the SSO role mapping and API credentials are now administered from the app; the Dashboard answers 'how is the estate doing?' on one screen; and the service map says what is wrong, not just that something is."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-08-16
+---
+
+**v0.5.0** closes the gap between *running* avuru obs and *changing* it. Nearly
+everything an operator used to reach through `values.yaml` and a redeploy —
+collection, service groups, the SSO role mapping, API credentials — now lives
+in the app, and the app itself opens on a screen that answers *how is the
+estate doing?*
+
+{/* truncate */}
+
+- **Turn signals on and off from the UI.**
+  [Settings → Collection became writable](/changelog/collection-runtime-control):
+  switch OBI traces, logs, infra-metrics, profiling or energy collection, edit
+  the excluded namespaces, and the sensor follows in seconds — no
+  `helm upgrade`. Off by default; opting in grants the hub a deliberately
+  narrow Role over its own sensor ConfigMaps and DaemonSet, nothing else, and
+  the write-through path is proven end to end against a real cluster in CI.
+
+- **Say which services matter, from the app.**
+  [Health groups are authored in Settings → Groups](/changelog/service-groups-ui)
+  — name, criticality tier, covered namespaces or services — and apply to the
+  next health read. Chart-declared groups stay read-only and win a name
+  collision; auto-grouping by namespace is unchanged, so nothing disappears
+  while you organize.
+
+- **One screen for how the estate is doing.** The
+  [Dashboard](/changelog/dashboard-overview) is the landing route:
+  service-group health, live topology beside the firing alerts, and Kubernetes
+  capacity in three bands. Each band follows its module — a band whose module
+  is off simply does not mount — and with service health off the summary falls
+  back to the busiest services rather than inventing a second status model.
+
+- **The service map says what is wrong, not just that something is.** Node
+  rings now show the service's actual status
+  [read from the same rollup the Service Health board uses](/changelog/service-map-restyle);
+  edges carry the caller-side p50/p95 that call path actually cost; hovering a
+  node focuses its neighbourhood; and search, a problems-only toggle and a
+  group filter live in the URL, so a narrowed map is a link. The carbon lens
+  moved to a halo so health and gCO2e are visible at once.
+
+- **Grant access from the app.** The
+  [OIDC group→role mapping is now editable in Settings → Access](/changelog/oidc-mapping-api-tokens)
+  — the chart's rules stay authoritative and an overridden rule says why — and
+  the same tab mints **personal API tokens**: hashed at rest, shown once,
+  resolving to their owner's live permissions on every request, so disabling a
+  user disables every token they hold.
+
+- **Where the data lives, and who can touch it.**
+  [Settings → Storage and Settings → Access](/changelog/settings-storage-access):
+  the ClickHouse connection read-only with per-signal usage and retention shown
+  against the TTL the tables actually enforce, and a permissions matrix the hub
+  derives from its own route guards, so it cannot drift from what is enforced.
+
+- **Find a pod on the Nodes screen.** Both tables
+  [sort by any column and filter](/changelog/nodes-sort-filter) by name,
+  namespace or workload; filters live in the URL and counts read "N of M", so
+  a narrowed table cannot be misread as a shrinking cluster.
+
+### Security
+
+- **Three green endpoints answered without authentication.**
+  `GET /api/v1/green/summary`, `/green/budgets` and `/green/report` were
+  registered without the session middleware, so an install with authentication
+  *on* served any project's energy and carbon figures to an unauthenticated
+  caller. All three now require the viewer role and honour project grants, and
+  a test asserts over the whole project-data route set. Details in the
+  [security note](/changelog/green-endpoints-auth).
+
+### Fixed
+
+- **The shared demo account was offered a password form it could never
+  submit.** The hub was right to refuse the change — the demo credential is
+  shared and re-keyed on every boot — but the UI was never told.
+  `/api/v1/auth/me` now states whether self-service rotation applies and why
+  not, and the Account tab renders the explanation instead of the form.
+
+**Upgrading from v0.4.x** is a normal `helm upgrade`. Schema migrations
+`0016`–`0018` apply automatically (`hub.autoMigrate`). See the
+[Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.5.0).

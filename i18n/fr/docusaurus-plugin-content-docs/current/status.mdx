@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.4.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.5.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -54,6 +54,8 @@ changements livrés le [Changelog](/changelog).
 | Vue Stockage — connexion ClickHouse (lecture seule), taille, compression et ancienneté par signal, et rétention configurée confrontée au TTL réellement appliqué par les tables | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Vue Accès — quel rôle peut lire et lequel peut modifier chaque domaine, déduit par le hub des gardes avec lesquelles ses routes sont enregistrées : impossible de diverger de ce qui est appliqué | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Tableau de bord — l'écran d'accueil : santé des groupes de services, topologie compacte, alertes actives et capacité Kubernetes en une seule vue. Chaque bande suit son module et se rabat sur les services les plus actifs, au lieu de disparaître, quand la santé des services est désactivée | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
+| Mapping des groupes SSO depuis l'interface — Paramètres → Accès affiche les règles OIDC groupe→rôle déclarées dans le chart et permet à un administrateur d'en créer, modifier et supprimer d'autres à côté ; le chart l'emporte en cas de collision de nom et une règle éclipsée dit pourquoi. Un changement s'applique à la prochaine connexion du groupe, sur tout le cluster en ~15 s | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
+| Jetons d'API personnels — émettez, listez et révoquez des jetons bearer dans Paramètres → Accès ; seul le SHA-256 est stocké et la valeur brute n'est montrée qu'une fois. Un jeton est résolu vers les droits vivants de son propriétaire : désactiver un utilisateur désactive tous ses jetons ; un jeton invalide est un 401 net, jamais une rétrogradation anonyme | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 
 ## À venir
 
@@ -61,7 +63,7 @@ changements livrés le [Changelog](/changelog).
 |---|---|---|
 | Projets multi-clusters — projets membres agrégeant plusieurs clusters, rétention et statut par projet | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
 | Compatibilité d'ingestion élargie — récepteurs pour les protocoles courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de transfert pour les migrations en double écriture | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
-| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.5 |
+| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

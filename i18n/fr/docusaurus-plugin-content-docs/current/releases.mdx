@@ -22,14 +22,37 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.5.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.6.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : les projets membres multi-clusters,
-l'aboutissement du plan de contrôle de la collecte à chaud (applicateur +
-interface éditable), une compatibilité d'ingestion élargie, un étiquetage
-automatique plus riche, et davantage de clients (source de données Grafana,
-CLI).
+[Feuille de route](/docs/roadmap)) : les projets membres multi-clusters, une
+compatibilité d'ingestion élargie avec des chemins de migration en double
+écriture, un étiquetage automatique plus riche, et davantage de clients — une
+source de données Grafana et une CLI portées par les jetons d'API livrés en
+v0.5.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.5.0" date="2026-08-16" status="shipped" statusLabel="Livré">
+
+**Piloter depuis l'interface.** Presque tout ce qu'un opérateur changeait par
+`values.yaml` vit désormais dans l'application : la **collecte pilotable à
+chaud** (des interrupteurs par signal que le capteur suit en quelques secondes,
+désactivée par défaut derrière un rôle délibérément étroit), les **groupes de
+services** écrits dans Paramètres → Groupes, un **mapping SSO groupe→rôle
+éditable** à côté des règles du chart en lecture seule, et des **jetons d'API
+personnels** — hachés au repos, montrés une seule fois, résolus vers les
+permissions vivantes de leur propriétaire : désactiver un utilisateur
+désactive tous ses jetons. Le **Tableau de bord** devient l'écran d'accueil —
+santé des groupes, topologie vivante, alertes actives et capacité Kubernetes
+en une seule vue — et la **carte des services** affiche de vrais anneaux de
+statut issus de la consolidation de santé, le p50/p95 par arête côté appelant,
+le survol focalisé et des filtres partageables. Également : tri et filtres sur
+l'écran Nœuds, et la correction de trois points d'API green qui répondaient
+sans authentification. Les migrations de schéma `0016` à `0018` s'appliquent
+automatiquement ; la montée de version est un `helm upgrade` ordinaire.
+[Version GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.5.0)
+· [changelog](/changelog/v0-5-0).
 
 </ReleaseEntry>
 
