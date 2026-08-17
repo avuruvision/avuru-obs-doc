@@ -21,12 +21,33 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.5.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.6.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
-multi-cluster member projects, the runtime collection control plane completed
-(applier + editable UI), wider ingest compatibility, richer auto-tagging, and
-more clients (Grafana data source, CLI).
+multi-cluster member projects, wider ingest compatibility with dual-write
+migration paths, richer auto-tagging, and more clients — a Grafana data source
+and a CLI riding the API tokens v0.5 shipped.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.5.0" date="2026-08-16" status="shipped">
+
+**Operate it from the UI.** Nearly everything an operator changed through
+`values.yaml` now lives in the app: **runtime collection control** (per-signal
+switches the sensor follows in seconds, default-off behind a deliberately
+narrow Role), **service groups** authored in Settings → Groups, an **editable
+SSO group→role mapping** beside the chart's read-only rules, and **personal
+API tokens** — hashed at rest, shown once, resolving to their owner's live
+permissions so disabling a user disables every token they hold. The
+**Dashboard** becomes the landing screen — group health, live topology, firing
+alerts and Kubernetes capacity in one view — and the **service map** shows
+real status rings from the health rollup, caller-side p50/p95 per edge, hover
+focus and shareable filters. Also: sorting and filtering on the Nodes screen,
+and a fix for three green endpoints that answered without authentication.
+Schema migrations `0016`–`0018` apply automatically; upgrading is a normal
+`helm upgrade`.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.5.0)
+· [changelog](/changelog/v0-5-0).
 
 </ReleaseEntry>
 

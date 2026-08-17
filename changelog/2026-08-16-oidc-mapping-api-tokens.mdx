@@ -1,0 +1,54 @@
+---
+slug: oidc-mapping-api-tokens
+title: "Hand out access from the app — and give your scripts a key of their own"
+description: "Settings → Access now edits the SSO group→role mapping, with the chart's rules still authoritative, and mints personal API tokens that follow their owner's live permissions."
+authors: [avuru]
+tags: [ui, security]
+date: 2026-08-16
+---
+
+Two gaps closed in Settings → Access: the identity-provider group mapping is no
+longer a value only a `helm upgrade` could change, and scripts get a credential
+of their own instead of a borrowed session cookie.
+
+{/* truncate */}
+
+## Map SSO groups to roles, from the app
+
+Which SSO group grants which role on which projects was a chart value —
+`auth.oidc.mapping` in `values.yaml`, one `helm upgrade` per change — so giving
+a team access meant a deploy. Settings → Access now shows those rules and lets
+an admin add, edit and delete rules of their own beside them.
+
+- **The chart stays the declared base.** Its rules render read-only, and on a
+  name collision the chart wins: an authored rule for a group the chart also
+  declares is kept and marked as overridden, with the reason on its row,
+  instead of being silently ignored or refused outright.
+- **A change applies to that group's next sign-in or token refresh**, and
+  reaches every hub replica within about fifteen seconds. That bound is stated
+  in the panel, so a stale read on another replica right after a save is not
+  mistaken for a failed one.
+- **Reset** deletes every rule authored in the app and returns the install to
+  exactly what the chart declares. An install with no identity provider
+  configured never sees the panel — there is nothing for it to map.
+
+## Personal API tokens
+
+The hub API is meant to outgrow the browser — a Grafana data source and a CLI
+are on the [roadmap](/docs/roadmap) — but the only credential was a session
+cookie. Settings → Access now mints **personal API tokens**: create one, with
+an optional expiry, copy it once, and send it as
+`Authorization: Bearer avurut_…`.
+
+- **Shown once, hashed forever.** Only the SHA-256 of a token is stored; the
+  raw value appears exactly once, at creation. The `avurut_` prefix says which
+  *kind* of credential leaked if one ever shows up in a log.
+- **A token is its owner, live.** It carries no permissions of its own — every
+  request resolves to the owner's current roles and project grants, so
+  disabling a user disables every token they hold, structurally rather than by
+  cleanup.
+- **No silent downgrade.** A bad or expired bearer token is a clean `401`,
+  never a fall-through to the anonymous viewer an install may have enabled.
+- **Revocation is immediate** and self-service; a global admin can list and
+  revoke anyone's. The list shows when each token was last used, so a stale
+  credential is visible before it becomes a problem.

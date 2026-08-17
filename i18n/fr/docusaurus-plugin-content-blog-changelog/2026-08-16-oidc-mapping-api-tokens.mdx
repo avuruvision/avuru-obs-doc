@@ -1,0 +1,63 @@
+---
+slug: oidc-mapping-api-tokens
+title: "Distribuez les accès depuis l'application — et donnez à vos scripts une clé à eux"
+description: "Paramètres → Accès édite désormais le mapping SSO groupe→rôle, les règles du chart restant la référence, et émet des jetons d'API personnels qui suivent les permissions vivantes de leur propriétaire."
+authors: [avuru]
+tags: [ui, security]
+date: 2026-08-16
+---
+
+Deux manques comblés dans Paramètres → Accès : le mapping des groupes du
+fournisseur d'identité n'est plus une valeur que seul un `helm upgrade` pouvait
+changer, et les scripts reçoivent une clé à eux au lieu d'un cookie de session
+emprunté.
+
+{/* truncate */}
+
+## Associer les groupes SSO aux rôles, depuis l'application
+
+Quel groupe SSO accorde quel rôle sur quels projets était une valeur du chart —
+`auth.oidc.mapping` dans `values.yaml`, un `helm upgrade` par changement — si
+bien qu'ouvrir l'accès à une équipe exigeait un déploiement. Paramètres → Accès
+affiche désormais ces règles et permet à un administrateur d'en ajouter, d'en
+modifier et d'en supprimer d'autres à côté.
+
+- **Le chart reste la base déclarée.** Ses règles s'affichent en lecture seule
+  et, en cas de collision de nom, le chart l'emporte : une règle créée dans
+  l'application pour un groupe que le chart déclare aussi est conservée et
+  marquée comme éclipsée, avec la raison sur sa ligne, au lieu d'être ignorée
+  en silence ou refusée d'emblée.
+- **Un changement s'applique à la prochaine connexion du groupe** ou au
+  prochain rafraîchissement de jeton, et atteint chaque réplique du hub en une
+  quinzaine de secondes. Cette borne est affichée dans le panneau, pour qu'une
+  lecture encore ancienne sur une autre réplique juste après un enregistrement
+  ne soit pas prise pour un échec.
+- **Réinitialiser** supprime toutes les règles créées dans l'application et
+  ramène l'installation exactement à ce que le chart déclare. Une installation
+  sans fournisseur d'identité configuré ne voit jamais le panneau — il n'y a
+  rien à associer.
+
+## Jetons d'API personnels
+
+L'API du hub a vocation à dépasser le navigateur — une source de données
+Grafana et une CLI sont sur la [feuille de route](/docs/roadmap) — mais la
+seule accréditation était un cookie de session. Paramètres → Accès émet
+désormais des **jetons d'API personnels** : créez-en un, avec une expiration
+optionnelle, copiez-le une seule fois, et envoyez-le en
+`Authorization: Bearer avurut_…`.
+
+- **Montré une fois, haché pour toujours.** Seul le SHA-256 d'un jeton est
+  stocké ; la valeur brute n'apparaît qu'une seule fois, à la création. Le
+  préfixe `avurut_` dit quel *type* d'accréditation a fui si l'une d'elles
+  apparaît un jour dans un log.
+- **Un jeton, c'est son propriétaire, en direct.** Il ne porte aucune
+  permission propre — chaque requête est résolue vers les rôles et droits par
+  projet actuels du propriétaire : désactiver un utilisateur désactive tous
+  ses jetons, par construction et non par nettoyage.
+- **Aucune rétrogradation silencieuse.** Un jeton invalide ou expiré est un
+  `401` net, jamais un repli vers le lecteur anonyme qu'une installation peut
+  avoir activé.
+- **La révocation est immédiate** et en libre-service ; un administrateur
+  global peut lister et révoquer ceux de n'importe qui. La liste montre la
+  dernière utilisation de chaque jeton : une accréditation dormante se voit
+  avant de devenir un problème.
