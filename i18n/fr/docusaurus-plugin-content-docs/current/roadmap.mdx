@@ -159,21 +159,46 @@ distance quand l'amont fournira un client. Le détail complet est sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-5-0).
 
-## v0.6 et au-delà (indicatif)
+## v0.6 — ouvert aux deux bouts (publiée le 22/08/2026)
 
-- **Compatibilité d'ingestion élargie :** des récepteurs pour les protocoles
-  courants de traces/métriques/logs en plus d'OTLP, plus des exporteurs de
-  transfert pour écrire en double pendant une migration.
+Le produit observait bien un cluster et parlait un protocole ; les parcs sont
+plus grands que cela. [v0.6.0](/docs/releases) a ouvert les deux bouts du
+tuyau. **[Quatre protocoles de push de plus](/changelog/wider-ingest-compat)**
+— Jaeger, Zipkin, Prometheus remote-write et Loki push — arrivent à côté
+d'OTLP, un flag de values chacun et tous désactivés par défaut, chacun passant
+par la même étape de tenant : les clés d'ingestion sont donc vérifiées quel que
+soit le protocole d'arrivée. Les **exportateurs de transfert** (OTLP/Kafka)
+dupliquent les écritures vers le backend que vous exploitez déjà, derrière une
+file bornée pour qu'une cible morte n'exerce aucune contre-pression sur le
+stockage. La promesse est un garde-fou de CI : de vraies charges par protocole
+à travers les récepteurs qu'une véritable installation Helm rend. Les
+**[projets membres](/changelog/multi-cluster-projects)** font lire à un projet
+l'union de plusieurs clusters sur tous les écrans, et les **interrupteurs de
+composants** (`hub.enabled`, `ui.enabled`, `gateway.enabled`) permettent à un
+cluster secondaire de n'installer que la moitié « ingestion » face au stockage
+central. Les projets ont gagné ce qui leur manquait côté exploitation : une
+**fenêtre de rétention propre** et leur **propre volume de stockage** à côté de
+celui de l'installation. Côté énergie, `/green` nomme désormais les nœuds d'où
+viennent ses chiffres et les budgets carbone disent s'ils peuvent réellement
+joindre quelqu'un. Détail complet sur la page
+[État des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-6-0).
+
+## v0.7 et au-delà (indicatif)
+
 - **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
-  qu'un client léger. Une source de données **Grafana** et une **CLI** sont
-  prévues, toutes deux portées par les jetons d'API personnels livrés en v0.5.
-- **Projets multi-clusters :** des projets membres agrégeant plusieurs
-  clusters, la rétention et l'état système par projet, et des interrupteurs de
-  composants du chart pour qu'un cluster secondaire n'installe que la
-  passerelle (et le capteur) sur un ClickHouse partagé. Le CRUD des projets et
-  les clés d'ingestion sont livrés en v0.3.
+  qu'un client léger. Une recette **Grafana** par-dessus l'API du hub et une
+  **CLI** (`--fail-on` pour les garde-fous de CI) sont prévues, toutes deux
+  portées par les jetons d'API personnels livrés en v0.5.
+- **Métadonnées de service déclarées :** les services qui envoient directement
+  en OTLP déclarent leur domaine, leur environnement et leur criticité en
+  attributs de ressource, au lieu de retomber dans `(unlabeled)`.
 - **Étiquetage automatique plus riche :** faire des labels/annotations
   Kubernetes des étiquettes métier, filtrables sur tous les signaux.
+- **Comptabilité du trafic inter-zones :** les octets inter-zones par paire de
+  services depuis les flux réseau du capteur — le sondage de la v0.6 a tranché
+  la conception, il reste l'implémentation.
+- **Contrôles de disponibilité :** la santé même sans aucun trafic.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
 

@@ -106,8 +106,8 @@ client (CLI, Grafana data source). All responses are JSON. Times are RFC3339
 | `GET /api/v1/errors/issues/{fingerprint}/events` | Occurrences of an issue (keyset paginated). |
 | `GET /api/v1/errors/issues/{fingerprint}/histogram` | Occurrence histogram over the window. |
 | `POST /api/v1/errors/issues/{fingerprint}/status` | Triage an issue — `unresolved` / `resolved` / `ignored`. |
-| `GET /api/v1/green/summary` | Per-service energy (Wh) and carbon (gCO2e) over the window, with the coverage ratio and unattributed bucket. Module `green` (requires `infra-metrics`). |
-| `GET /api/v1/green/budgets` | Monthly carbon budgets per service group: used, projected, ratio, and warn/exceeded status. Module `green`. |
+| `GET /api/v1/green/summary` | Per-service energy (Wh) and carbon (gCO2e) over the window, with the coverage ratio and unattributed bucket. Coverage also carries **one row per known node** — its Wh and the measured/estimated split — with nodes reporting nothing listed at `0`, not omitted. Module `green` (requires `infra-metrics`). |
+| `GET /api/v1/green/budgets` | Monthly carbon budgets per service group: used, projected, ratio, and warn/exceeded status. Each budget also reports its **deliverability** (wired, alerting off, no channel, unknown channel), and the response carries warnings for budgets targeting a group nothing rolls up to — those evaluate forever at zero. Module `green`. |
 | `GET /api/v1/green/report` | CSRD-ready export — per-app numbers plus a methodology block (formula, factor provenance, coverage). Module `green`. |
 | `GET /api/v1/infra/nodes` | Node utilization (kubeletstats): latest CPU/memory/network, pod counts, `points`-bucketed series. |
 | `GET /api/v1/infra/pods` | Pod utilization, busiest first — `node` scopes to one node, `limit` caps rows. |

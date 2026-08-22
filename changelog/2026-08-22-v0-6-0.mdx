@@ -1,0 +1,89 @@
+---
+slug: v0-6-0
+title: "v0.6.0: open at both ends"
+description: "Bring the senders you already run — Jaeger, Zipkin, Prometheus remote-write and Loki push land beside OTLP, with dual-write to the backend you keep — and let one project span several clusters, with its own retention and its own storage bill."
+authors: [avuru]
+tags: [platform, sustainability]
+date: 2026-08-22
+---
+
+**v0.6.0** is about the two ends of the pipe. Getting data *in* no longer means
+re-pointing every sender you own, and getting a second cluster *on the screen*
+no longer means a second instance. Adopting avuru obs became a reversible
+decision instead of a migration.
+
+{/* truncate */}
+
+- **Keep the senders you already run.**
+  [Four more push protocols land beside OTLP](/changelog/wider-ingest-compat):
+  Jaeger (gRPC and thrift/HTTP), Zipkin, Prometheus remote-write and Loki
+  push — one values flag each, all off by default, so an install that wants
+  none renders exactly as before. None of them is a side door: every enabled
+  receiver joins the same tenant stage as OTLP, so per-project **ingest keys
+  are enforced identically whatever the wire protocol**.
+
+- **Leave the same way you came in.** `gateway.forward.otlp` and
+  `gateway.forward.kafka` dual-write everything the gateway ingests to a
+  second destination — the backend you run today, or a topic another team
+  owns. The forwarders always carry a bounded sending queue, so a dead
+  second target cannot backpressure the write path to storage, and Kafka SASL
+  credentials come only from an existing Secret.
+
+- **The compatibility claim is a gate, not a sentence.** Every protocol above
+  is exercised in CI: a real Jaeger batch, a Zipkin span, a snappy-framed
+  remote-write sample and a Loki push go through the receivers a **real Helm
+  install renders**, then the rows are asserted in storage and the forwarded
+  trace is checked arriving at a stand-in legacy backend.
+
+- **One project, several clusters.**
+  [Member projects](/changelog/multi-cluster-projects) make a project read the
+  union of the projects it aggregates — services, map, traces, logs, metrics,
+  errors, profiles, energy, alert history. Nothing about the members changes:
+  they stay separately queryable and separately granted, and a viewer still
+  sees only the members they already had. The install now matches: every
+  component has a switch (`hub.enabled`, `ui.enabled`, `gateway.enabled`), so a
+  secondary cluster installs the **ingest half alone** against the central
+  store, and combinations that cannot work are refused at install time with a
+  sentence saying why.
+
+- **A project can keep less than the install does.** Give any UI-managed
+  project a shorter retention window and a background sweep trims that tenant
+  hourly, scoped by project. A window *longer* than the install-wide one is
+  refused rather than quietly ignored — the shared table TTL would drop those
+  rows first whatever the project asked for.
+
+- **What one project holds, not just what the install holds.** Settings →
+  Storage now answers per project: rows, an estimated size, the ingest rate
+  over the last hour, how far back the data goes, and the retention that
+  actually applies. Size is the one estimate, and the column says so — storage
+  parts hold every project's rows together, so a project's share can only be
+  apportioned by row count.
+
+### Sustainability
+
+- **The energy numbers now say which nodes they came from.** `/green` counted
+  its nodes — known, measured, estimated, absent — but never said which node
+  spent what. The coverage panel gained a per-node table with the
+  measured/estimated split kept visible per row, and nodes reporting nothing
+  listed at 0 Wh rather than omitted. Carbon budgets now also resolve their own
+  **deliverability** (alerting off, no channel, unknown channel) instead of
+  rendering identically whether or not they can reach anyone, and a budget
+  aimed at a service group nothing rolls up to says so instead of evaluating
+  forever at zero. A
+  [RAPL validation runbook](https://github.com/avuruvision/avuru-obs/blob/main/docs/runbooks/green-rapl-validation.md)
+  now covers checking every hop on real hardware.
+
+### Fixed
+
+- **The hub reported the retention it was built with, not the one you
+  configured.** `retention.*` reached the migration job but never the hub
+  itself, so an install keeping 30 days of traces had a hub still answering
+  with the 7-day default — which Settings → Storage read as TTL drift and
+  reported as a migration to re-run. Both sides now render from one chart
+  helper, and a template assertion fails if either loses it.
+
+**Upgrading from v0.5.x** is a normal `helm upgrade`; schema migration `0019`
+applies automatically (`hub.autoMigrate`), and every new receiver, forwarder
+and component switch is off or unchanged by default. See the
+[Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.6.0).

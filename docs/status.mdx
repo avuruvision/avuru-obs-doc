@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.5.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.6.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -61,12 +61,15 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | SSO group mapping from the UI — Settings → Access shows the chart-declared OIDC group→role rules and lets an admin author, edit and delete rules beside them; the chart wins a name collision and an overridden rule says why. A change applies on the group's next sign-in or token refresh, cluster-wide within ~15 s | <StatusBadge status="shipped" /> | v0.5 |
 | Personal API tokens — mint, list and revoke bearer tokens in Settings → Access; only the SHA-256 is stored and the raw value is shown once. A token resolves to its owner's live grants, so disabling a user disables every token they hold; a bad token is a clean 401, never an anonymous downgrade | <StatusBadge status="shipped" /> | v0.5 |
 | Wider ingest compatibility — Jaeger, Zipkin, Prometheus remote-write and Loki push receivers alongside OTLP, one values flag each and all off by default; every receiver goes through the same tenant stage, so ingest keys are enforced identically whatever the wire protocol. Forwarding exporters (OTLP/Kafka) dual-write to a second backend during a migration, behind a bounded queue so a dead target cannot backpressure storage | <StatusBadge status="shipped" /> | v0.6 |
+| Green coverage and budget deliverability — a per-node energy table under `/green` with the measured/estimated split kept per row, carbon budgets that say whether they can actually reach a channel, and a warning when a budget targets a service group nothing rolls up to | <StatusBadge status="shipped" /> | v0.6 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.6 |
+| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.7 |
+| More clients — a CLI with `--fail-on` for CI gates, and a documented Grafana recipe over the hub API | <StatusBadge status="planned" /> | v0.7 |
+| Richer auto-tagging — map Kubernetes labels and annotations to business tags, then filter by them across every signal | <StatusBadge status="planned" /> | v0.7 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server
