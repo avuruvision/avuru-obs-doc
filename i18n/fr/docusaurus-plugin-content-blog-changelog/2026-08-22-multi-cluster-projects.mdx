@@ -1,0 +1,105 @@
+---
+slug: multi-cluster-projects
+title: "Une seule instance pour tous vos clusters — des projets qui les traversent, gardent moins, et disent ce qu'ils coûtent"
+description: "Un projet peut désormais agréger plusieurs clusters sur un seul écran, conserver ses données moins longtemps que l'installation, rendre compte de son propre volume, et s'installer en ingestion seule sur un cluster secondaire."
+authors: [avuru]
+tags: [platform]
+date: 2026-08-22
+---
+
+Observer un deuxième cluster imposait jusqu'ici une deuxième instance : son
+propre stockage, sa propre interface, son propre login. Les projets s'étendent
+désormais d'un cluster à l'autre : un seul écran, un seul stockage, et une
+installation qui peut se limiter à la moitié « ingestion ».
+
+{/* truncate */}
+
+## Un projet, plusieurs clusters
+
+Un projet géré depuis l'interface peut désigner des **projets membres** dans
+Paramètres → Général. Tous les écrans — services, carte, traces, logs,
+métriques, erreurs, profils, green, historique d'alertes — répondent alors pour
+l'union au lieu d'un seul tenant.
+
+- **Rien ne change pour les membres.** Ils restent interrogeables et attribués
+  séparément. Chaque utilisateur ne voit que les membres auxquels il avait déjà
+  accès : une agrégation est une commodité par-dessus les permissions
+  existantes, jamais un moyen de les contourner.
+- **L'appartenance a un seul niveau**, vérifié dans les deux sens : une
+  agrégation ne peut pas en contenir une autre, et un projet déjà membre ne
+  peut pas en devenir une. Une requête développe l'appartenance exactement une
+  fois, donc elle ne peut jamais lire silencieusement moins que l'arbre
+  qu'elle semble couvrir.
+- **Une agrégation est une vue à la lecture.** Elle ne stocke rien : les
+  écritures qui exigent un tenant unique — tri des erreurs, clés d'ingestion,
+  envoi de profils — y sont refusées avec un message nommant le projet membre à
+  utiliser.
+- **Les membres n'ont pas besoin d'exister.** Un identifiant peut être ajouté
+  avant que son cluster n'ait émis sa première trace, ce qui est l'ordre réel
+  d'un déploiement.
+
+Un changement d'appartenance s'applique immédiatement sur le réplica qui l'a
+fait et atteint les autres en trente secondes — la même borne que celle
+annoncée par le panneau de correspondance des identités.
+
+## Un projet peut garder moins que l'installation
+
+La rétention était un seul chiffre pour toute l'installation : un projet de
+préproduction bruyant conservait trente jours de traces parce que la production
+en avait besoin. Tout projet géré depuis l'interface peut désormais recevoir sa
+**propre fenêtre, plus courte**, qu'un balayage de fond applique chaque heure.
+
+- **Pourquoi un balayage et pas un TTL.** Les tables de télémétrie sont
+  partagées entre projets, et une expression TTL au niveau du stockage ne sait
+  pas sélectionner les lignes d'un seul tenant. Le balayage émet donc des
+  suppressions bornées, limitées au projet — en sautant une table dont le
+  passage précédent tourne encore, et en ne coûtant qu'une lecture d'index par
+  table une fois qu'il n'y a plus rien à supprimer.
+- **Une fenêtre plus longue que celle de l'installation est refusée**, plutôt
+  qu'acceptée puis ignorée : le TTL de la table partagée supprimerait ces
+  lignes avant, quoi qu'il arrive. L'API répond en nommant le plafond au lieu
+  d'enregistrer un chiffre sans effet.
+- **Les agrégations ne portent pas de fenêtre.** Elles ne possèdent aucune
+  ligne — ce sont leurs membres qui en ont, chacun avec la sienne.
+
+## Ce que contient ce projet
+
+Paramètres → Stockage affiche désormais le projet sélectionné à côté du tableau
+de l'installation : lignes, taille estimée, débit d'ingestion sur la dernière
+heure, ancienneté des données, et la fenêtre de rétention réellement appliquée —
+la sienne ou celle de l'installation, l'étiquette le précise.
+
+Les tailles sont la seule estimation, et la page le dit : les parts de stockage
+mélangent les lignes de tous les projets, la part d'un projet ne peut donc être
+que répartie au prorata du nombre de lignes. Le nombre de lignes, la fraîcheur
+et le débit, eux, sont exacts. Une agrégation rend compte de l'union des membres
+visibles et les nomme ; quand ces membres gardent des fenêtres différentes, elle
+le dit au lieu d'en faire une moyenne que personne n'a configurée.
+
+## N'installer que la moitié « ingestion »
+
+Chaque composant a maintenant son interrupteur — `hub.enabled`, `ui.enabled`,
+`gateway.enabled` à côté de celui du capteur — de sorte qu'un cluster secondaire
+installe la passerelle (et le capteur) seuls, et écrit dans le stockage de
+l'instance centrale sous son propre projet :
+
+```bash
+helm install avuruobs avuruobs/avuruobs \
+  --set hub.enabled=false --set ui.enabled=false \
+  --set clickhouse.external.enabled=true \
+  --set clickhouse.external.address=clickhouse.central.example.com:9000 \
+  --set gateway.tenant=prod-eu
+```
+
+Les retraits sont réels : pas de hub, pas d'interface, pas de secret
+d'authentification, et volontairement pas de job de migration — deux clusters
+qui migrent la même base, c'est une course, et le schéma appartient à l'instance
+qui le possède. Les combinaisons qui ne peuvent pas fonctionner sont refusées au
+rendu, avec une phrase nommant la valeur à corriger, plutôt que déployées au
+vert pour échouer à la première requête.
+
+Avec les clés d'ingestion activées, le cluster secondaire apprend où se trouve
+le vrai hub (`hub.external.url`) et partage son jeton interne. Le chart refuse
+d'en générer un localement : un jeton que le hub central n'a jamais vu échoue
+systématiquement, et le symptôme — tous les émetteurs rejetés — désigne la
+mauvaise cause.
