@@ -3,7 +3,7 @@ id: otel-bridge
 title: OTLP bridge
 sidebar_label: OTLP bridge
 sidebar_position: 5
-description: Already instrumented with OpenTelemetry? Point your exporters at the gateway.
+description: Already emitting OTLP — or Jaeger, Zipkin, Prometheus remote-write or Loki push? Point your senders at the gateway.
 ---
 
 # OTLP bridge
@@ -28,6 +28,77 @@ Repoint the exporter endpoint to the gateway. No SDK or code changes are needed 
 avuru obs speaks native OTLP. For tool-specific migration notes and side-by-side
 comparisons, see [Compare](/docs/compare) (Jaeger, the Grafana stack, Prometheus,
 Datadog).
+
+## Senders that do not speak OTLP
+
+Since **v0.6** the gateway also accepts four other push protocols natively, so
+a fleet that already emits them needs no re-instrumentation to try avuru obs.
+Each is a single values flag and **all are off by default** — an install that
+enables none renders exactly as before.
+
+```bash
+# Jaeger — collector-compatible ports; senders change the endpoint only.
+helm upgrade avuruobs ... --reuse-values --set gateway.receivers.jaeger.enabled=true
+#   gRPC             -> avuruobs-gateway:14250
+#   thrift over HTTP -> http://avuruobs-gateway:14268/api/traces
+
+# Zipkin — any sender that emits the Zipkin span format.
+helm upgrade avuruobs ... --reuse-values --set gateway.receivers.zipkin.enabled=true
+#   -> http://avuruobs-gateway:9411/api/v2/spans
+
+# Prometheus remote_write — protocol v2 only; needs the infra-metrics module.
+helm upgrade avuruobs ... --reuse-values --set gateway.receivers.prometheusRemoteWrite.enabled=true
+#   prometheus.yml:
+#     remote_write:
+#       - url: http://avuruobs-gateway:9291/api/v1/write
+
+# Loki push (Promtail, Alloy, anything that speaks it) — needs the logs module.
+# Same port Loki uses, so the sender's hostname is the only edit.
+helm upgrade avuruobs ... --reuse-values --set gateway.receivers.loki.enabled=true
+#   -> http://avuruobs-gateway:3100/loki/api/v1/push
+```
+
+What to know before you point traffic at one:
+
+- **Ingest keys apply identically.** Enabled receivers go through the same
+  tenant stage as OTLP, so `auth.ingest.mode: enforce` and per-project keys
+  behave the same whatever the wire protocol. Senders pass the key as
+  `Authorization: Bearer avuruk_…`. The one limitation: a legacy sender that
+  cannot set request headers has nowhere to put a key, so under `enforce` it is
+  rejected — give that environment its own gateway with `gateway.tenant` set,
+  or keep it on `log` mode.
+- **A receiver follows its signal's module.** Remote-write requires infra
+  metrics and Loki push requires logs; enabling one for a signal you do not
+  store is a silent no-op rather than a later surprise.
+- **Remote-write is v2 only.** A v1 sender is refused with `415` rather than
+  having its samples dropped quietly.
+- **Jaeger over UDP is not offered** — that transport has no authentication
+  hook, and the agent it belongs to is deprecated upstream.
+- **Loki stream labels become log *record* attributes**, not resource identity.
+  A pushed line is found by its body or its attributes; the service filter is
+  backed by `service.name`, which a Loki push does not carry.
+- Only Service ports are opened. Exposing a receiver publicly needs its own
+  ingress host — in-cluster senders need nothing.
+
+## Dual-writing during a migration
+
+Adopting a backend should be reversible, and evaluating one usually means
+running both for a while. The gateway can forward everything it ingests to a
+second destination — your current backend, or a Kafka topic another team owns:
+
+```bash
+helm upgrade avuruobs ... --reuse-values \
+  --set gateway.forward.otlp.enabled=true \
+  --set gateway.forward.otlp.endpoint=old-collector.observability:4317 \
+  --set gateway.forward.otlp.insecure=true \
+  --set "gateway.forward.otlp.signals={traces,logs}"
+```
+
+Forwarders always render with a bounded sending queue and retry, so a second
+backend going down cannot backpressure the write path into storage. Kafka SASL
+credentials come only from an existing Secret, never inline. A forwarder
+enabled with no endpoint or brokers fails the render instead of forwarding
+nowhere.
 
 :::note This page is expanding
 Per-language exporter snippets live under [Integrations](/integrations). Sampling

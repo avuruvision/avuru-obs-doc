@@ -1,0 +1,77 @@
+---
+slug: wider-ingest-compat
+title: "Gardez les émetteurs que vous avez déjà — et continuez d'écrire dans le backend que vous avez déjà"
+description: "La passerelle accepte désormais les quatre protocoles de push courants à côté d'OTLP, chacun derrière un flag de values, avec les clés d'ingestion vérifiées de la même façon quel que soit le format de fil — et peut tout dupliquer vers un second backend le temps de l'évaluation."
+authors: [avuru]
+tags: [platform]
+date: 2026-08-20
+---
+
+Essayer un nouveau backend d'observabilité commençait par re-pointer ou
+ré-instrumenter tous ses émetteurs. La passerelle parle désormais les
+protocoles que votre parc émet déjà, et peut tout transmettre en parallèle à
+votre backend actuel.
+
+{/* truncate */}
+
+## Quatre entrées de plus
+
+La promesse « drop-in » s'arrêtait à OTLP. Un parc qui émettait déjà en
+Jaeger, Zipkin, Prometheus remote-write ou Loki push avait du travail avant même
+de pouvoir essayer avuru obs. La passerelle accepte maintenant les quatre
+nativement :
+
+| Protocole | Port | Point d'entrée |
+|---|---|---|
+| Jaeger | `14250` (gRPC), `14268` (thrift/HTTP) | `avuruobs-gateway:14250`, `/api/traces` |
+| Zipkin | `9411` | `/api/v2/spans` |
+| Prometheus remote-write | `9291` | `/api/v1/write` |
+| Loki push | `3100` | `/loki/api/v1/push` |
+
+- **Un flag de values par protocole, tous désactivés par défaut.** Une
+  installation qui n'en veut aucun rend exactement les mêmes manifestes
+  qu'avant — aucun port, aucun pipeline en plus. Les recettes protocole par
+  protocole sont sur la page [Passerelle OTLP](/docs/setup/otel-bridge).
+- **Aucun protocole n'a de porte dérobée.** Chaque récepteur activé rejoint
+  *la même* étape de tenant qu'OTLP : les clés d'ingestion par projet sont donc
+  vérifiées à l'identique quel que soit le format d'arrivée. Activer un
+  récepteur n'élargit jamais ce qu'un émetteur non authentifié peut faire.
+- **Un récepteur suit le module de son signal.** Remote-write exige les
+  métriques d'infrastructure, Loki push exige les logs : en activer un pour un
+  signal que vous ne stockez pas ne fait discrètement rien, plutôt que de vous
+  surprendre plus tard.
+- **Deux limites, énoncées plutôt que masquées.** Jaeger en UDP n'est pas
+  proposé : ce transport n'offre aucun point d'accroche d'authentification, et
+  l'agent auquel il appartient est déprécié en amont. Remote-write est en
+  version **v2** uniquement — un émetteur v1 reçoit un `415` au lieu de voir
+  ses échantillons disparaître en silence.
+
+## Dupliquer les écritures, le temps de décider
+
+Adopter un backend devrait être une décision réversible, et en évaluer un
+revient presque toujours à en faire tourner deux à la fois.
+`gateway.forward.otlp` et `gateway.forward.kafka` envoient tout ce que la
+passerelle ingère vers une seconde destination : le backend que vous exploitez
+aujourd'hui, ou un topic Kafka appartenant à une autre équipe.
+
+- **Une cible morte ne peut pas nuire à la cible vivante.** Les exportateurs de
+  transfert sont toujours rendus avec une file d'envoi bornée et des
+  réessais : un second backend en panne ne peut donc jamais exercer de
+  contre-pression sur le chemin d'écriture vers le stockage. C'est exactement
+  la panne qui fait douter de la double écriture.
+- **Les identifiants restent hors de la configuration.** Le SASL Kafka ne vient
+  que d'un Secret existant, jamais en clair, et n'atterrit donc jamais dans une
+  ConfigMap.
+- **Une erreur de configuration échoue bruyamment.** Un transfert activé sans
+  endpoint ni brokers arrête le rendu au lieu de transmettre discrètement dans
+  le vide.
+
+## La promesse est testée, pas affirmée
+
+Chaque protocole ci-dessus est réellement exercé en CI : un vrai lot Jaeger, un
+span Zipkin, un échantillon remote-write encodé en snappy et un push Loki sont
+envoyés à travers les récepteurs qu'une installation Helm réelle rend, puis les
+lignes sont vérifiées dans le stockage et la trace transmise est contrôlée à
+l'arrivée dans un second backend de substitution. La promesse de compatibilité
+est un garde-fou, comme le [wedge](/docs/roadmap) des cinq minutes, plutôt
+qu'une phrase dans un README.

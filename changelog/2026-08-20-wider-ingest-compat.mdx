@@ -1,0 +1,68 @@
+---
+slug: wider-ingest-compat
+title: "Bring the senders you already run — and keep writing to the backend you already have"
+description: "The gateway now accepts the four common push protocols alongside OTLP, each one a values flag, with ingest keys enforced the same way whatever the wire format — and can dual-write everything to a second backend while you evaluate."
+authors: [avuru]
+tags: [platform]
+date: 2026-08-20
+---
+
+Trying a new observability backend used to mean re-pointing or re-instrumenting
+every sender first. The gateway now speaks the protocols your fleet already
+emits, and can forward everything to your current backend at the same time.
+
+{/* truncate */}
+
+## Four more ways in
+
+The drop-in promise stopped at OTLP. A fleet already emitting Jaeger, Zipkin,
+Prometheus remote-write or Loki push had work to do before it could even try
+avuru obs. The gateway now accepts all four natively:
+
+| Protocol | Port | Endpoint |
+|---|---|---|
+| Jaeger | `14250` (gRPC), `14268` (thrift/HTTP) | `avuruobs-gateway:14250`, `/api/traces` |
+| Zipkin | `9411` | `/api/v2/spans` |
+| Prometheus remote-write | `9291` | `/api/v1/write` |
+| Loki push | `3100` | `/loki/api/v1/push` |
+
+- **One values flag per protocol, every one off by default.** An install that
+  wants none renders byte-for-byte as it did before — no new ports, no new
+  pipeline. See the [OTLP bridge](/docs/setup/otel-bridge) page for the
+  per-protocol recipes.
+- **No protocol gets a side door.** Every enabled receiver joins the *same*
+  tenant stage as OTLP, so per-project ingest keys are checked identically
+  whatever wire format the data arrived on. Turning on a receiver never
+  widens what an unauthenticated sender can do.
+- **A receiver follows its signal's module.** Remote-write needs infra
+  metrics, Loki push needs logs — enabling one for a signal you do not store
+  is quietly a no-op rather than a surprise later.
+- **Two limits, stated rather than hidden.** Jaeger over UDP is not offered:
+  it carries no authentication hook, and the agent it belongs to is deprecated
+  upstream. Remote-write is protocol **v2** only — a v1 sender is refused with
+  `415` instead of having its samples dropped in silence.
+
+## Dual-write while you make up your mind
+
+Adopting a backend should be a reversible decision, and evaluating one usually
+means running two at once. `gateway.forward.otlp` and `gateway.forward.kafka`
+send everything the gateway ingests to a second destination as well — the
+backend you run today, or a Kafka topic another team owns.
+
+- **A dead target cannot hurt the live one.** Forwarders always render with a
+  bounded sending queue and retry, so a second backend going down can never
+  backpressure the write path into storage. That failure is precisely what
+  makes people distrust dual-write.
+- **Credentials stay out of config.** Kafka SASL comes only from an existing
+  Secret, never inline, so it never lands in a ConfigMap.
+- **Misconfiguration fails loudly.** A forwarder enabled with no endpoint or
+  no brokers stops the render instead of quietly forwarding nowhere.
+
+## The claim is tested, not asserted
+
+Every protocol above is exercised for real in CI: a genuine Jaeger batch, a
+Zipkin span, a snappy-framed remote-write sample and a Loki push are sent
+through the receivers a real Helm install renders, then the rows are asserted
+in storage and the forwarded trace is checked arriving at a stand-in second
+backend. The compatibility claim is a gate, like the five-minute
+[wedge](/docs/roadmap), rather than a sentence in a README.
