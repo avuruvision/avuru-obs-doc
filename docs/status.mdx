@@ -33,6 +33,10 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Projects — per-environment scoping, sidebar switcher, shareable `?project=` links | <StatusBadge status="shipped" /> | v0.1 |
 | Project management — create, rename and delete projects from the UI; `default` and config-defined projects stay read-only | <StatusBadge status="shipped" /> | v0.3 |
 | Read-only demo — one-click "Try the demo" viewer backed by live data (OpenTelemetry Astronomy Shop); opt-in, server-side sign-in | <StatusBadge status="shipped" /> | v0.3 |
+| Member projects — one project reads the union of several clusters on every screen; membership is one level deep and each viewer still sees only the members they were granted | <StatusBadge status="shipped" /> | v0.6 |
+| Per-project retention — give a project a shorter window than the install, enforced by an hourly scoped trim | <StatusBadge status="shipped" /> | v0.6 |
+| Per-project storage usage — rows, estimated size, ingest rate and effective retention for the selected project, beside the instance-wide totals | <StatusBadge status="shipped" /> | v0.6 |
+| Component toggles — install the ingest half alone on a secondary cluster (`hub.enabled` / `ui.enabled` / `gateway.enabled`), writing to a shared store | <StatusBadge status="shipped" /> | v0.6 |
 | Collection controls — per signal/namespace/pod/node, with a per-node agent inventory | <StatusBadge status="shipped" /> | v0.1 |
 | Runtime collection control — switch each signal on or off from Settings → Collection and the sensor follows in seconds, no `helm upgrade`; shows the effective config and resets to chart defaults. Opt-in, behind a namespace-scoped Role over the hub's own sensor resources | <StatusBadge status="shipped" /> | v0.5 |
 | Error tracking — deduplicated issues from spans/logs, triage lifecycle, Sentry-protocol ingest | <StatusBadge status="shipped" /> | v0.2 |
@@ -62,7 +66,6 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 
 | Capability | Status | Target |
 |---|---|---|
-| Multi-cluster projects — member projects aggregating several clusters, per-project retention and status | <StatusBadge status="planned" /> | v0.6 |
 | Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.6 |
 
 :::info Service map today

@@ -1,0 +1,95 @@
+---
+slug: multi-cluster-projects
+title: "One instance for every cluster — projects that span them, keep less, and say what they cost"
+description: "A project can now aggregate several clusters on one screen, keep telemetry for less time than the install does, report its own footprint, and be installed as ingest-only on a secondary cluster."
+authors: [avuru]
+tags: [platform]
+date: 2026-08-22
+---
+
+Observing a second cluster used to mean running a second instance — its own
+store, its own UI, its own login. Projects now stretch across clusters instead:
+one screen, one store, and an install that can be just the ingest half.
+
+{/* truncate */}
+
+## One project, several clusters
+
+A UI-managed project can name **member projects** in Settings → General. Every
+screen — services, map, traces, logs, metrics, errors, profiles, green, alert
+history — then answers for the union instead of a single tenant.
+
+- **Nothing about the members changes.** They stay separately queryable and
+  separately granted. Each viewer sees only the members they already had access
+  to, so an aggregate is a convenience over existing permissions, never a way
+  around them.
+- **Membership is one level deep**, enforced in both directions: an aggregate
+  cannot contain another, and a project that is already a member cannot become
+  one. A query expands membership exactly once, so it can never quietly read
+  less than the tree it appears to cover.
+- **An aggregate is a read-time view.** It stores nothing of its own, so the
+  writes that need one tenant — error triage, ingest keys, profile ingest —
+  are refused on an aggregate with a message naming the member to use instead.
+- **Members need not exist yet.** An id can be added before its cluster has
+  shipped its first span, which is the order a rollout actually happens in.
+
+A membership change applies immediately on the replica that made it and reaches
+the others within thirty seconds — the same bound the identity-mapping panel
+states.
+
+## A project can keep less than the install does
+
+Retention was a single number for the whole install, so a noisy staging project
+held thirty days of traces because production needed to. Any UI-managed project
+can now be given a **shorter window of its own**, and a background sweep trims
+that project hourly.
+
+- **Why it is a sweep and not a TTL.** The telemetry tables are shared across
+  projects, and a storage-level TTL expression cannot select the rows of one
+  tenant. So the sweep issues bounded deletions scoped by project — skipping a
+  table whose previous trim is still running, and costing a single indexed
+  lookup per table once there is nothing left to delete.
+- **Longer than the install-wide window is refused**, not accepted and quietly
+  ignored: the shared table TTL would drop those rows first regardless, so the
+  API answers with the ceiling instead of storing a number that changes nothing.
+- **Aggregates cannot carry a window.** They own no rows — their members do,
+  and each member keeps its own.
+
+## What this project holds
+
+Settings → Storage now shows the selected project beside the instance-wide
+table: rows, an estimated size, the ingest rate over the last hour, how far back
+its data goes, and the retention window that actually applies — its own or the
+install's, labelled either way.
+
+Sizes are the one estimate, and the page says so: storage parts hold every
+project's rows together, so a project's share can only be apportioned by row
+count. Rows, freshness and ingest rate are exact. An aggregate reports the union
+of the members you may see and names them; when its members keep different
+windows it says so rather than averaging them into a number nobody configured.
+
+## Install just the ingest half
+
+Every component now has a switch — `hub.enabled`, `ui.enabled`,
+`gateway.enabled` beside the sensor's — so a secondary cluster installs the
+gateway (and sensor) alone and writes to the central instance's store under its
+own project:
+
+```bash
+helm install avuruobs avuruobs/avuruobs \
+  --set hub.enabled=false --set ui.enabled=false \
+  --set clickhouse.external.enabled=true \
+  --set clickhouse.external.address=clickhouse.central.example.com:9000 \
+  --set gateway.tenant=prod-eu
+```
+
+The reductions are real: no hub, no UI, no auth secret, and deliberately no
+migration job — two clusters migrating one database is a race, and the schema
+belongs to the instance that owns it. Combinations that cannot work are refused
+at render time with a sentence naming the value to fix, rather than rolling out
+green and failing on the first request.
+
+With ingest keys on, the secondary cluster is told where the real hub is
+(`hub.external.url`) and shares its internal token. The chart will not generate
+a local one: a token the central hub has never seen fails closed, and the
+symptom — every sender rejected — points at the wrong thing entirely.
