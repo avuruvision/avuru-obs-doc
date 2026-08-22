@@ -1,0 +1,97 @@
+---
+slug: v0-6-0
+title: "v0.6.0 : ouvert aux deux bouts"
+description: "Gardez les émetteurs que vous avez déjà — Jaeger, Zipkin, Prometheus remote-write et Loki push arrivent à côté d'OTLP, avec double écriture vers le backend que vous conservez — et laissez un projet couvrir plusieurs clusters, avec sa propre rétention et son propre coût de stockage."
+authors: [avuru]
+tags: [platform, sustainability]
+date: 2026-08-22
+---
+
+**v0.6.0** s'occupe des deux bouts du tuyau. Faire *entrer* les données
+n'oblige plus à re-pointer tous vos émetteurs, et afficher un second cluster
+n'oblige plus à exploiter une seconde instance. Adopter avuru obs est devenu
+une décision réversible plutôt qu'une migration.
+
+{/* truncate */}
+
+- **Gardez les émetteurs que vous avez déjà.**
+  [Quatre protocoles de push de plus arrivent à côté d'OTLP](/changelog/wider-ingest-compat) :
+  Jaeger (gRPC et thrift/HTTP), Zipkin, Prometheus remote-write et Loki push —
+  un flag de values chacun, tous désactivés par défaut, si bien qu'une
+  installation qui n'en veut aucun rend exactement les mêmes manifestes
+  qu'avant. Aucun n'est une porte dérobée : chaque récepteur activé rejoint la
+  même étape de tenant qu'OTLP, donc les **clés d'ingestion par projet sont
+  vérifiées à l'identique quel que soit le format de fil**.
+
+- **Repartez comme vous êtes arrivé.** `gateway.forward.otlp` et
+  `gateway.forward.kafka` dupliquent tout ce que la passerelle ingère vers une
+  seconde destination — le backend que vous exploitez aujourd'hui, ou un topic
+  appartenant à une autre équipe. Les exportateurs de transfert portent
+  toujours une file d'envoi bornée : une seconde cible en panne ne peut donc
+  jamais exercer de contre-pression sur le chemin d'écriture vers le stockage,
+  et les identifiants SASL Kafka ne viennent que d'un Secret existant.
+
+- **La promesse de compatibilité est un garde-fou, pas une phrase.** Chaque
+  protocole ci-dessus est réellement exercé en CI : un vrai lot Jaeger, un span
+  Zipkin, un échantillon remote-write encodé en snappy et un push Loki
+  traversent les récepteurs qu'une **véritable installation Helm** rend, puis
+  les lignes sont vérifiées dans le stockage et la trace transmise est
+  contrôlée à l'arrivée dans un backend de substitution.
+
+- **Un projet, plusieurs clusters.** Les
+  [projets membres](/changelog/multi-cluster-projects) font lire à un projet
+  l'union des projets qu'il agrège — services, carte, traces, logs, métriques,
+  erreurs, profils, énergie, historique d'alertes. Rien ne change pour les
+  membres : ils restent interrogeables et attribués séparément, et chacun ne
+  voit que les membres auxquels il avait déjà droit. L'installation suit
+  désormais : chaque composant a son interrupteur (`hub.enabled`,
+  `ui.enabled`, `gateway.enabled`), donc un cluster secondaire n'installe que
+  la **moitié « ingestion »** face au stockage central, et les combinaisons
+  impossibles sont refusées dès l'installation avec une phrase qui dit
+  pourquoi.
+
+- **Un projet peut garder moins que l'installation.** Donnez à n'importe quel
+  projet géré depuis l'UI une fenêtre de rétention plus courte : un balayage de
+  fond élague ce tenant toutes les heures, à la portée du projet. Une fenêtre
+  *plus longue* que celle de l'installation est refusée plutôt qu'ignorée en
+  silence — le TTL de la table partagée supprimerait ces lignes en premier,
+  quoi que demande le projet.
+
+- **Ce que détient un projet, pas seulement l'installation.** Réglages →
+  Stockage répond maintenant par projet : lignes, taille estimée, débit
+  d'ingestion sur la dernière heure, ancienneté des données et rétention
+  réellement appliquée. La taille est la seule estimation, et la colonne le
+  dit — les parts de stockage mélangent les lignes de tous les projets, donc la
+  part d'un projet ne peut être répartie qu'au prorata des lignes.
+
+### Sobriété
+
+- **Les chiffres d'énergie disent enfin de quels nœuds ils viennent.**
+  `/green` comptait ses nœuds — connus, mesurés, estimés, absents — sans jamais
+  dire quel nœud avait consommé quoi. Le panneau de couverture a gagné un
+  tableau par nœud, avec la distinction mesuré/estimé conservée sur chaque
+  ligne et les nœuds qui ne remontent rien affichés à 0 Wh plutôt qu'omis. Les
+  budgets carbone résolvent aussi leur propre **délivrabilité** (alerting
+  désactivé, aucun canal, canal inconnu) au lieu de s'afficher à l'identique
+  qu'ils puissent joindre quelqu'un ou non, et un budget visant un groupe de
+  services auquel rien ne se rattache le dit au lieu d'évaluer éternellement à
+  zéro. Un
+  [runbook de validation RAPL](https://github.com/avuruvision/avuru-obs/blob/main/docs/runbooks/green-rapl-validation.md)
+  couvre désormais la vérification de chaque étape sur du vrai matériel.
+
+### Corrigé
+
+- **Le hub annonçait la rétention avec laquelle il avait été construit, pas
+  celle que vous aviez configurée.** `retention.*` atteignait le job de
+  migration mais jamais le hub lui-même : une installation gardant 30 jours de
+  traces avait donc un hub qui répondait encore avec la valeur par défaut de 7
+  jours — que Réglages → Stockage lisait comme une dérive de TTL et signalait
+  comme une migration à relancer. Les deux côtés sont désormais rendus par un
+  seul helper du chart, et une assertion de template échoue si l'un des deux le
+  perd.
+
+**La montée depuis v0.5.x** est un `helm upgrade` normal ; la migration de
+schéma `0019` s'applique automatiquement (`hub.autoMigrate`), et chaque nouveau
+récepteur, transfert et interrupteur de composant est désactivé ou inchangé par
+défaut. Voir la page [Versions](/docs/releases) et la
+[release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.6.0).

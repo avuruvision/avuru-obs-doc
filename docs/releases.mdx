@@ -21,12 +21,40 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.6.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.7.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
-multi-cluster member projects, wider ingest compatibility with dual-write
-migration paths, richer auto-tagging, and more clients — a Grafana data source
-and a CLI riding the API tokens v0.5 shipped.
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): more
+clients — a CLI with `--fail-on` for CI gates and a documented Grafana recipe
+over the hub API — services that declare their own domain, environment and
+tier, richer auto-tagging from Kubernetes labels, and the inter-zone traffic
+accounting whose design landed in v0.6.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.6.0" date="2026-08-22" status="shipped">
+
+**Open at both ends.** Getting data in no longer means re-pointing every
+sender you own: **Jaeger** (gRPC and thrift/HTTP), **Zipkin**, **Prometheus
+remote-write** and **Loki push** receivers land beside OTLP, one values flag
+each and all off by default, every one through the same tenant stage so
+**per-project ingest keys are enforced whatever the wire protocol**. Forwarding
+exporters (`gateway.forward.otlp`, `gateway.forward.kafka`) **dual-write** to
+the backend you run today behind a bounded queue, so adopting avuru obs is a
+reversible decision; every protocol is exercised in CI through the receivers a
+real Helm install renders. At the other end, **member projects** make one
+project read the union of several clusters on every screen — membership one
+level deep, each viewer still seeing only the members they were granted — and
+**component toggles** (`hub.enabled`, `ui.enabled`, `gateway.enabled`) let a
+secondary cluster install the ingest half alone against the central store, with
+impossible combinations refused at install time. Projects also gained
+**per-project retention** (an hourly tenant-scoped trim) and **per-project
+storage usage** in Settings → Storage. On the energy side, `/green` names the
+nodes its numbers come from and carbon budgets report whether they can actually
+reach a channel. Fixed: the hub answered with its built-in retention rather
+than the configured one. Schema migration `0019` applies automatically;
+upgrading is a normal `helm upgrade`.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.6.0)
+· [changelog](/changelog/v0-6-0).
 
 </ReleaseEntry>
 

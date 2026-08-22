@@ -74,6 +74,21 @@ attribuée ÷ mesurée) et un seau **non attribué** explicite pour l'énergie
 mesurée que la jointure n'a pas pu placer. Des chiffres remettables à un
 auditeur et reproductibles.
 
+**La couverture nomme ses nœuds.** Le panneau de couverture de `/green` compte
+ce qu'il connaît — nœuds connus, mesurés, estimés, absents — et liste **une
+ligne par nœud** avec ses Wh et la distinction mesuré/estimé conservée ligne
+par ligne ; un nœud qui ne remonte rien s'affiche à 0 Wh plutôt que d'être
+omis, car sans cela une ligne manquante et un zéro silencieux donnent la même
+image.
+
+**Un budget dit s'il peut joindre quelqu'un.** Chaque budget résout sa propre
+délivrabilité face aux canaux que l'évaluateur parcourt réellement — câblé,
+alerting désactivé, aucun canal, ou un canal qui n'existe plus — pour que
+l'écran ne promette pas une notification que le tick laisserait tomber. Un
+budget visant un groupe de services auquel rien ne se rattache est signalé lui
+aussi : il évaluerait sinon éternellement à zéro, ce qui, sur un tableau de
+bord, ressemble exactement à un mois tranquille.
+
 ## Cas d'usage
 
 - **Répondre à la demande CSRD / ESRS E1 sans tableur.** Des gCO2e par service
@@ -90,17 +105,24 @@ auditeur et reproductibles.
 Les clés de configuration, noms/labels de métriques, port et RBAC de Kepler
 sont validés en CI avec le **compteur de développement (fake-cpu-meter)** de
 l'image épinglée, mais **pas encore confirmés sur du matériel RAPL réel** —
-faites-le avant une utilisation en production. Les noms de métriques Kepler du
-hub sont configurables précisément pour cette raison.
+faites-le avant une utilisation en production. Le
+[runbook de validation RAPL](https://github.com/avuruvision/avuru-obs/blob/main/docs/runbooks/green-rapl-validation.md)
+parcourt chaque étape, des fichiers powercap du nœud jusqu'aux chiffres
+affichés, et mesure la marge d'erreur de l'estimateur face à Kepler sur le même
+nœud. Les noms de métriques Kepler du hub sont configurables précisément pour
+cette raison.
 :::
 
 ## Limites
 
-- **Pas de RAPL, pas de données.** La plupart des VM de cloud public n'exposent
-  pas powercap/RAPL — la v1 vise le bare-metal / les instances metal et
-  **rapporte honnêtement** (un ratio de couverture et un état vide pédagogique)
-  au lieu d'estimer. L'estimation basée sur le TDP pour les nœuds sans RAPL est
-  post-v1.
+- **L'énergie mesurée exige RAPL.** La plupart des VM de cloud public
+  n'exposent pas powercap/RAPL : les joules mesurés viennent donc du
+  bare-metal et des instances metal. Depuis la v0.3, un
+  [modèle de puissance basé sur le TDP](/changelog/green-tdp-estimation),
+  optionnel, couvre le reste — chaque chiffre qu'il produit est étiqueté
+  *estimé* de bout en bout et jamais mélangé à l'énergie mesurée — et ce qui
+  n'est ni mesuré ni estimé est **rapporté honnêtement** sous forme de ratio de
+  couverture plutôt que deviné.
 - **Énergie opérationnelle uniquement.** Énergie CPU de forme Scope 2 ; pas de
   carbone incorporé / Scope 3.
 - **Facteurs annuels statiques.** Le gCO2e reporté utilise l'intensité réseau

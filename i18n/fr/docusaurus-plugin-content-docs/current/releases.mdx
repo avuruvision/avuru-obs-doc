@@ -22,14 +22,45 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.6.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.7.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : les projets membres multi-clusters, une
-compatibilité d'ingestion élargie avec des chemins de migration en double
-écriture, un étiquetage automatique plus riche, et davantage de clients — une
-source de données Grafana et une CLI portées par les jetons d'API livrés en
-v0.5.
+[Feuille de route](/docs/roadmap)) : davantage de clients — une CLI avec
+`--fail-on` pour les garde-fous de CI et une recette Grafana documentée
+par-dessus l'API du hub —, des services qui déclarent eux-mêmes leur domaine,
+leur environnement et leur criticité, un étiquetage automatique plus riche
+depuis les labels Kubernetes, et la comptabilité du trafic inter-zones dont la
+conception a été livrée en v0.6.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.6.0" date="2026-08-22" status="shipped" statusLabel="Livré">
+
+**Ouvert aux deux bouts.** Faire entrer les données n'oblige plus à re-pointer
+tous vos émetteurs : des récepteurs **Jaeger** (gRPC et thrift/HTTP),
+**Zipkin**, **Prometheus remote-write** et **Loki push** arrivent à côté
+d'OTLP, un flag de values chacun et tous désactivés par défaut, chacun passant
+par la même étape de tenant — les **clés d'ingestion par projet sont donc
+vérifiées quel que soit le format de fil**. Les exportateurs de transfert
+(`gateway.forward.otlp`, `gateway.forward.kafka`) **dupliquent les écritures**
+vers le backend que vous exploitez aujourd'hui, derrière une file bornée :
+adopter avuru obs devient une décision réversible, et chaque protocole est
+exercé en CI à travers les récepteurs qu'une véritable installation Helm rend.
+À l'autre bout, les **projets membres** font lire à un projet l'union de
+plusieurs clusters sur tous les écrans — appartenance à un seul niveau, chacun
+ne voyant que les membres qui lui sont attribués — et les **interrupteurs de
+composants** (`hub.enabled`, `ui.enabled`, `gateway.enabled`) permettent à un
+cluster secondaire de n'installer que la moitié « ingestion » face au stockage
+central, les combinaisons impossibles étant refusées dès l'installation. Les
+projets ont aussi gagné la **rétention par projet** (un élagage horaire limité
+au tenant) et le **volume de stockage par projet** dans Réglages → Stockage.
+Côté énergie, `/green` nomme les nœuds d'où viennent ses chiffres et les
+budgets carbone indiquent s'ils peuvent réellement joindre un canal. Corrigé :
+le hub répondait avec sa rétention intégrée plutôt qu'avec celle configurée. La
+migration de schéma `0019` s'applique automatiquement ; la montée est un
+`helm upgrade` normal.
+[Release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.6.0)
+· [changelog](/changelog/v0-6-0).
 
 </ReleaseEntry>
 

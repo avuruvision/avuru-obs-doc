@@ -147,20 +147,42 @@ destination for collection control: status reporting first, remote-config when
 the upstream grows a client. Full detail on the
 [feature status](/docs/status) page and in the [changelog](/changelog/v0-5-0).
 
-## v0.6 and beyond (directional)
+## v0.6 — open at both ends (released 2026-08-22)
 
-- **Wider ingest compatibility:** push receivers for the common
-  tracing/metrics/logging wire protocols alongside OTLP, plus forwarding
-  exporters so avuru obs can dual-write during a migration.
+The product observed one cluster well and spoke one protocol; estates are
+bigger than that. [v0.6.0](/docs/releases) opened both ends of the pipe.
+**[Four more push protocols](/changelog/wider-ingest-compat)** — Jaeger, Zipkin,
+Prometheus remote-write and Loki push — land beside OTLP, one values flag each
+and all off by default, every one through the same tenant stage so ingest keys
+are enforced whatever the protocol arrived on; **forwarding exporters**
+(OTLP/Kafka) dual-write to the backend you already run, behind a bounded queue
+so a dead target cannot backpressure storage. The claim is a CI gate: real
+fixtures per protocol through the receivers a real Helm install renders.
+**[Member projects](/changelog/multi-cluster-projects)** let one project read
+the union of several clusters on every screen, and **component toggles**
+(`hub.enabled`, `ui.enabled`, `gateway.enabled`) let a secondary cluster
+install the ingest half alone against the central store. Projects gained the
+operational parts they were missing: a **retention window of their own** and
+their **own storage usage** beside the install's. On the energy side, `/green`
+now names the nodes its numbers came from and carbon budgets say whether they
+can actually reach anyone. Full detail on the [feature status](/docs/status)
+page and in the [changelog](/changelog/v0-6-0).
+
+## v0.7 and beyond (directional)
+
 - **More clients:** the hub API is the client-agnostic contract; the SPA is one
-  thin client. A **Grafana** data source and a **CLI** are planned, both riding
-  the personal API tokens v0.5 shipped.
-- **Multi-cluster projects:** member projects that aggregate several clusters,
-  per-project retention and system status, and chart component toggles so a
-  secondary cluster installs gateway(+sensor)-only against a shared
-  ClickHouse. Project CRUD and ingest keys shipped in v0.3.
+  thin client. A **Grafana** recipe over the hub API and a **CLI**
+  (`--fail-on` for CI gates) are planned, both riding the personal API tokens
+  v0.5 shipped.
+- **Declared service metadata:** services sending OTLP directly declare their
+  own domain, environment and tier as resource attributes instead of
+  collapsing into `(unlabeled)`.
 - **Richer auto-tagging:** map Kubernetes labels/annotations to business tags
   and filter by them across every signal.
+- **Inter-zone traffic accounting:** cross-zone bytes per service pair from the
+  sensor's network flows — the v0.6 spike settled the design, the
+  implementation is what remains.
+- **Endpoint checks:** health when there is no traffic at all.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
   code.

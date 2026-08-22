@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.5.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.6.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -61,12 +61,15 @@ changements livrés le [Changelog](/changelog).
 | Mapping des groupes SSO depuis l'interface — Paramètres → Accès affiche les règles OIDC groupe→rôle déclarées dans le chart et permet à un administrateur d'en créer, modifier et supprimer d'autres à côté ; le chart l'emporte en cas de collision de nom et une règle éclipsée dit pourquoi. Un changement s'applique à la prochaine connexion du groupe, sur tout le cluster en ~15 s | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Jetons d'API personnels — émettez, listez et révoquez des jetons bearer dans Paramètres → Accès ; seul le SHA-256 est stocké et la valeur brute n'est montrée qu'une fois. Un jeton est résolu vers les droits vivants de son propriétaire : désactiver un utilisateur désactive tous ses jetons ; un jeton invalide est un 401 net, jamais une rétrogradation anonyme | <StatusBadge status="shipped" label="Livré" /> | v0.5 |
 | Compatibilité d'ingestion élargie — récepteurs Jaeger, Zipkin, Prometheus remote-write et Loki push en plus d'OTLP, un flag de values chacun et tous désactivés par défaut ; chaque récepteur passe par la même étape de tenant, donc les clés d'ingestion s'appliquent à l'identique quel que soit le protocole. Des exporteurs de transfert (OTLP/Kafka) dupliquent les écritures vers un second backend pendant une migration, derrière une file bornée pour qu'une cible morte n'exerce aucune contre-pression sur le stockage | <StatusBadge status="shipped" label="Livré" /> | v0.6 |
+| Couverture green et délivrabilité des budgets — un tableau d'énergie par nœud sur `/green`, la distinction mesuré/estimé conservée ligne par ligne, des budgets carbone qui disent s'ils peuvent réellement joindre un canal, et un avertissement quand un budget vise un groupe de services auquel rien ne se rattache | <StatusBadge status="shipped" label="Livré" /> | v0.6 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.6 |
+| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
+| Davantage de clients — une CLI avec `--fail-on` pour les garde-fous de CI, et une recette Grafana documentée par-dessus l'API du hub | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
+| Étiquetage automatique plus riche — associer les labels et annotations Kubernetes à des étiquettes métier, puis filtrer dessus sur tous les signaux | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

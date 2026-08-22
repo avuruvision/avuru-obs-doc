@@ -67,6 +67,19 @@ factor and its provenance, the **coverage ratio** (attributed ÷ measured
 energy), and an explicit **unattributed** bucket for measured energy the join
 couldn't place. Numbers you can hand to an auditor and reproduce.
 
+**Coverage names its nodes.** The `/green` coverage panel counts what it knows
+— nodes known, measured, estimated, absent — and lists **one row per node**
+with its Wh and the measured/estimated split kept visible per row; a node
+reporting nothing shows at 0 Wh rather than being omitted, because a missing
+row and a silent zero are the same picture otherwise.
+
+**A budget says whether it can reach anyone.** Each budget resolves its own
+deliverability against the channels the evaluator actually walks — wired,
+alerting off, no channel set, or a channel that no longer exists — so the
+screen cannot promise a notification the tick would drop. A budget aimed at a
+service group nothing rolls up to is flagged too: it would otherwise evaluate
+forever at zero, which on a dashboard looks exactly like a quiet month.
+
 ## Use cases
 
 - **Answer the CSRD / ESRS E1 ask without a spreadsheet.** Per-service gCO2e
@@ -80,16 +93,22 @@ couldn't place. Numbers you can hand to an auditor and reproduce.
 :::caution Confirm on real hardware before production
 Kepler's config keys, metric names/labels, port and RBAC are validated in CI
 against the pinned image's **dev fake-cpu-meter**, but are **not yet confirmed
-against real RAPL hardware** — do that before production use. The hub's Kepler
-metric names are configurable for exactly this reason.
+against real RAPL hardware** — do that before production use. The
+[RAPL validation runbook](https://github.com/avuruvision/avuru-obs/blob/main/docs/runbooks/green-rapl-validation.md)
+walks every hop, from the node's powercap files to the numbers on the screen,
+and measures the estimator's error band against Kepler on the same node. The
+hub's Kepler metric names are configurable for exactly this reason.
 :::
 
 ## Limitations
 
-- **No RAPL, no data.** Most public-cloud VMs expose no powercap/RAPL — v1
-  targets bare-metal / metal instances and **reports honestly** (a coverage
-  ratio and a teaching empty state) instead of estimating. TDP-based estimation
-  for RAPL-less nodes is post-v1.
+- **Measured energy needs RAPL.** Most public-cloud VMs expose no
+  powercap/RAPL, so measured joules come from bare-metal / metal instances.
+  Since v0.3 an opt-in [TDP-based power model](/changelog/green-tdp-estimation)
+  covers the rest — every number it produces is labeled *estimated* end to end
+  and never blended with measured energy — and what is neither measured nor
+  estimated is **reported honestly** as a coverage ratio rather than guessed
+  at.
 - **Operational energy only.** Scope 2-shaped CPU energy; no embodied /
   Scope 3 carbon.
 - **Static annual factors.** Reported gCO2e uses annual-average grid intensity,
