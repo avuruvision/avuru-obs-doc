@@ -184,20 +184,40 @@ joindre quelqu'un. Détail complet sur la page
 [État des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-6-0).
 
-## v0.7 et au-delà (indicatif)
+## v0.7 — les clients et les étiquettes (publiée le 23/08/2026)
 
-- **Plus de clients :** l'API du hub est le contrat agnostique ; la SPA n'en est
-  qu'un client léger. Une recette **Grafana** par-dessus l'API du hub et une
-  **CLI** (`--fail-on` pour les garde-fous de CI) sont prévues, toutes deux
-  portées par les jetons d'API personnels livrés en v0.5.
-- **Métadonnées de service déclarées :** les services qui envoient directement
-  en OTLP déclarent leur domaine, leur environnement et leur criticité en
-  attributs de ressource, au lieu de retomber dans `(unlabeled)`.
-- **Étiquetage automatique plus riche :** faire des labels/annotations
-  Kubernetes des étiquettes métier, filtrables sur tous les signaux.
-- **Comptabilité du trafic inter-zones :** les octets inter-zones par paire de
-  services depuis les flux réseau du capteur — le sondage de la v0.6 a tranché
-  la conception, il reste l'implémentation.
+La v0.6 avait ouvert les deux bouts du tuyau ; ce qui arrivait ne valait que les
+mots sous lesquels on pouvait le ranger et les surfaces capables de le lire. La
+[v0.7.0](/docs/releases) a ajouté les deux. Les **étiquettes métier** associent
+une fois un label de pod Kubernetes et le portent sur chaque signal sous la
+forme `avuru.tag.<clé>`, appliqué à la collecte pour que les charges non
+instrumentées le portent aussi, puis proposé comme filtre sur les traces et les
+journaux — une trace correspondant dès qu'*un* service participant porte
+l'étiquette. Les **métadonnées déclarées par le service** permettent à un service
+d'annoncer son domaine, son environnement et sa criticité en attributs de
+ressource et d'être regroupé en conséquence à travers les namespaces Kubernetes,
+avec un avertissement quand une déclaration ne peut pas être honorée. Deux
+nouveaux clients lisent la même API publique : la **CLI `avuruobs`**, dont le
+prédicat `--fail-on` verrouille un déploiement avec trois codes de sortie, et une
+**source de données Grafana** — côté backend, donc le jeton d'API n'atteint
+jamais le navigateur. Chaque écran renvoie désormais à la page du manuel qui
+l'explique, et la **comptabilité du trafic inter-zones** rapporte les octets par
+paire de zones de disponibilité depuis les flux noyau. La carte a aussi cessé de
+mentir : les proxys de maillage sont reconnus comme du transport et ne sont plus
+dessinés comme des dépendances. Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des changements](/changelog/v0-7-0).
+
+## v0.8 et au-delà (indicatif)
+
+- **La carte grandit :** frontières de namespace et de groupe, volume porté par
+  l'arête elle-même, traitement distinct des pairs externes et non détectés —
+  sans perturber les canaux que la carte encode déjà.
+- **Cibles virtuelles :** bases de données, caches et courtiers de messages
+  comme nœuds à part entière de la carte, dérivés des spans sortants déjà
+  stockés — sans nouvel agent ni nouvelle table.
+- **Navigation par couches :** une structure qui grandit avec le produit tout en
+  gardant court le chemin des cinq premières minutes.
 - **Contrôles de disponibilité :** la santé même sans aucun trafic.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.

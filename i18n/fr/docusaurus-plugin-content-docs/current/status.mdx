@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.6.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.7.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -63,13 +63,21 @@ changements livrés le [Changelog](/changelog).
 | Compatibilité d'ingestion élargie — récepteurs Jaeger, Zipkin, Prometheus remote-write et Loki push en plus d'OTLP, un flag de values chacun et tous désactivés par défaut ; chaque récepteur passe par la même étape de tenant, donc les clés d'ingestion s'appliquent à l'identique quel que soit le protocole. Des exporteurs de transfert (OTLP/Kafka) dupliquent les écritures vers un second backend pendant une migration, derrière une file bornée pour qu'une cible morte n'exerce aucune contre-pression sur le stockage | <StatusBadge status="shipped" label="Livré" /> | v0.6 |
 | Couverture green et délivrabilité des budgets — un tableau d'énergie par nœud sur `/green`, la distinction mesuré/estimé conservée ligne par ligne, des budgets carbone qui disent s'ils peuvent réellement joindre un canal, et un avertissement quand un budget vise un groupe de services auquel rien ne se rattache | <StatusBadge status="shipped" label="Livré" /> | v0.6 |
 
+| Étiquettes métier — associez une fois un label de pod Kubernetes (`tags.labels`) et il accompagne chaque signal sous la forme `avuru.tag.<clé>`, appliqué à la collecte pour que les charges non instrumentées le portent aussi ; filtrez ensuite traces et journaux dessus, les clés et valeurs découvertes étant proposées comme contrôles. Une trace correspond dès qu'**un** service ayant participé porte l'étiquette | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Métadonnées déclarées par le service — un service annonce lui-même son domaine (`service.namespace`), son environnement et son `avuru.tier` en attributs de ressource, et le tableau de santé le regroupe en conséquence, à travers les namespaces Kubernetes et sans configuration côté hub. La configuration de l'opérateur l'emporte toujours, et une déclaration inutilisable est signalée plutôt qu'ignorée en silence | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| CLI `avuruobs` — `services`, `health`, `traces`, `logs`, `status` via l'API publique avec un jeton personnel, `-o table\|json`, et un prédicat `--fail-on` pour les garde-fous de CI, avec trois codes de sortie pour distinguer un garde-fou déclenché d'un garde-fou en panne | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Source de données Grafana — RED par service, santé des services, recherche de traces et trafic inter-zones dans les tableaux de bord que vous exploitez déjà. Un plugin backend : le jeton d'API n'atteint jamais le navigateur et les requêtes partent du serveur Grafana | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Comptabilité du trafic inter-zones — octets par paire de zones de disponibilité depuis les flux noyau, indépendante de la fonctionnalité réseau par arête : la comptabilité coûte le cardinal des paires de zones, pas celui des paires de charges de travail | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Carte des services consciente du maillage — les charges de transport (sidecars de maillage, proxys waypoint et ztunnel, passerelles d'entrée et de sortie) sont reconnues et masquées derrière une bascule **Afficher maillage et passerelles** au lieu d'être dessinées comme des dépendances ; les arêtes issues des flux sont tracées et comptées à part des appels tracés | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Documentation contextuelle — chaque écran renvoie à la page du manuel qui l'explique | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Comptabilité du trafic inter-zones (OBI `network_inter_zone`) | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
-| Davantage de clients — une CLI avec `--fail-on` pour les garde-fous de CI, et une recette Grafana documentée par-dessus l'API du hub | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
-| Étiquetage automatique plus riche — associer les labels et annotations Kubernetes à des étiquettes métier, puis filtrer dessus sur tous les signaux | <StatusBadge status="planned" label="Prévu" /> | v0.7 |
+| Une carte des services plus riche — frontières de namespace et de groupe, volume porté par l'arête elle-même, traitement distinct des pairs externes et non détectés | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
+| Cibles virtuelles — bases de données, caches et courtiers de messages comme nœuds à part entière de la carte, dérivés des spans sortants déjà stockés | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
+| Navigation par couches — une structure qui grandit avec le produit tout en gardant court le chemin des cinq premières minutes | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

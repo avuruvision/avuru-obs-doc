@@ -22,15 +22,44 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.7.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.8.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : davantage de clients — une CLI avec
-`--fail-on` pour les garde-fous de CI et une recette Grafana documentée
-par-dessus l'API du hub —, des services qui déclarent eux-mêmes leur domaine,
-leur environnement et leur criticité, un étiquetage automatique plus riche
-depuis les labels Kubernetes, et la comptabilité du trafic inter-zones dont la
-conception a été livrée en v0.6.
+[Feuille de route](/docs/roadmap)) : la carte des services grandit — frontières
+de namespace et de groupe, volume porté par l'arête elle-même, traitement
+distinct des pairs externes et non détectés, et des **cibles virtuelles**
+(bases de données, caches et courtiers de messages comme nœuds à part entière)
+dérivées des spans sortants déjà stockés. Plus une navigation qui grandit avec
+le produit.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.7.0" date="2026-08-23" status="shipped" statusLabel="Livré">
+
+**Les clients et les étiquettes.** La télémétrie se range désormais sous le
+vocabulaire que votre organisation emploie déjà : associez une fois un label de
+pod Kubernetes (`tags.labels`) et il accompagne **chaque signal** sous la forme
+`avuru.tag.<clé>`, appliqué à la collecte pour que les charges que personne n'a
+instrumentées le portent aussi ; filtrez ensuite traces et journaux dessus — une
+trace correspond dès qu'*un* service ayant participé porte l'étiquette. Un
+service peut aussi **déclarer lui-même** son domaine, son environnement et son
+`avuru.tier` en attributs de ressource et être regroupé en conséquence à travers
+les namespaces Kubernetes, sans configuration côté hub, avec un avertissement
+quand une déclaration ne peut pas être honorée plutôt qu'un repli silencieux.
+Deux nouveaux clients lisent la même API publique : la **CLI `avuruobs`**, dont
+le prédicat `--fail-on` verrouille un déploiement avec trois codes de sortie
+pour distinguer un garde-fou déclenché d'un garde-fou en panne, et une **source
+de données Grafana** — un plugin backend : le jeton d'API n'atteint jamais le
+navigateur et les requêtes partent du serveur Grafana. Chaque écran renvoie
+maintenant à la page du manuel qui l'explique. La **comptabilité du trafic
+inter-zones** rapporte les octets par paire de zones de disponibilité depuis les
+flux noyau, indépendamment de la fonctionnalité réseau par arête. Corrigé : sur
+un cluster maillé, la carte dessinait chaque appel applicatif comme deux sauts à
+travers un proxy, et activer les flux réseau noyau produisait une configuration
+de sensor que le traceur eBPF refuse d'analyser — le conteneur ne démarrait
+donc jamais. La mise à niveau est un `helm upgrade` normal ; tout ce qui est
+nouveau est désactivé ou inchangé par défaut.
+[Publication GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.7.0)
 
 </ReleaseEntry>
 

@@ -21,13 +21,40 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.7.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.8.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): more
-clients — a CLI with `--fail-on` for CI gates and a documented Grafana recipe
-over the hub API — services that declare their own domain, environment and
-tier, richer auto-tagging from Kubernetes labels, and the inter-zone traffic
-accounting whose design landed in v0.6.
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): the
+service map grows up — namespace and group boundaries, edge volume carried on
+the edge itself, distinct treatment for external and undetected peers, and
+**virtual targets** (databases, caches and message brokers as first-class nodes)
+derived from the exit spans already stored. Plus a navigation structure that
+grows with the product.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.7.0" date="2026-08-23" status="shipped">
+
+**The clients and the labels.** Telemetry can now be filed under the vocabulary
+your organisation already uses: map a Kubernetes pod label once (`tags.labels`)
+and it rides **every signal** as `avuru.tag.<key>`, applied at collection so
+workloads nobody instrumented carry it too, then filter traces and logs by it —
+a trace matches when *any* service that took part carries the tag. A service can
+also **declare its own** domain, environment and `avuru.tier` as resource
+attributes and be grouped accordingly across Kubernetes namespaces with no hub
+config, with a warning when a declaration cannot be honoured rather than a
+silent fallback. Two more clients read the same public API: the **`avuruobs`
+CLI**, whose `--fail-on` predicate gates a deploy with three exit codes so a
+tripped gate is distinguishable from a broken one, and a **Grafana data
+source** — a backend plugin, so the API token never reaches a browser and
+queries leave the Grafana server. Every screen now links to the page of the
+manual that explains it. **Inter-zone traffic accounting** reports bytes per
+availability-zone pair from kernel flows, standalone from the per-edge network
+feature. Fixed: on a meshed cluster the map drew every application call as two
+hops through a proxy, and turning on kernel network flows rendered a sensor
+config the eBPF tracer refuses to parse — so the container never started.
+Upgrading is a normal `helm upgrade`; everything new is off or unchanged by
+default.
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.7.0)
 
 </ReleaseEntry>
 
