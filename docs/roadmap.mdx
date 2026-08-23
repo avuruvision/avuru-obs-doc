@@ -168,20 +168,36 @@ now names the nodes its numbers came from and carbon budgets say whether they
 can actually reach anyone. Full detail on the [feature status](/docs/status)
 page and in the [changelog](/changelog/v0-6-0).
 
-## v0.7 and beyond (directional)
+## v0.7 — the clients and the labels (released 2026-08-23)
 
-- **More clients:** the hub API is the client-agnostic contract; the SPA is one
-  thin client. A **Grafana** recipe over the hub API and a **CLI**
-  (`--fail-on` for CI gates) are planned, both riding the personal API tokens
-  v0.5 shipped.
-- **Declared service metadata:** services sending OTLP directly declare their
-  own domain, environment and tier as resource attributes instead of
-  collapsing into `(unlabeled)`.
-- **Richer auto-tagging:** map Kubernetes labels/annotations to business tags
-  and filter by them across every signal.
-- **Inter-zone traffic accounting:** cross-zone bytes per service pair from the
-  sensor's network flows — the v0.6 spike settled the design, the
-  implementation is what remains.
+v0.6 opened both ends of the pipe; what arrived was only as useful as the words
+it could be filed under and the surfaces that could read it.
+[v0.7.0](/docs/releases) added both. **Business tags** map a Kubernetes pod
+label once and carry it onto every signal as `avuru.tag.<key>`, applied at
+collection so uninstrumented workloads are tagged too, then offered as a filter
+on traces and logs — a trace matching when *any* participating service carries
+the tag. **Declared service metadata** lets a service state its own domain,
+environment and tier as resource attributes and be grouped accordingly across
+Kubernetes namespaces, with a warning when a declaration cannot be honoured.
+Two more clients read the same public API: the **`avuruobs` CLI**, whose
+`--fail-on` predicate gates a deploy with three exit codes, and a **Grafana data
+source** — backend-side, so the API token never reaches a browser. Every screen
+now links to the page of the manual that explains it, and **inter-zone traffic
+accounting** reports bytes per availability-zone pair from kernel flows. The map
+also stopped lying: mesh proxies are recognised as transport and no longer drawn
+as dependencies. Full detail on the [feature status](/docs/status) page and in
+the [changelog](/changelog/v0-7-0).
+
+## v0.8 and beyond (directional)
+
+- **The map grows up:** namespace and group boundaries, edge volume carried on
+  the edge itself, and distinct treatment for external and undetected peers —
+  without disturbing the channels the map already encodes.
+- **Virtual targets:** databases, caches and message brokers as first-class map
+  nodes, derived from the exit spans already stored — no new agent, no new
+  table.
+- **Layered navigation:** a structure that grows with the product while keeping
+  the first-five-minutes path short.
 - **Endpoint checks:** health when there is no traffic at all.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub

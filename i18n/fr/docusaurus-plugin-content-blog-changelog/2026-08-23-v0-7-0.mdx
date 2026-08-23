@@ -1,0 +1,119 @@
+---
+slug: v0-7-0
+title: "v0.7.0 : les clients et les étiquettes"
+description: "Découpez la télémétrie selon le vocabulaire que votre organisation emploie déjà, lisez-la depuis une CLI et depuis Grafana, et refaites confiance à la carte — les sauts de maillage ne sont plus dessinés comme des dépendances."
+authors: [avuru]
+tags: [platform, service-map, ui]
+date: 2026-08-23
+---
+
+**v0.7.0** parle des mots sous lesquels vos données sont rangées et des
+surfaces qui les lisent. La v0.6 avait ouvert les deux bouts du tuyau ; ce qui
+arrivait ne valait que le vocabulaire disponible pour le découper — et, il s'est
+avéré, que la sincérité de la carte qui le dessinait.
+
+{/* truncate */}
+
+- **Découpez la télémétrie selon les mots que votre organisation emploie
+  déjà.** Un cluster encode la propriété dans ses labels — `team=payments`,
+  `tier=critical` — et rien de tout cela n'atteignait le produit. Associez-en un
+  dans `tags.labels` et il accompagne **chaque signal** sous la forme
+  `avuru.tag.<clé>`, appliqué là où la télémétrie est collectée : les charges
+  que personne n'a instrumentées sont donc étiquetées elles aussi. Les clés
+  découvertes et leurs valeurs sont proposées comme contrôles de filtrage sur
+  les traces et les journaux — personne n'a à mémoriser l'étiquetage du
+  cluster — et les deux écrans partagent la même chaîne de filtre : un lien se
+  transmet de l'un à l'autre. Une trace correspond dès qu'**un** service ayant
+  participé porte l'étiquette, pas seulement celui qui l'a démarrée : filtrer
+  par équipe montre les requêtes qui l'ont *atteinte*, pas uniquement celles
+  qu'elle a initiées. Volontairement borné — chaque étiquette associée devient
+  une dimension sur les métriques qu'elle touche, donc le chart en refuse plus
+  de douze.
+
+- **Laissez un service dire ce qu'il est.** Les services qui exportent en OTLP
+  directement vers la passerelle ne portent aucun namespace Kubernetes : ils
+  s'agglutinaient tous dans un unique groupe `(unlabeled)` — exact, et inutile.
+  Un service peut désormais définir `service.namespace`,
+  `deployment.environment.name` et `avuru.tier` en attributs de ressource, et le
+  [tableau de santé](/docs/signals/service-health) le regroupe en conséquence —
+  **à travers** les namespaces Kubernetes, un domaine devenant un groupe par
+  environnement, avec sa propre criticité. La configuration de l'opérateur garde
+  le dernier mot, et une déclaration inutilisable (un `avuru.tier` qui n'est pas
+  une criticité) retombe sur la valeur par défaut *et le dit* sur le tableau :
+  une règle indulgente qui reste muette, c'est ainsi qu'une équipe n'apprend
+  jamais que sa déclaration n'a rien fait.
+
+- **Deux clients de plus pour la même API.** La **CLI `avuruobs`** lit
+  `services`, `health`, `traces`, `logs` et `status` avec un jeton d'API
+  personnel, et verrouille un pipeline :
+  `avuruobs health --fail-on 'status!=healthy'` sort en **2** quand le prédicat
+  correspond, en **1** quand la commande elle-même a échoué et en **0** quand
+  rien ne correspond — trois choses distinctes qu'un garde-fou de déploiement
+  doit savoir séparer, puisqu'avec un seul code non nul un jeton expiré ne
+  renvoie aucune ligne et le garde-fou lit « rien au-dessus du seuil » comme un
+  succès. Elle n'a aucune dépendance tierce. Une **source de données Grafana**
+  amène le RED par service, la santé des services, la recherche de traces et le
+  trafic inter-zones dans les tableaux de bord que vous exploitez déjà ; c'est
+  un plugin *backend* : le jeton d'API n'atteint jamais le navigateur et les
+  requêtes partent du serveur Grafana — un hub joignable uniquement depuis le
+  cluster fonctionne donc sans être exposé.
+
+- **Chaque écran renvoie à la page qui l'explique.** Un discret `docs ↗` à côté
+  du fil d'Ariane, parce que la question « qu'est-ce que je regarde ? » se pose
+  en regardant l'écran.
+
+- **Le trafic inter-zones, expliqué.** Les fournisseurs cloud facturent les
+  données qui traversent une zone de disponibilité, et la façon habituelle de
+  savoir pourquoi passe par une chaîne de journaux de flux. Le sensor observe
+  déjà chaque connexion dans le noyau :
+  `sensor.obi.network.interZone.enabled` en fait une matrice d'octets par paire
+  de zones. Elle fonctionne **seule** — sans exiger la fonctionnalité réseau par
+  arête — donc le nombre de séries est le nombre de zones que le cluster
+  couvre, pas le nombre de paires de charges de travail.
+
+### Corrigé
+
+- **Un saut de maillage n'est pas une dépendance.** Sur un cluster équipé d'un
+  maillage de services, chaque appel applicatif est intercepté par un proxy : ce
+  qui atteignait la [carte des services](/docs/signals/traces) était
+  `app → proxy → app`, deux arêtes dont aucune n'est une dépendance, reliant des
+  services qui ne se parlent jamais. Le hub reconnaît désormais les charges de
+  transport — sidecars de maillage, proxys waypoint et ztunnel, passerelles
+  d'entrée et de sortie — et la carte les masque derrière une bascule **Afficher
+  maillage et passerelles**. La classification est une correspondance de nom,
+  donc propre à chaque installation : elle est configurable et rechargée à
+  chaud — `topology.transport` ajoute des motifs pour un maillage que les
+  valeurs intégrées ignorent, `topology.applications` récupère un vrai service
+  qu'elles attrapent à tort. Volontairement étroite par défaut : effacer un vrai
+  service de la carte est un échec pire que le bruit supprimé.
+
+- **La carte comptait des connexions comme des appels.** Les arêtes issues des
+  flux noyau ne portent aucun volume d'appels par construction : une carte
+  affichant « 5 arêtes d'appels » pouvait n'avoir observé aucun appel. Les
+  appels tracés et les flux réseau observés sont maintenant comptés séparément,
+  une arête issue des seuls flux est tracée en pointillés, et son survol indique
+  « network flow · no traced calls » au lieu d'annoncer 0 rpm.
+
+- **Activer les flux réseau arrêtait le sensor au lieu de l'enrichir.**
+  `sensor.obi.network.enabled=true` produisait une configuration de sensor
+  contenant deux fois la même clé `attributes:`. Rien côté Kubernetes ne valide
+  cela — c'est une valeur de ConfigMap, pas un manifeste — mais le sensor
+  l'analyse strictement et refuse de démarrer sur une clé répétée : tout le
+  conteneur eBPF entrait en boucle de redémarrage et emportait avec lui les
+  traces, les flux et la santé par arête. Deux autres clés du même bloc ne
+  correspondaient à aucun champ existant, laissant la collecte des statistiques
+  TCP inerte et la borne de cardinalité documentée jamais appliquée — ces
+  métriques portaient donc les **adresses IP** source et destination, soit une
+  série par paire d'adresses. Les trois sont corrigées, et les configurations
+  rendues sont désormais analysées par les tests du chart : un document que le
+  sensor ne peut pas charger fait échouer la construction.
+  **Si vous aviez activé la santé réseau par arête, il vaut la peine de
+  re-vérifier le pod sensor.**
+
+**La mise à niveau depuis v0.6.x** est un `helm upgrade` normal. Tout ce qui est
+ajouté ici est désactivé ou inchangé par défaut : aucune étiquette n'est
+associée tant que vous n'en associez pas, la comptabilité inter-zones est
+optionnelle, et une installation sans maillage de services voit une carte des
+services identique à l'octet près. Voir la page
+[Publications](/docs/releases) et la
+[publication GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.7.0).

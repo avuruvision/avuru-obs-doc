@@ -1,0 +1,104 @@
+---
+slug: v0-7-0
+title: "v0.7.0: the clients and the labels"
+description: "Slice telemetry by the vocabulary your organisation already uses, read it from a CLI and from Grafana, and trust the map again — mesh hops are no longer drawn as dependencies."
+authors: [avuru]
+tags: [platform, service-map, ui]
+date: 2026-08-23
+---
+
+**v0.7.0** is about the words your data is filed under and the surfaces that
+read it. v0.6 opened both ends of the pipe; what arrived was only as useful as
+the vocabulary available to slice it — and, it turned out, as truthful as the
+map drawing it.
+
+{/* truncate */}
+
+- **Slice telemetry by the words your organisation already uses.** A cluster
+  encodes ownership in labels — `team=payments`, `tier=critical` — and none of
+  it reached the product. Map one in `tags.labels` and it rides **every signal**
+  as `avuru.tag.<key>`, applied where telemetry is collected, so the workloads
+  nobody instrumented are tagged too. The discovered keys and their values are
+  offered as filter controls on traces and logs, so nobody has to remember what
+  the cluster is labelled with, and both screens share one filter string — a
+  link carries between them. A trace matches when **any** service that took part
+  carries the tag, not only the one that started it: filtering by a team shows
+  the requests that *reached* it, not just the ones it began. Deliberately
+  bounded — every mapped tag is a dimension on the metrics it touches, so the
+  chart refuses more than twelve.
+
+- **Let a service say what it is.** Services exporting OTLP straight to the
+  gateway carry no Kubernetes namespace, so they all collapsed into one
+  `(unlabeled)` group: correct, and useless. Now a service can set
+  `service.namespace`, `deployment.environment.name` and `avuru.tier` as
+  resource attributes and the [health board](/docs/signals/service-health)
+  groups it accordingly — **across** Kubernetes namespaces, one domain becoming
+  one group per environment with its own tier. Operator config still has the
+  last word, and a declaration the hub cannot use (an `avuru.tier` that is not a
+  tier) falls back to the default *and says so* on the board, because a
+  fail-soft rule that stays silent is how a team never learns their declaration
+  did nothing.
+
+- **Two more clients of the same API.** The **`avuruobs` CLI** reads
+  `services`, `health`, `traces`, `logs` and `status` with a personal API token,
+  and gates a pipeline: `avuruobs health --fail-on 'status!=healthy'` exits
+  **2** when the predicate matches, **1** when the command itself failed and
+  **0** when nothing matched — three different things a deploy gate must tell
+  apart, since with a single non-zero exit an expired token returns no rows and
+  the gate reads "nothing over threshold" as success. It has no third-party
+  dependencies. A **Grafana data source** brings service RED, service health,
+  trace search and cross-zone traffic into dashboards you already run; it is a
+  *backend* plugin, so the API token never reaches a browser and queries leave
+  the Grafana server — a hub reachable only inside the cluster still works.
+
+- **Every screen links to the page that explains it.** A small `docs ↗` beside
+  the breadcrumb, because the question "what am I looking at?" is asked while
+  looking at the screen.
+
+- **Cross-zone traffic, explained.** Cloud providers bill data that crosses an
+  availability zone, and the usual way to find out why is a flow-log pipeline.
+  The sensor already watches every connection in the kernel:
+  `sensor.obi.network.interZone.enabled` turns that into a byte matrix per zone
+  pair. It works **on its own** — it does not require the per-edge network
+  feature — so the number of series is the number of zones a cluster spans, not
+  the number of workload pairs.
+
+### Fixed
+
+- **A mesh hop is not a dependency.** On a cluster running a service mesh every
+  application call is intercepted by a proxy, so what reached the
+  [service map](/docs/signals/traces) was `app → proxy → app`: two edges, neither
+  of them a dependency, joining services that never talk to each other. The hub
+  now recognises transport workloads — mesh sidecars, waypoint and ztunnel
+  proxies, ingress and egress gateways — and the map hides them behind a **Show
+  mesh & gateways** toggle. The classification is a name match and therefore
+  install-specific, so it is configurable and hot-reloaded: `topology.transport`
+  adds patterns for a mesh the built-ins do not know, `topology.applications`
+  rescues a real service they catch. Deliberately narrow by default — erasing a
+  real service from the map is a worse failure than the noise removed.
+
+- **The map counted connections as calls.** Edges derived from kernel flows
+  carry no call volume by construction, so a map showing "5 call edges" could
+  have observed no calls at all. Traced calls and observed network flows are now
+  counted apart, a flow-only edge is drawn dotted, and hovering it says
+  "network flow · no traced calls" instead of claiming 0 rpm.
+
+- **Turning on network flows stopped the sensor instead of enriching it.**
+  `sensor.obi.network.enabled=true` rendered a sensor config with the same
+  `attributes:` key twice. Nothing on the Kubernetes side validates that — it is
+  a ConfigMap value, not a manifest — but the sensor parses it strictly and
+  refuses to start on a repeated key, so the whole eBPF container crash-looped
+  and took traces, flows and per-edge health with it. Two further keys in the
+  same block were not fields the sensor has at all, leaving TCP-stats collection
+  inert and the documented cardinality bound unapplied — which means those
+  metrics carried source and destination **IP addresses**, a series per address
+  pair. All three are fixed, and rendered configs are now parsed in the chart's
+  own tests, so a document the sensor cannot load fails the build.
+  **If you had per-edge network health enabled, it is worth re-checking the
+  sensor pod.**
+
+**Upgrading from v0.6.x** is a normal `helm upgrade`. Everything added here is
+off or unchanged by default: no tags are mapped until you map one, inter-zone
+accounting is opt-in, and an install with no service mesh sees a byte-identical
+service map. See the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.7.0).

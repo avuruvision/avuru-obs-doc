@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.6.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.7.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -62,14 +62,21 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Personal API tokens — mint, list and revoke bearer tokens in Settings → Access; only the SHA-256 is stored and the raw value is shown once. A token resolves to its owner's live grants, so disabling a user disables every token they hold; a bad token is a clean 401, never an anonymous downgrade | <StatusBadge status="shipped" /> | v0.5 |
 | Wider ingest compatibility — Jaeger, Zipkin, Prometheus remote-write and Loki push receivers alongside OTLP, one values flag each and all off by default; every receiver goes through the same tenant stage, so ingest keys are enforced identically whatever the wire protocol. Forwarding exporters (OTLP/Kafka) dual-write to a second backend during a migration, behind a bounded queue so a dead target cannot backpressure storage | <StatusBadge status="shipped" /> | v0.6 |
 | Green coverage and budget deliverability — a per-node energy table under `/green` with the measured/estimated split kept per row, carbon budgets that say whether they can actually reach a channel, and a warning when a budget targets a service group nothing rolls up to | <StatusBadge status="shipped" /> | v0.6 |
+| Business tags — map a Kubernetes pod label once (`tags.labels`) and it rides every signal as `avuru.tag.<key>`, applied at collection so uninstrumented workloads carry it too; then filter traces and logs by it, with the discovered keys and values offered as controls. A trace matches when **any** service that took part carries the tag | <StatusBadge status="shipped" /> | v0.7 |
+| Declared service metadata — a service states its own domain (`service.namespace`), environment and `avuru.tier` as resource attributes and the health board groups it accordingly, across Kubernetes namespaces, with no hub config. Operator config still wins, and a declaration the hub cannot use is surfaced rather than silently dropped | <StatusBadge status="shipped" /> | v0.7 |
+| `avuruobs` CLI — `services`, `health`, `traces`, `logs`, `status` over the public API with a personal token, `-o table\|json`, and a `--fail-on` predicate for CI gates with three exit codes so a tripped gate is distinguishable from a broken one | <StatusBadge status="shipped" /> | v0.7 |
+| Grafana data source — service RED, service health, trace search and cross-zone traffic in dashboards you already run. A backend plugin, so the API token never reaches a browser and queries leave the Grafana server | <StatusBadge status="shipped" /> | v0.7 |
+| Inter-zone traffic accounting — bytes per availability-zone pair from kernel flows, standalone from the per-edge network feature so zone accounting costs zone-pair cardinality rather than workload-pair | <StatusBadge status="shipped" /> | v0.7 |
+| Mesh-aware service map — transport workloads (mesh sidecars, waypoint and ztunnel proxies, ingress and egress gateways) are recognised and hidden behind a **Show mesh & gateways** toggle instead of being drawn as dependencies; flow-derived edges are drawn and counted apart from traced calls | <StatusBadge status="shipped" /> | v0.7 |
+| Contextual documentation — every screen links to the page of the manual that explains it | <StatusBadge status="shipped" /> | v0.7 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Inter-zone traffic accounting (OBI `network_inter_zone`) | <StatusBadge status="planned" /> | v0.7 |
-| More clients — a CLI with `--fail-on` for CI gates, and a documented Grafana recipe over the hub API | <StatusBadge status="planned" /> | v0.7 |
-| Richer auto-tagging — map Kubernetes labels and annotations to business tags, then filter by them across every signal | <StatusBadge status="planned" /> | v0.7 |
+| A richer service map — namespace and group boundaries, edge volume on the edge, distinct treatment for external and undetected peers | <StatusBadge status="planned" /> | v0.8 |
+| Virtual targets — databases, caches and message brokers as first-class map nodes, derived from the exit spans already stored | <StatusBadge status="planned" /> | v0.8 |
+| Layered navigation — a structure that grows with the product while keeping the first-five-minutes path short | <StatusBadge status="planned" /> | v0.8 |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server
