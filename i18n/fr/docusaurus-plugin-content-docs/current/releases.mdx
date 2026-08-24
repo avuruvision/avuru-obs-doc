@@ -22,15 +22,32 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.8.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.9.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : la carte des services grandit — frontières
-de namespace et de groupe, volume porté par l'arête elle-même, traitement
-distinct des pairs externes et non détectés, et des **cibles virtuelles**
-(bases de données, caches et courtiers de messages comme nœuds à part entière)
-dérivées des spans sortants déjà stockés. Plus une navigation qui grandit avec
-le produit.
+[Feuille de route](/docs/roadmap)) : le maillage et le noyau — reconstituer la
+vraie dépendance `app → app` à travers un saut de proxy, le détail L4/L7 que le
+noyau voit déjà, et des surfaces dédiées au maillage pour les clusters où le
+maillage *est* le réseau.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.8.0" date="2026-08-24" status="shipped" statusLabel="Livré">
+
+**La carte grandit.** Les [cibles virtuelles](/docs/signals/service-map)
+placent sur la carte les bases de données, caches et brokers dont vos services
+dépendent, déduits des spans de sortie des services qui les appellent — aucun
+agent dans la dépendance, et un broker dessiné des deux côtés. Les **pairs non
+détectés** récupèrent l'extrémité d'une connexion que personne n'a instrumentée,
+que le rendu jetait. Les **frontières** groupent le graphe par namespace
+Kubernetes ou par groupe de services, et le **volume des arêtes** étiquette tous
+les chemins d'un coup. La barre latérale est devenue des couches — Topologie,
+Signaux, Exploitation, Infrastructure — le chemin des cinq premières minutes
+restant inchangé. Le tout à partir de télémétrie qui arrivait déjà : sans
+nouvelle collecte.
+
+[Notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.8.0) ·
+[Changelog](/changelog/v0-8-0)
 
 </ReleaseEntry>
 

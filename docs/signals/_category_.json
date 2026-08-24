@@ -4,6 +4,6 @@
   "link": {
     "type": "generated-index",
     "title": "Signals",
-    "description": "Traces, logs, metrics and profiling — plus the signals derived from them: errors, service health, alerting and network health."
+    "description": "The service map and the signals behind it: traces, logs, metrics and profiling, plus what is derived from them — errors, service health, alerting and network health."
   }
 }

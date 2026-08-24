@@ -21,14 +21,29 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.8.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.9.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): the
-service map grows up — namespace and group boundaries, edge volume carried on
-the edge itself, distinct treatment for external and undetected peers, and
-**virtual targets** (databases, caches and message brokers as first-class nodes)
-derived from the exit spans already stored. Plus a navigation structure that
-grows with the product.
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): the mesh
+and the kernel — recovering the real `app → app` dependency across a proxy hop,
+the L4/L7 detail the kernel already sees, and mesh-facing surfaces for the
+clusters where the mesh *is* the network.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.8.0" date="2026-08-24" status="shipped">
+
+**The map grows up.** [Virtual targets](/docs/signals/service-map) put the
+databases, caches and message brokers your services depend on onto the map,
+derived from the exit spans of the services calling them — no agent in the
+dependency, and a broker drawn from both ends. **Undetected peers** recover the
+far end of a connection nobody instrumented, which the renderer used to discard.
+**Boundaries** group the graph by Kubernetes namespace or by service group, and
+**edge volume** labels every path at once. The sidebar became layers — Topology,
+Signals, Operations, Infrastructure — with the first-five-minutes path
+unchanged. All of it from telemetry already arriving: no new collection.
+
+[Release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.8.0) ·
+[Changelog](/changelog/v0-8-0)
 
 </ReleaseEntry>
 
