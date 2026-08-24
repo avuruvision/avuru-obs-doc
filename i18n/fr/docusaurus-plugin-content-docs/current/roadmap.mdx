@@ -208,16 +208,32 @@ dessinés comme des dépendances. Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des changements](/changelog/v0-7-0).
 
-## v0.8 et au-delà (indicatif)
+## v0.8 — la carte grandit (publiée le 2026-08-24)
 
-- **La carte grandit :** frontières de namespace et de groupe, volume porté par
-  l'arête elle-même, traitement distinct des pairs externes et non détectés —
-  sans perturber les canaux que la carte encode déjà.
-- **Cibles virtuelles :** bases de données, caches et courtiers de messages
-  comme nœuds à part entière de la carte, dérivés des spans sortants déjà
-  stockés — sans nouvel agent ni nouvelle table.
-- **Navigation par couches :** une structure qui grandit avec le produit tout en
-  gardant court le chemin des cinq premières minutes.
+La carte est la page d'accueil du produit depuis la v0.1, et un graphe de
+cercles depuis tout aussi longtemps. [v0.8.0](/docs/releases) lui a appris à en
+dire plus, **sans nouvelle collecte**. Les **cibles virtuelles** placent sur la
+carte les bases de données, caches et brokers dont vos services dépendent,
+déduits des spans de sortie des services qui les appellent — un broker dessiné
+des deux côtés, pour qu'une file ne soit jamais une impasse. Les **pairs non
+détectés** récupèrent l'extrémité d'une connexion que personne n'a instrumentée,
+que le rendu jetait purement et simplement. Les **frontières** groupent le
+graphe par namespace Kubernetes ou par groupe de services, résolus exactement
+comme le tableau de santé les résout, et le **volume des arêtes** étiquette tous
+les chemins d'un coup quand la question est lequel porte le trafic. La barre
+latérale est devenue des **couches** — Topologie, Signaux, Exploitation,
+Infrastructure — au lieu d'une liste sans fin, le chemin des cinq premières
+minutes restant inchangé. Détail complet sur
+[la carte des services](/docs/signals/service-map), la page
+[état des fonctionnalités](/docs/status) et dans le
+[changelog](/changelog/v0-8-0).
+
+## v0.9 et au-delà (indicatif)
+
+- **Le maillage et le noyau :** reconstituer la vraie dépendance `app → app` à
+  travers un saut de proxy — la v0.8 a arrêté les fausses, mais les vraies
+  manquent encore — plus le détail L4/L7 que le noyau voit déjà, et des surfaces
+  dédiées au maillage pour les clusters où le maillage *est* le réseau.
 - **Contrôles de disponibilité :** la santé même sans aucun trafic.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.

@@ -188,16 +188,29 @@ also stopped lying: mesh proxies are recognised as transport and no longer drawn
 as dependencies. Full detail on the [feature status](/docs/status) page and in
 the [changelog](/changelog/v0-7-0).
 
-## v0.8 and beyond (directional)
+## v0.8 — the map grows up (released 2026-08-24)
 
-- **The map grows up:** namespace and group boundaries, edge volume carried on
-  the edge itself, and distinct treatment for external and undetected peers —
-  without disturbing the channels the map already encodes.
-- **Virtual targets:** databases, caches and message brokers as first-class map
-  nodes, derived from the exit spans already stored — no new agent, no new
-  table.
-- **Layered navigation:** a structure that grows with the product while keeping
-  the first-five-minutes path short.
+The map has been the product's front page since v0.1 and a graph of circles for
+just as long. [v0.8.0](/docs/releases) taught it to say more, with **no new
+collection**. **Virtual targets** put the databases, caches and message brokers
+your services depend on onto the map, derived from the exit spans of the
+services calling them — a broker drawn from both ends, so a queue is never a
+dead end. **Undetected peers** recover the far end of a connection nobody
+instrumented, which the renderer used to discard outright. **Boundaries** group
+the graph by Kubernetes namespace or by service group, resolved exactly as the
+health board resolves it, and **edge volume** labels every path at once when the
+question is which one carries the traffic. The sidebar became **layers** —
+Topology, Signals, Operations, Infrastructure — instead of one ever-growing
+list, with the first-five-minutes path unchanged. Full detail on
+[the service map](/docs/signals/service-map), the
+[feature status](/docs/status) page and in the [changelog](/changelog/v0-8-0).
+
+## v0.9 and beyond (directional)
+
+- **The mesh and the kernel:** recover the real `app → app` dependency across a
+  proxy hop — v0.8 stopped the map drawing false ones, but the true ones behind
+  them are still missing — plus the L4/L7 detail the kernel already sees, and
+  mesh-facing surfaces for the clusters where the mesh *is* the network.
 - **Endpoint checks:** health when there is no traffic at all.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
