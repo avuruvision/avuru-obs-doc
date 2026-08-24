@@ -20,6 +20,9 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Capability | Status | Since |
 |---|---|---|
 | Service map — call edges **derived from traces**, health-status rings from the service-health rollup, per-edge caller-side p50/p95 latency, hover-to-focus, and shareable search/status/group filters | <StatusBadge status="shipped" /> | M1 |
+| Virtual targets — the databases, caches and message brokers your services depend on, derived from their exit spans; no agent in the dependency, and a broker drawn from both ends | <StatusBadge status="shipped" /> | v0.8 |
+| Map boundaries — group the graph by Kubernetes namespace or by service group, each drawn as a labelled container | <StatusBadge status="shipped" /> | v0.8 |
+| Undetected peers — the far end of a connection nobody instrumented, drawn instead of discarded, and counted apart from services | <StatusBadge status="shipped" /> | v0.8 |
 | Traces — search, filters (tags, order, duration, status), latency heatmap, per-operation RED overview | <StatusBadge status="shipped" /> | M1 |
 | Trace viewer — timeline, spans table, flamegraph, statistics, trace graph, JSON | <StatusBadge status="shipped" /> | M4 |
 | Trace comparison — structural diff of two traces | <StatusBadge status="shipped" /> | M4 |

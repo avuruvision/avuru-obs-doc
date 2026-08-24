@@ -1,0 +1,73 @@
+---
+slug: v0-8-0
+title: "v0.8.0 : la carte grandit"
+description: "Les bases de données et brokers dont vos services dépendent sont sur la carte, les connexions que personne n'a instrumentées ne sont plus jetées, et le graphe se groupe comme vous pensez votre parc."
+authors: [avuru]
+tags: [service-map, ui, platform]
+date: 2026-08-24
+---
+
+**v0.8.0** parle de l'écran que les gens regardent vraiment. La carte des
+services est la page d'accueil du produit depuis la v0.1, et un graphe de
+cercles depuis tout aussi longtemps. Cette version lui apprend à en dire plus —
+et **sans nouvelle collecte** : tout ce qui suit est tiré de télémétrie qui
+arrivait déjà.
+
+{/* truncate */}
+
+- **La base de données est sur la carte.** Un service qui passe l'essentiel de
+  sa latence dans PostgreSQL était dessiné comme un cercle isolé que rien
+  n'expliquait, parce que la carte ne dessinait que ce qui *émet* de la
+  télémétrie — et une base, un cache ou un broker n'en émet aucune. Ce sont
+  désormais des nœuds à part entière, déduits des **spans de sortie des services
+  qui les appellent** : aucun agent supplémentaire, aucune table supplémentaire,
+  rien à activer. Sur une installation zéro-code, la sonde eBPF lit les
+  protocoles SQL et Redis dans le noyau : la base apparaît dès les cinq
+  premières minutes, sans rien configurer. Chaque arête porte le volume
+  d'appels, le taux d'erreur et la latence vue par l'**appelant** — le chiffre
+  qui répond à *où passe le temps* — et quatre services dessinés contre un même
+  cache forment un rayon de souffle jusqu'ici invisible. Un broker est dessiné
+  des deux côtés, pour qu'une file ne soit jamais une impasse. Voir
+  [la carte des services](/docs/signals/service-map).
+
+- **La carte a cessé de jeter les connexions que rien d'autre ne voit.** Une
+  arête dont l'extrémité n'avait jamais émis de télémétrie — un flux eBPF vers
+  une charge de travail que personne n'a instrumentée — était **purement
+  supprimée**, parce qu'un graphe a besoin de deux nœuds et qu'un seul existait.
+  Le seul écran conçu pour montrer les connexions supprimait donc celles qu'il
+  pouvait le moins se permettre de perdre. Ces extrémités sont maintenant
+  dessinées en **pairs non détectés** : contours vides, comptés à part des
+  services, sans aucune métrique puisqu'il n'y en a pas. Chacune est une
+  candidate pour la prochaine chose à instrumenter.
+
+- **Groupez le graphe comme vous pensez votre parc.** Au-delà d'une quarantaine
+  de nœuds, un graphe non groupé est une pelote. **Grouper par** dessine un
+  conteneur étiqueté autour de chaque namespace Kubernetes ou de chaque
+  [groupe de services](/docs/signals/service-health) — résolu exactement comme
+  l'auto-groupement du tableau de santé le résout, si bien qu'une boîte sur la
+  carte et un groupe sur le tableau ne peuvent jamais se contredire sur
+  l'endroit où vit un service. Un service qui n'en déclare aucun est dessiné
+  *hors* de toute frontière, plutôt que rangé dans un « autre » inventé. Plus le
+  **volume des arêtes** à la demande, quand la question est lequel de ces
+  chemins porte le trafic, et une légende qui explique chaque canal utilisé.
+
+- **Une barre latérale groupée par la question à laquelle chaque écran répond.**
+  Neuf des treize entrées vivaient sous un seul titre « Observer » — une liste,
+  pas une structure, qui grandissait à chaque module sans rien dire de la façon
+  dont les écrans s'articulent. Ce sont maintenant des couches : **Topologie**
+  (ce qui tourne, et si ça va), **Signaux** (ce qui s'est passé),
+  **Exploitation** (ce qui réclame votre attention), **Infrastructure** (ce sur
+  quoi ça tourne, et ce que ça coûte). Le chemin des cinq premières minutes est
+  inchangé, et une couche dont tous les écrans appartiennent à un module que
+  vous n'exécutez pas disparaît plutôt que d'étiqueter un vide.
+
+- **Les écrans phares sont désormais vérifiés à chaque changement.** La suite de
+  tests navigateur qui couvre la carte, les traces, les logs, les flame graphs
+  et les réglages ne pouvait être lancée qu'à la main, contre une instance dont
+  l'authentification était affaiblie — elle n'a donc jamais servi de garde-fou,
+  et trois de ses tests s'étaient discrètement périmés sur deux versions. Elle
+  tourne maintenant contre une instance réellement authentifiée, sans
+  intervention, à chaque changement.
+
+Détail complet dans les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.8.0).
