@@ -1,0 +1,174 @@
+---
+id: service-map
+title: Carte des services
+sidebar_label: Carte des services
+sidebar_position: 0
+description: La carte de dépendances vivante qu'Avuru Obs dessine seule — les services, les bases de données et brokers derrière eux, et les connexions que personne n'a instrumentées, sans changement de code.
+---
+
+# Carte des services
+
+La carte est la page d'accueil du produit : **ce qui tourne, qui parle à qui, et
+ce qui va mal** — dessiné à partir de télémétrie qui arrive d'elle-même.
+Installez le chart sur un cluster neuf et la carte se remplit en moins de cinq
+minutes, sans SDK, sans sidecar, sans changement de code.
+
+Ce n'est pas un schéma que quelqu'un entretient. Rien de ce qui s'y trouve n'a
+été déclaré.
+
+## D'où vient l'image
+
+Trois sources, fusionnées en un seul graphe :
+
+| Source | Ce qu'elle apporte |
+|---|---|
+| **Spans de trace** | Le span client de l'appelant et le span serveur de l'appelé forment une arête, avec le volume d'appels, le taux d'erreur et la latence vue par l'**appelant**. |
+| **Flux réseau noyau** (eBPF) | Les connexions que personne n'a instrumentées — les services sans SDK apparaissent quand même, et les octets échangés avec. |
+| **Spans de sortie** | Les bases de données, caches et brokers qui n'émettent aucune télémétrie. Voir [dépendances](#des-dépendances-qui-ne-parlent-jamais). |
+
+Une arête issue des seuls flux est **en pointillés** : le noyau a vu la
+connexion, mais aucun appel tracé ne la sous-tend, donc il n'y a ni débit ni
+latence à annoncer. Zéro serait un mensonge — ce chemin n'a pas été mesuré, il
+n'est pas inactif.
+
+## Lire la carte
+
+La carte consacre chaque canal visuel à un fait différent, si bien qu'un nœud
+peut en dire plusieurs à la fois sans qu'aucun n'en écrase un autre :
+
+| Canal | Signification |
+|---|---|
+| **Couleur de l'anneau** | état de santé — vert sain, ambre dégradé, rouge en panne, gris inactif ou non mesuré |
+| **Taille** | débit de requêtes |
+| **Remplissage** | identité — un nœud applicatif ordinaire |
+| **Forme** | la nature du nœud (voir ci-dessous) |
+| **Épaisseur d'arête** | volume d'appels |
+| **Couleur d'arête** | neutre, **ambre en tirets** pour un [problème réseau](/docs/signals/network-health), **rouge** pour des erreurs applicatives |
+| **Halo** | gCO₂e, sous la [loupe carbone](/docs/signals/green) |
+
+Un anneau n'est **jamais vert par défaut**. Un service que le calcul de santé
+n'a pas mesuré reste gris : un service non observé ne doit pas se lire comme un
+service en bonne santé.
+
+### Les formes disent ce qu'est un nœud
+
+- **Cercle** — une application.
+- **Hexagone en tirets** — une base de données, un cache ou un broker.
+- **Losange** — un proxy de service mesh ou une passerelle. Masqué par défaut ;
+  voir [les sauts de mesh](#un-saut-de-mesh-nest-pas-une-dépendance).
+- **Contour vide** — un pair vu dans le trafic qui n'a jamais rien émis.
+
+La forme est un canal distinct de la couleur, volontairement : ajouter une
+nature de nœud ne coûte jamais à la carte une couleur qu'elle utilisait déjà.
+
+## Des dépendances qui ne parlent jamais
+
+PostgreSQL, Redis et Kafka n'embarquent ni SDK ni sonde. Sans rien faire, un
+service qui passe l'essentiel de sa latence dans une base est dessiné comme un
+cercle isolé que rien n'explique — et quatre services partageant un même cache
+forment un rayon de souffle que personne ne voit.
+
+Avuru Obs les déduit des **spans de sortie des services qui les appellent**.
+Aucun agent supplémentaire, aucun stockage supplémentaire, rien à activer. Sur
+une installation zéro-code, la sonde eBPF lit les protocoles SQL et Redis dans
+le noyau : la base apparaît sur la carte dès les cinq premières minutes.
+
+Chaque nœud de dépendance est nommé comme une URI —
+`postgresql://orders-db`, `redis://session-cache`, `kafka://broker-0` — et ses
+arêtes portent le volume d'appels, le taux d'erreur et la latence mesurée par
+l'appelant. Un broker est dessiné **des deux côtés**, pour qu'une file ne soit
+jamais une impasse : producteur → broker → consommateur.
+
+:::note Ce que l'on sait, et ce que l'on ignore
+Une dépendance déduite ne reçoit **aucun verdict de santé** : on ne la voit qu'à
+travers ses appelants. Quand les appels échouent, c'est l'**arête** qui passe au
+rouge — ce qui est exactement ce que l'on a observé. Cliquer dessus ne fait
+rien : elle n'a pas de traces à ouvrir.
+
+Les appels HTTP vers des API tierces ne sont volontairement **pas** dessinés.
+Les admettre tous mettrait chaque CDN, fournisseur d'identité et endpoint de
+métriques sur la carte d'un coup, ce qui la rendrait moins lisible, pas plus.
+:::
+
+## Un saut de mesh n'est pas une dépendance
+
+Un sidecar de service mesh, un waypoint ou une passerelle d'entrée émet des
+spans et échange des octets exactement comme une application. Sans rien faire,
+chaque appel `app → proxy → app` est dessiné comme **deux** dépendances, ce qui
+affirme une relation entre des services qui ne se parlent jamais.
+
+Avuru Obs classe ces charges de travail comme du transport et les masque par
+défaut. **Afficher mesh et passerelles** les ramène — le hub les rapporte
+toujours, donc la bascule ne coûte aucune requête, et un mesh qu'on ne peut pas
+voir est un mesh qu'on ne peut pas déboguer.
+
+## Frontières
+
+**Grouper par** dessine un conteneur étiqueté autour de chaque **namespace** ou
+de chaque [groupe de services](/docs/signals/service-health). Au-delà d'une
+quarantaine de nœuds, un graphe non groupé est une pelote, et vous connaissez
+votre parc par namespaces ou par groupes — pas comme un nuage indifférencié.
+
+Les namespaces proviennent de la même résolution que l'auto-groupement du
+tableau de santé : une boîte sur la carte et un groupe sur le tableau ne peuvent
+donc jamais se contredire sur l'endroit où vit un service. Un service qui n'en
+déclare aucun est dessiné **hors** de toute frontière, plutôt que rangé dans un
+« autre » inventé.
+
+## Les pairs que vous n'avez pas encore instrumentés
+
+Une arête dont l'extrémité n'a jamais émis de télémétrie était **jetée** — un
+graphe a besoin de deux nœuds, et un seul existait. Ces extrémités sont
+désormais dessinées en contour vide, comptées à part des services, et sans
+aucune métrique, puisqu'il n'y en a pas.
+
+C'est souvent ce qu'il y a de plus intéressant à l'écran : c'est la partie de
+votre parc que rien d'autre ne voit. Chacune est une candidate pour la prochaine
+chose à instrumenter.
+
+:::note Pas étiquetés « externes »
+Nommer l'extrémité d'une connexion qui sort du cluster demanderait un attribut
+d'adresse sur la métrique de flux, que la sonde ne collecte volontairement pas —
+la cardinalité par paire d'IP coûte cher et a été un vrai défaut que nous avons
+corrigé. La carte dit donc **non détecté**, ce que l'on sait, plutôt
+qu'**externe**, ce qui serait une supposition.
+:::
+
+## Manipuler la carte
+
+- **Survolez un nœud** pour focaliser son voisinage : tout le reste s'estompe,
+  ses arêtes s'épaississent et révèlent rpm, p95, taux d'erreur et RTT, avec une
+  flèche à mi-arête pour le sens.
+- **Survolez une arête** pour l'infobulle complète — connexions échouées et
+  octets de flux.
+- **Volume des arêtes** étiquette toutes les arêtes d'un coup, quand la question
+  est *lequel de ces chemins porte le trafic*.
+- **Cliquez un service** pour ouvrir ses traces.
+- **Filtrez** par nom, par groupe, ou sur les seuls problèmes.
+- **Relancez la disposition** pour défaire un enchevêtrement ; **zoomez** et
+  **ajustez**, avec le pourcentage affiché à côté.
+
+Chaque filtre et chaque bascule vit dans l'**URL**. Une carte qui montre
+exactement ce que vous regardez est un lien que vous pouvez coller à un
+collègue — c'est une fonctionnalité, pas un hasard.
+
+## Limites
+
+- **Un saut de proxy est masqué, pas résolu.** Mesh masqué, les fausses
+  dépendances `app → proxy → app` disparaissent, mais la vraie dépendance
+  `app → app` derrière elles n'est pas encore reconstituée : cela demande la
+  filiation par trace.
+- **Les arêtes issues des flux portent des octets, pas des débits.** Aucun appel
+  tracé à mesurer : elles affichent un volume et aucune latence.
+- **Les dépendances déduites sont regroupées par cible, pas par destination.**
+  Tous les topics d'un même broker forment un nœud : le sujet de la carte est la
+  dépendance, et le détail par topic revient à un écran qui a la place.
+
+## Voir aussi
+
+- [Santé réseau](/docs/signals/network-health) — RTT et connexions échouées par
+  arête, sur ces mêmes arêtes.
+- [Santé des services](/docs/signals/service-health) — d'où viennent les anneaux
+  d'état.
+- [Concepts clés](/docs/getting-started/core-concepts) — comment les signaux
+  s'articulent.
