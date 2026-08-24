@@ -62,5 +62,11 @@ everything below is drawn from telemetry that was already arriving.
   as a gate, and three of its tests had quietly rotted across two releases. It
   now runs against a real authenticated instance, unattended, on every change.
 
+- **The one-file quickstart was still running v0.2 images.** The README tells
+  you to download a single compose file and run it; that file's image default
+  had been pinned by hand in July and never moved, so the fastest way to try
+  Avuru Obs has been evaluating a five-release-old build. It now follows the
+  newest release, and it is stamped at release time so it cannot go stale again.
+
 Full detail in the
 [release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.8.0).
