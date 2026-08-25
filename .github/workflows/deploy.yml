@@ -48,7 +48,12 @@ jobs:
           # This Hostinger FTP account is chrooted to the web root, so the login
           # directory IS public_html. Upload straight there ('.') — never into a
           # '/public_html/' subpath, which nests as public_html/public_html.
-          # `pwd` is logged so the login directory is visible if anything's off.
+          #
+          # Nothing here may print lftp's `pwd`: it echoes the whole connection
+          # URL, password included, and GitHub cannot mask it because lftp
+          # URL-encodes the punctuation ('@' -> '%40') so the printed form no
+          # longer matches the secret. `mirror --verbose` already lists every
+          # transferred file, which is the diagnostic that was actually wanted.
           #
           # An earlier deploy that uploaded into '/public_html/' left a stray
           # 'public_html' directory inside the web root. With cmd:fail-exit on,
@@ -66,7 +71,5 @@ jobs:
             set net:reconnect-interval-base 5;
             set ftp:use-mlsd true;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"$FTP_SERVER\";
-            echo '--- FTP login directory: ---';
-            pwd;
             mirror --reverse --delete --no-perms --parallel=1 --verbose --exclude=^public_html ./build/ .;
           "
