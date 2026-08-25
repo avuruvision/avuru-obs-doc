@@ -73,14 +73,22 @@ changements livrés le [Changelog](/changelog).
 | Comptabilité du trafic inter-zones — octets par paire de zones de disponibilité depuis les flux noyau, indépendante de la fonctionnalité réseau par arête : la comptabilité coûte le cardinal des paires de zones, pas celui des paires de charges de travail | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
 | Carte des services consciente du maillage — les charges de transport (sidecars de maillage, proxys waypoint et ztunnel, passerelles d'entrée et de sortie) sont reconnues et masquées derrière une bascule **Afficher maillage et passerelles** au lieu d'être dessinées comme des dépendances ; les arêtes issues des flux sont tracées et comptées à part des appels tracés | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
 | Documentation contextuelle — chaque écran renvoie à la page du manuel qui l'explique | <StatusBadge status="shipped" label="Livré" /> | v0.7 |
+| Une carte des services plus riche — frontières de namespace et de groupe de services, volume porté par chaque arête à la demande, pairs non détectés dessinés au lieu d'être jetés, une légende qui explique chaque canal utilisé et un indicateur de zoom | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
+| Cibles virtuelles — bases de données, caches et courtiers de messages comme nœuds à part entière de la carte, dérivés des spans sortants déjà stockés. Un courtier est dessiné par ses deux extrémités : une file n'est jamais une impasse | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
+| Navigation par couches — barre latérale groupée par la question à laquelle chaque écran répond (Topologie, Signaux, Opérations, Infrastructure), le chemin des cinq premières minutes inchangé, et une couche dont tous les écrans sont inactifs disparaît au lieu d'afficher un manque | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
+| Reconstitution du saut de proxy — la vraie dépendance `app → app` retrouvée à travers jusqu'à trois proxys enchaînés, en remontant la parenté propre à chaque trace, et nommée avec le proxy traversé. La bascule **Afficher maillage et passerelles** échange les représentations au lieu de les empiler : une requête n'est jamais dessinée deux fois | <StatusBadge status="shipped" label="Livré" /> | v0.9 |
+| Surfaces dédiées au maillage — charge, latence et taux de succès par proxy, avec les appels transportés en entrée et en sortie comptés séparément, plus la santé du plan de contrôle : proxys connectés, convergence des poussées, et la configuration que vos proxys ont refusée. Sans collecte, l'écran le dit au lieu d'afficher zéro | <StatusBadge status="shipped" label="Livré" /> | v0.9 |
+| Retransmissions TCP sur les arêtes de la carte — la perte de paquets sur un lien, que le RTT seul ne révèle pas, aux côtés du RTT p95 et des connexions échouées ; une arête qui retransmet est signalée dégradée pour cette seule raison | <StatusBadge status="shipped" label="Livré" /> | v0.9 |
+| Attribution réseau par arête, vérifiée en intégration continue sur un vrai cluster eBPF plutôt que supposée — ce qui a révélé et corrigé un plantage latent emportant toute la sonde dès que les statistiques TCP étaient activées | <StatusBadge status="shipped" label="Livré" /> | v0.9 |
+| Sondes de point d'entrée — requêtes planifiées rattachées à un groupe de santé, pour distinguer un groupe sans trafic d'un groupe sans service. Deux échecs consécutifs font bouger un groupe, jamais un seul, et chaque sonde émet son propre span : une sonde en échec renvoie vers la trace de la requête qui a échoué | <StatusBadge status="shipped" label="Livré" /> | v0.9 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Une carte des services plus riche — frontières de namespace et de groupe, volume porté par l'arête elle-même, traitement distinct des pairs externes et non détectés | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
-| Cibles virtuelles — bases de données, caches et courtiers de messages comme nœuds à part entière de la carte, dérivés des spans sortants déjà stockés | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
-| Navigation par couches — une structure qui grandit avec le produit tout en gardant court le chemin des cinq premières minutes | <StatusBadge status="planned" label="Prévu" /> | v0.8 |
+| Transport classé à partir des étiquettes Kubernetes plutôt que des noms de charges de travail — le vrai signal, dès que le pipeline portera ces attributs | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
+| Attribution des coûts aux côtés du module énergie — usage, allocation et surprovisionnement par nœud : un seul récit sur le gaspillage | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
+| Plans de contrôle autres qu'Istio — la moitié « par proxy » fonctionne déjà partout ; la moitié « plan de contrôle » est aujourd'hui façonnée pour Istio | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

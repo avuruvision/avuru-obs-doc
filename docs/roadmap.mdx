@@ -205,13 +205,36 @@ list, with the first-five-minutes path unchanged. Full detail on
 [the service map](/docs/signals/service-map), the
 [feature status](/docs/status) page and in the [changelog](/changelog/v0-8-0).
 
-## v0.9 and beyond (directional)
+## v0.9 — the mesh and the kernel (shipped)
 
-- **The mesh and the kernel:** recover the real `app → app` dependency across a
-  proxy hop — v0.8 stopped the map drawing false ones, but the true ones behind
-  them are still missing — plus the L4/L7 detail the kernel already sees, and
-  mesh-facing surfaces for the clusters where the mesh *is* the network.
-- **Endpoint checks:** health when there is no traffic at all.
+v0.8 stopped the map *lying* about a meshed cluster. It did not yet tell the
+whole truth about one: with the proxies hidden, the false dependencies were gone
+and the real ones behind them were still missing.
+
+The hub now walks each trace's own ancestry across the proxies and reports
+[the dependency underneath](/docs/signals/service-map), named with the proxy it
+came through — and the mesh toggle *swaps* representations instead of stacking
+them, so a request is never counted twice. The mesh itself gained
+[a screen](/docs/signals/mesh): per-proxy load, latency and success rate with the
+calls carried in and out counted apart, plus control-plane health including the
+configuration your proxies **refused**.
+
+Underneath, the eBPF sensor moved to a version that exports
+[TCP retransmits](/docs/signals/network-health) — packet loss a fast-looking link
+can hide — and its per-edge attribution is now asserted on a live kernel in CI
+rather than assumed. And [endpoint checks](/docs/signals/service-health) answer
+the question observed traffic cannot: whether anything is serving when nobody is
+calling. Full detail on the [feature status](/docs/status) page and in the
+[changelog](/changelog/v0-9-0).
+
+## Beyond v0.9 (directional)
+
+- **Transport classified from Kubernetes labels** rather than workload names —
+  names are a heuristic with an escape hatch; labels are the real signal.
+- **Costs beside the energy module:** usage, allocation and overprovisioning per
+  node — one story about waste.
+- **Control planes other than Istio:** the per-proxy half already works
+  anywhere; the control-plane half is Istio-shaped today.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
   code.

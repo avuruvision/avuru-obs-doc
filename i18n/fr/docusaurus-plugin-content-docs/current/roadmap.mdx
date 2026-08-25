@@ -228,13 +228,39 @@ minutes restant inchangé. Détail complet sur
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-8-0).
 
-## v0.9 et au-delà (indicatif)
+## v0.9 — le maillage et le noyau (livrée)
 
-- **Le maillage et le noyau :** reconstituer la vraie dépendance `app → app` à
-  travers un saut de proxy — la v0.8 a arrêté les fausses, mais les vraies
-  manquent encore — plus le détail L4/L7 que le noyau voit déjà, et des surfaces
-  dédiées au maillage pour les clusters où le maillage *est* le réseau.
-- **Contrôles de disponibilité :** la santé même sans aucun trafic.
+La v0.8 a empêché la carte de *mentir* sur un cluster maillé. Elle n'en disait
+pas encore toute la vérité : les proxys masqués, les fausses dépendances avaient
+disparu et les vraies, derrière elles, manquaient toujours.
+
+Le hub remonte désormais la parenté propre à chaque trace au travers des proxys
+et rapporte [la dépendance en dessous](/docs/signals/service-map), en nommant le
+proxy traversé — et la bascule du maillage *échange* les représentations au lieu
+de les empiler : une requête n'est jamais comptée deux fois. Le maillage a gagné
+[son écran](/docs/signals/mesh) : charge, latence et taux de succès par proxy,
+avec les appels transportés en entrée et en sortie comptés séparément, plus la
+santé du plan de contrôle et la configuration que vos proxys ont **refusée**.
+
+En dessous, la sonde eBPF passe à une version qui exporte les
+[retransmissions TCP](/docs/signals/network-health) — la perte de paquets qu'un
+lien rapide peut masquer — et son attribution par arête est désormais vérifiée
+sur un noyau réel en intégration continue plutôt que supposée. Enfin, les
+[sondes de point d'entrée](/docs/signals/service-health) répondent à la question
+que le trafic observé ne peut trancher : quelque chose sert-il encore quand
+personne n'appelle ? Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-9-0).
+
+## Au-delà de la v0.9 (indicatif)
+
+- **Transport classé à partir des étiquettes Kubernetes** plutôt que des noms de
+  charges de travail — les noms sont une heuristique avec une échappatoire ; les
+  étiquettes sont le vrai signal.
+- **Les coûts aux côtés du module énergie :** usage, allocation et
+  surprovisionnement par nœud — un seul récit sur le gaspillage.
+- **Les plans de contrôle autres qu'Istio :** la moitié « par proxy » fonctionne
+  déjà partout ; la moitié « plan de contrôle » est façonnée pour Istio.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
 

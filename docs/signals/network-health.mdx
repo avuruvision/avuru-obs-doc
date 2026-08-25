@@ -3,15 +3,21 @@ id: network-health
 title: Network health
 sidebar_label: Network health
 sidebar_position: 8
-description: Per-edge TCP RTT and failed connections on the service map, measured in the kernel by OBI — connection health with no traces, SDKs, or app changes.
+description: Per-edge TCP RTT, failed connections and retransmits on the service map, measured in the kernel by OBI — connection health with no traces, SDKs, or app changes.
 ---
 
 # Network health
 
 The service map shows what your services *say* to each other. Network health
 shows whether the wire between them is slow or refusing connections: per-edge
-**TCP RTT** and **failed/reset connections**, measured in the kernel by OBI —
-no traces, no SDKs, no app changes.
+**TCP RTT**, **failed/reset connections** and **retransmits**, measured in the
+kernel by OBI — no traces, no SDKs, no app changes.
+
+Retransmits matter more than they look. A link can lose packets steadily and
+still report a healthy round-trip time, because what survives the loss arrives
+promptly — the retransmission is the cost, paid in the caller's tail latency,
+and RTT alone will not show it. An edge that is retransmitting is marked
+unhealthy on that basis alone.
 
 ## On the edge
 
@@ -19,7 +25,7 @@ Hover a node to focus its neighbourhood: everything else fades, its edges
 thicken, and each one is labelled right on the line with rpm, **p95** (the
 caller's own latency for that path — a separate number from **RTT p95**),
 error rate and RTT where OBI measured it, with a mid-line arrowhead for
-direction. Hover an edge directly for the fuller tooltip, which adds failed
+direction. Hover an edge directly for the fuller tooltip, which adds retransmits, failed
 connections and flow bytes. Either way, an edge turns **amber and dashed**
 when RTT is high or connections are failing; if traces already mark the edge
 red with application errors, red takes precedence — an app failure outranks a
@@ -59,7 +65,8 @@ experimental — it ships **off by default** for exactly this reason
 
 ## Limitations
 
-- **No retransmissions** — OBI doesn't emit them, so they aren't shown.
+- **No packet drops** — the sensor does not emit a drop counter, so drops are not
+  shown. Retransmits, which cover most of the same ground, are.
 - **Failed-connection counts are an approximation** — a sum over a cumulative
   counter, not a sessionized count.
 - **Only attributed edges appear** — an edge needs both endpoints resolved to

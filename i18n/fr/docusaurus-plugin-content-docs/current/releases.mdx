@@ -22,13 +22,35 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.9.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.10.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : le maillage et le noyau — reconstituer la
-vraie dépendance `app → app` à travers un saut de proxy, le détail L4/L7 que le
-noyau voit déjà, et des surfaces dédiées au maillage pour les clusters où le
-maillage *est* le réseau.
+[Feuille de route](/docs/roadmap)) : classer le transport à partir des étiquettes
+Kubernetes plutôt que des noms de charges de travail, l'attribution des coûts aux
+côtés du module énergie, et les plans de contrôle autres qu'Istio.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.9.0" date="2026-08-25" status="shipped" statusLabel="Livré">
+
+**Le maillage et le noyau.** Sur un cluster maillé, chaque appel est intercepté :
+un graphe de dépendances y dessine donc soit des sauts qui n'en sont pas, soit
+plus rien. Le hub remonte désormais la parenté propre à chaque trace au travers
+des proxies et rapporte [la dépendance en dessous](/docs/signals/service-map), en
+nommant le proxy traversé — et le commutateur du maillage échange les
+représentations au lieu de les empiler. Le maillage a gagné son écran : charge,
+latence et taux de succès par proxy, avec les appels transportés en entrée et en
+sortie comptés séparément, plus la santé du plan de contrôle et la configuration
+que vos proxies ont **refusée**. La sonde eBPF passe à une version qui exporte
+les [retransmissions TCP](/docs/signals/network-health), et son attribution par
+arête est désormais vérifiée sur un noyau réel plutôt que supposée — ce qui a mis
+au jour un plantage latent qui emportait toute la sonde dès que les statistiques
+TCP étaient activées. Enfin, les **sondes de point d'entrée** répondent à la
+question que le trafic observé ne peut pas trancher : quelque chose sert-il
+encore quand personne n'appelle ?
+
+[Notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.9.0) ·
+[Journal des modifications](/changelog/v0-9-0)
 
 </ReleaseEntry>
 

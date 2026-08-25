@@ -21,12 +21,32 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.9.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.10.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)): the mesh
-and the kernel — recovering the real `app → app` dependency across a proxy hop,
-the L4/L7 detail the kernel already sees, and mesh-facing surfaces for the
-clusters where the mesh *is* the network.
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
+classifying transport from Kubernetes labels rather than workload names, cost
+attribution beside the energy module, and non-Istio control planes.
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.9.0" date="2026-08-25" status="shipped">
+
+**The mesh and the kernel.** On a meshed cluster every call is intercepted, so a
+dependency graph either draws hops that are not dependencies or draws nothing at
+all. The hub now walks each trace's own ancestry across the proxies and reports
+[the dependency underneath](/docs/signals/service-map), named with the proxy it
+came through — and the mesh toggle swaps representations rather than stacking
+them. The mesh itself gained a screen: per-proxy load, latency and success rate
+with calls carried in and out counted apart, plus control-plane health including
+the configuration your proxies **refused**. The eBPF sensor moved to a version
+that exports [TCP retransmits](/docs/signals/network-health), and its per-edge
+attribution is now asserted on a live kernel rather than assumed — which
+uncovered a latent crash that took the whole sensor down whenever TCP stats were
+enabled. Finally, **endpoint checks** answer the question observed traffic
+cannot: whether anything is serving when nobody is calling.
+
+[Release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.9.0) ·
+[Changelog](/changelog/v0-9-0)
 
 </ReleaseEntry>
 

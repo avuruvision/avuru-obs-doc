@@ -14,8 +14,10 @@ service's RED health up into consolidated **group** status, lays the groups out
 by criticality tier, and enforces one rule dashboards usually leave to the
 reader: a service can't read green while a critical dependency is red.
 
-It is **derived** from the traces you already send. No health checks, no
-probes, no new storage — the hub never originates traffic to your services.
+It is **derived** from the traces you already send: no new storage, and nothing
+to instrument. On its own, the hub originates no traffic to your services at
+all — [endpoint checks](#endpoint-checks-health-when-nothing-is-calling) are the
+one deliberate exception, and only when you declare them.
 
 ## From RED to status
 
@@ -172,3 +174,78 @@ a rule can page you when a group, service, or tier goes bad. See the
 [changelog entry](/changelog/service-health), the [Roadmap](/docs/roadmap) and
 [Feature status](/docs/status).
 :::
+
+## Endpoint checks: health when nothing is calling
+
+Everything above is derived from requests **other people** made. That leaves one
+question it structurally cannot answer: a group with no traffic in the window is
+either idle or dead, and no amount of observed telemetry tells you which. At
+3 a.m. that is the only question that matters.
+
+An **endpoint check** is a scheduled HTTP probe attached to a group — the request
+*we* make, so that silence stops being ambiguous:
+
+```yaml
+serviceGroups:
+  groups:
+    - name: core
+      tier: T0
+      selector:
+        namespaces: [storefront]
+      checks:
+        - id: core-login
+          url: https://app.example.com/api/health
+          interval: 60s
+          expect:
+            status: 200
+            maxLatency: 800ms
+```
+
+- A silent group whose probe **passes** reads `healthy` — not `idle`. Something
+  is serving; we asked.
+- A silent group whose probe **fails** reads `down`. Nobody else is calling it,
+  and the one thing that did was not served.
+- A group with live traffic and a failing probe is at least `degraded`: the
+  traffic says something works, the probe says something does not.
+
+### Two failures, never one
+
+A check does not move a group until it has failed **twice in a row**. A single
+failed probe is a rolling restart, a lost lease or a dropped packet — and a board
+that reacts to one is a board people stop reading. The first failure is still
+visible on the group's card, marked apart from a check that is actually failing.
+
+### A check is traffic, not a side channel
+
+Each probe emits a **span of its own**. That means a check appears in your RED
+metrics, on the service map and in the trace explorer exactly like any other
+client — and a failing check on this board links straight to the trace of the
+request that failed, instead of leaving you to correlate by hand.
+
+Check spans are classified as auxiliary traffic by the same mechanism that
+already keeps health-check spans out of user-facing RED, so your numbers do not
+move because you started probing.
+
+The hub sends those spans to the gateway as an ordinary OTLP client, past the
+same receiver and the same ingest-key enforcement as everything else. It never
+writes to storage directly.
+
+:::info Zero checks, zero cost
+Declare none and nothing runs: no scheduler, no rows, no behaviour change.
+:::
+
+### Reading them
+
+`GET /api/v1/checks` lists what is declared; `GET /api/v1/checks/{id}/results`
+returns one check's recent outcomes with the trace id of each probe.
+
+### What checks are not
+
+- **Not a replacement for Kubernetes probes.** Liveness and readiness serve the
+  orchestrator; these serve humans, and they run from outside the pod.
+- **Not scripted journeys.** Single requests only — login-then-navigate flows are
+  a larger question.
+- **Not guarded against internal targets, on purpose.** A check exists to probe
+  *your own* services, on exactly the private networks an SSRF guard would block.
+  The URLs are configuration you write, never user input; what is enforced is a
+  hard timeout and a refusal to follow a redirect to another host.
