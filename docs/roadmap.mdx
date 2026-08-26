@@ -227,14 +227,42 @@ the question observed traffic cannot: whether anything is serving when nobody is
 calling. Full detail on the [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-9-0).
 
-## Beyond v0.9 (directional)
+## v0.10 — what it costs (shipped)
 
-- **Transport classified from Kubernetes labels** rather than workload names —
-  names are a heuristic with an escape hatch; labels are the real signal.
-- **Costs beside the energy module:** usage, allocation and overprovisioning per
-  node — one story about waste.
-- **Control planes other than Istio:** the per-proxy half already works
-  anywhere; the control-plane half is Istio-shaped today.
+Every release before this one answered *what is happening*. This one answers a
+question that arrives from someone who will never open a service map: what is
+this cluster costing, and how much of that is buying nothing at all.
+
+It answers it from capacity rather than from an invoice. A cluster is sized and
+billed for what its workloads **reserve**, so the gap between that and what they
+draw is the waste — and [cost & waste](/docs/signals/cost) ranks every workload
+and node by exactly that gap. Idle is measured against the peak a workload
+reached, never its average, because a request cannot be cut below the peak
+without inviting the eviction that peak would cause; a workload that declares no
+request at all is called out as its own state rather than shown as a zero. Rates
+are values you set, and with none set the screens report cores and bytes and say
+so — there is no pricing API here, and nothing leaves your cluster to produce
+the number.
+
+Beside it, the [service map](/docs/signals/service-map) stopped depending on what
+you named things: a gateway called anything at all is recognised from the labels
+your mesh writes on its own data plane, and those labels only ever promote a
+workload to transport, never demote one. And a silent
+[control plane](/docs/signals/mesh) now says which of three silences it is —
+nothing is scraping it, the target is not answering, or it answered with metrics
+this product cannot read. Full detail on the [feature status](/docs/status) page
+and in the [changelog](/changelog/v0-10-0).
+
+## Beyond v0.10 (directional)
+
+- **Read a second control plane**, once someone running one can say which of its
+  signals answer the questions the Istio card answers — and which simply have no
+  answer there.
+- **Cost joined to energy:** the same reserved-and-idle capacity in Wh and
+  gCO2e, on an install running both. One story about waste, in two units.
+- **The incident:** root-cause summaries, with any provider switch **disabled by
+  default** — it would be the first outbound call in a product whose whole
+  promise is that nothing leaves the cluster.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
   code.
