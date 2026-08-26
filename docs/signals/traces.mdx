@@ -35,6 +35,36 @@ The trace explorer is **live** today. From the Traces screen you can:
 - **Compare two traces** with a structural diff that highlights added, removed,
   faster and slower spans.
 
+## Did it work? Three answers, not two
+
+A span's outcome is derived, not taken at face value: many auto-instrumentations
+leave the OpenTelemetry status `Unset` even on a failing call, so Avuru Obs
+reads the HTTP status alongside it.
+
+| The span says | Outcome |
+|---|---|
+| status `Error` | **error** — an explicit verdict always wins |
+| status `Ok` | **ok** — a developer set it, and that is final |
+| 5xx | **error**, whichever side reported it |
+| 4xx on a **client** span | **error** — the caller is the one that failed |
+| 4xx on a **server** span | **refused** |
+| 3xx, 2xx, no code | **ok** |
+
+**Refused** is the request a server turned away: a WAF block, an authorization
+denial, a rejected payload. It is neither a failure of the service nor a
+success, and it gets its own amber class rather than being folded into either.
+
+That separation is deliberate. Counting server 4xx as errors would put every
+`401` auth challenge and every `404` from a crawler into the error rate that
+[RED metrics](#explore-traces), the [service map](/docs/signals/service-map)'s
+health ring and [alerting](/docs/signals/alerting) are built on — so refusals
+stay out of all three. They are instead visible where you go looking for them:
+a **Refused** column beside Errors in the per-operation overview and the trace
+table, the status code shown on each row of the trace list, and a
+`Refused (4xx)` option in the search filter.
+
+If your gateway or WAF is doing its job, that column is where you will see it.
+
 ## Sampling
 
 Head sampling is configured at the SDK or gateway. Tail-based sampling at the
