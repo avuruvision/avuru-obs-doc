@@ -49,8 +49,8 @@ measured stays grey: an unobserved service must not read as a healthy one.
 
 ### Shapes say what a node is
 
-- **Circle** — an application.
-- **Dashed hexagon** — a database, cache or message broker.
+- **Hexagon** — an application.
+- **Dashed barrel** — a database, cache or message broker.
 - **Diamond** — a service-mesh proxy or gateway. Hidden by default; see
   [mesh hops](#mesh-hops-are-not-dependencies).
 - **Hollow outline** — a peer seen in traffic that has never reported anything.
@@ -61,7 +61,7 @@ costs the map a colour it was already using.
 ## Dependencies that never report
 
 PostgreSQL, Redis and Kafka carry no SDK and no sensor. Left alone, a service
-that spends most of its latency in a database is drawn as a lonely circle with
+that spends most of its latency in a database is drawn as a lonely hexagon with
 nothing to explain it — and four services sharing one cache is a blast radius
 nobody can see.
 
@@ -125,7 +125,7 @@ be one.
 
 Hiding the hop removes the false claim. It does not, on its own, restore the true
 one: with the proxies gone, a fully meshed estate is a set of disconnected
-circles.
+nodes.
 
 So the hub reads each trace's **own parent chain** — the callee's span, its
 parent, and its parent — stepping over the proxies until it reaches the
