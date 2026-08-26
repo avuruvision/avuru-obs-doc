@@ -1,0 +1,121 @@
+---
+id: cost
+title: Coûts & gaspillage
+sidebar_label: Coûts
+sidebar_position: 11
+description: Ce que chaque charge de travail a réservé face à ce qu'elle a réellement consommé — la capacité pour laquelle votre cluster est dimensionné et facturé pendant que rien ne tourne dedans. Aucune API de tarification, aucune sortie de données, aucun nouveau composant.
+---
+
+# Coûts & gaspillage
+
+Un cluster Kubernetes est dimensionné par ce que ses charges de travail
+**réservent**, pas par ce qu'elles consomment. Chaque requête de ressources est
+de la capacité que l'ordonnanceur met de côté et pour laquelle un nœud est
+acheté — qu'un seul cycle en soit dépensé ou non.
+
+avuru obs sait déjà ce que chaque pod consomme. Voici l'autre moitié de la
+phrase : ce qu'il a demandé.
+
+## Ce que vous obtenez
+
+- **Le gaspillage, classé.** Le CPU et la mémoire réservés par chaque charge de
+  travail face à ce qu'elle a réellement tiré, triés par l'écart. La plus grosse
+  charge de votre cluster n'est pas une découverte ; celle qui réserve huit cœurs
+  pour en utiliser un dixième, si.
+- **Les charges qui ne réservent rien.** Signalées comme un état à part entière,
+  pas comme un zéro. Un conteneur sans requête ne peut pas être placé
+  délibérément par l'ordonnanceur, et c'est la première chose que le kubelet
+  évince sous pression.
+- **L'allocation d'un nœud à côté de son usage.** Un nœud entièrement *réservé*
+  n'accepte plus aucun pod, aussi peu qu'il *consomme* — deux problèmes très
+  différents que rien ne distingue sur une courbe d'utilisation.
+- **De l'argent, si vous le souhaitez.** Renseignez vos tarifs et les mêmes
+  écrans affichent une devise. Laissez-les vides et ils affichent des cœurs et
+  des octets, en le disant.
+
+## L'inactif se mesure face au pic
+
+Le montant récupérable, c'est **le réservé moins le pic**, jamais le réservé
+moins la moyenne.
+
+Une requête ne peut pas être abaissée sous ce que la charge a réellement atteint
+sans risquer une éviction la prochaine fois qu'elle y revient. Soustraire la
+moyenne présenterait comme du gaspillage précisément la marge dont la charge a
+démontré avoir besoin. Les deux sont affichées — la moyenne dit quelle part du
+temps le pic n'avait pas lieu — mais seul le pic borne un changement sûr.
+
+## Pas d'API de tarification
+
+Les tarifs sont les vôtres à déclarer :
+
+```yaml
+cost:
+  rates:
+    cpuCoreHour: 0.0331
+    memGiBHour: 0.004
+    currency: EUR
+```
+
+Il n'y a aucune intégration de facturation cloud et il n'y en aura pas. avuru obs
+n'émet aucun appel sortant, et un prix que ce produit irait chercher ailleurs
+serait la première chose qu'il ferait jamais sortir de votre cluster.
+
+Sans tarifs configurés, les écrans restent utiles — « 2,4 cœurs réservés, 0,3
+consommé » est déjà la découverte — et ils indiquent qu'aucun tarif n'est défini
+plutôt que d'afficher un zéro qui se lirait comme *gratuit*. Les deux tarifs vont
+ensemble : facturer le CPU en traitant la mémoire comme gratuite classerait les
+mauvaises charges en tête, ce qui est la seule raison d'être de cet écran.
+
+## L'activer
+
+```yaml
+modules:
+  infraMetrics:
+    enabled: true   # la moitié « consommé » de chaque chiffre affiché ici
+  cost:
+    enabled: true
+```
+
+**Désactivé par défaut.** L'activer met à surveiller des objets Kubernetes à
+l'échelle du cluster et prend un `Lease`, deux choses que votre installation
+n'avait pas auparavant — c'est donc une décision que vous prenez, pas une qu'une
+mise à jour prend pour vous. Le module infra-metrics est requis, et un garde-fou
+du chart refuse l'installation sans lui plutôt que d'afficher un écran vide.
+
+## Comment ça marche
+
+La capacité réservée est une propriété du **cluster**, pas d'un nœud — la lire
+depuis un DaemonSet remonterait donc chaque valeur une fois par nœud et
+multiplierait chaque total par la taille de votre flotte.
+
+Le collecteur qui tourne déjà dans le sensor embarque les deux pièces
+nécessaires pour l'éviter : un récepteur qui lit les requêtes, les limites et
+l'allocatable des nœuds depuis l'API Kubernetes, et une extension d'élection de
+leader qui détient un `Lease` pour qu'**un seul nœud** l'exécute. Aucun nouveau
+composant, aucune nouvelle image, aucune nouvelle table — les séries empruntent
+le chemin OTLP que tout le reste emprunte déjà.
+
+La passerelle en est délibérément tenue à l'écart : c'est elle qui maintient
+votre port d'ingestion ouvert, la lecture d'objets à l'échelle du cluster n'y a
+pas sa place, et son nombre de réplicas vous appartient — le relever ramènerait
+la duplication aussitôt.
+
+Le garde-fou d'intégration continue vérifie la **duplication**, pas une valeur :
+groupées par objet et par horodatage, aucune série ne doit apparaître plus d'une
+fois. Une régression de l'élection de leader se voit comme un `2`, là où un test
+portant sur les chiffres eux-mêmes lirait un total deux fois trop grand et
+passerait.
+
+## Le lire honnêtement
+
+- **Le réservé est moyenné sur votre fenêtre**, pas échantillonné une fois. Une
+  charge passée de deux à dix réplicas a réservé davantage pendant une partie de
+  la fenêtre, et le dernier échantillon ne rapporterait que son point d'arrivée.
+- **Une limite n'est pas une réservation.** Les limites sont affichées à côté des
+  requêtes et jamais à leur place : c'est la requête que l'ordonnanceur soustrait
+  d'un nœud, et lire une limite comme une réservation surestime le gaspillage sur
+  chaque charge « burstable » que vous exécutez.
+- **C'est un signal d'ingénierie, pas une facture.** Aucune répartition des coûts
+  partagés, aucun amortissement, aucune modélisation d'instances réservées — et
+  rien ici ne modifie une charge de travail. Le produit dit ce qui est
+  sur-réservé ; le changement vous appartient.

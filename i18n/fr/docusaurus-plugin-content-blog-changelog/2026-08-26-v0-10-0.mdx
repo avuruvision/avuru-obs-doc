@@ -1,0 +1,83 @@
+---
+slug: v0-10-0
+title: "v0.10.0 : ce que ça coûte"
+description: "La capacité réservée par chaque charge de travail face à ce qu'elle a réellement consommé, classée par l'écart — plus une carte qui reconnaît une passerelle quel que soit son nom, et un plan de contrôle qui dit pourquoi il se tait."
+authors: [avuru]
+tags: [platform, service-map, ui]
+date: 2026-08-26
+---
+
+**v0.10.0** répond à une question qui vient de l'extérieur de l'équipe
+plateforme : combien coûte ce cluster, et quelle part de cette dépense n'achète
+rien ? Un cluster Kubernetes est dimensionné par ce que ses charges de travail
+*réservent*, pas par ce qu'elles consomment — et jusqu'ici avuru obs ne
+connaissait que la seconde moitié de la phrase.
+
+{/* truncate */}
+
+- **Coûts & gaspillage.** Le CPU et la mémoire réservés par chaque charge face à
+  ce qu'elle a réellement tiré, classés par l'écart — car la plus grosse charge
+  d'un cluster n'est pas une découverte, mais celle qui réserve huit cœurs pour
+  en utiliser un dixième, si. Les charges qui ne déclarent **aucune** requête
+  sont signalées comme un état à part entière plutôt qu'affichées à zéro :
+  l'ordonnanceur ne peut pas les placer délibérément et le kubelet les évince en
+  premier. Les nœuds reçoivent la vue correspondante, puisqu'un nœud entièrement
+  *réservé* n'accepte plus aucun pod, aussi peu qu'il *consomme*.
+
+  La capacité inactive se mesure face au **pic**, jamais à la moyenne. Une
+  requête ne peut pas être abaissée sous ce qu'une charge a réellement atteint
+  sans risquer une éviction la prochaine fois qu'elle y revient — soustraire la
+  moyenne présenterait comme du gaspillage exactement la marge dont elle a
+  démontré avoir besoin.
+
+  Les tarifs sont les vôtres à déclarer dans le chart. Il n'y a aucune
+  intégration de facturation cloud et il n'y en aura pas : un prix que ce produit
+  irait chercher ailleurs serait la première chose qu'il ferait jamais sortir de
+  votre cluster. Sans tarifs, les écrans affichent des cœurs et des octets et le
+  disent, plutôt qu'un zéro qui se lirait comme *gratuit*. Désactivé par défaut —
+  [Coûts & gaspillage](/docs/signals/cost).
+
+  Aucun nouveau composant n'est nécessaire. Le collecteur déjà présent dans votre
+  sonde embarque les deux pièces : un récepteur qui lit les requêtes des
+  conteneurs et la capacité des nœuds depuis l'API Kubernetes, et un `Lease`
+  d'élection de leader pour qu'**un seul nœud** l'exécute. La capacité réservée
+  est un fait à l'échelle du cluster : la lire depuis un DaemonSet multiplierait
+  chaque total par la taille de votre flotte.
+
+- **La carte reconnaît une passerelle quel que soit son nom.** La classification
+  du transport ne savait lire que les *noms*, et cette liste est volontairement
+  étroite car un faux positif efface un vrai service de la carte. Une passerelle
+  appelée `public-edge` voyait donc ses sauts dessinés comme des dépendances
+  applicatives jusqu'à ce que quelqu'un s'en aperçoive. La sonde transporte
+  désormais les labels que le maillage pose sur son propre plan de données, et la
+  carte les croit.
+
+  Un label ne fait que *promouvoir* une charge en transport. Avec un sidecar, il
+  n'y a aucun label à lire — le proxy est un conteneur dans le pod de
+  l'application, dont il porte les labels — le nom reste donc la réponse dans ce
+  cas, et votre liste `applications` l'emporte toujours sur les deux —
+  [Carte des services](/docs/signals/service-map#comment-un-proxy-est-reconnu).
+
+- **Un plan de contrôle silencieux dit pourquoi.** « Non observé » recouvrait
+  trois problèmes différents : rien ne le collecte, la cible ne répond pas, ou
+  elle a répondu avec des métriques qui ne sont pas celles d'un plan de contrôle
+  que nous savons lire. Chacun appelle une correction différente, et chacun le
+  dit désormais.
+
+  Le troisième mérite d'être nommé : la carte du plan de contrôle a **la forme
+  d'Istio**. Ses quatre indicateurs sont ceux d'istiod, et les autres plans de
+  contrôle ne publient pas les mêmes quatre faits — plutôt que de plaquer
+  d'autres chiffres sur les mêmes libellés, avuru obs dit qu'il a atteint quelque
+  chose qu'il ne sait pas lire. La moitié « proxys » de l'écran n'est pas
+  affectée : elle vient de vos propres traces et fonctionne avec n'importe quel
+  maillage — [Maillage](/docs/signals/mesh#quand-il-se-tait-la-carte-dit-pourquoi).
+
+- **Les Réglages cessent de proposer la configuration de l'installation à un
+  compte en lecture seule.** Les lecteurs — la démo partagée en premier lieu —
+  se voyaient proposer l'éditeur de groupes, Stockage et Statut. Groupes est un
+  éditeur dont tous les contrôles leur étaient déjà masqués ; les deux autres
+  lisent un point d'entrée réservé aux administrateurs et affichaient « hub
+  injoignable », une panne qui n'avait pas lieu à la place d'un refus qui, lui,
+  avait bien lieu. Le même correctif rétablit l'administration sur les
+  installations tournant *sans* authentification, où le garde-fou refusait ce que
+  le hub autorise.

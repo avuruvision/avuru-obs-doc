@@ -1,0 +1,74 @@
+---
+slug: v0-10-0
+title: "v0.10.0: what it costs"
+description: "Every workload's reserved capacity against what it actually used, ranked by the gap — plus a map that recognises a gateway you named anything at all, and a control plane that says why it is silent."
+authors: [avuru]
+tags: [platform, service-map, ui]
+date: 2026-08-26
+---
+
+**v0.10.0** answers a question that comes from outside the platform team: what
+is this cluster costing, and how much of it is buying nothing? A Kubernetes
+cluster is sized by what its workloads *reserve*, not by what they use — and
+until now avuru obs only knew the second half of that sentence.
+
+{/* truncate */}
+
+- **Cost & waste.** Every workload's reserved CPU and memory against what it
+  actually drew, ranked by the gap — because the biggest workload in a cluster
+  is not a finding, and the one reserving eight cores to use a tenth of one is.
+  Workloads that declare **no** request are called out as their own state rather
+  than shown as a zero: the scheduler cannot place them deliberately and the
+  kubelet evicts them first. Nodes get the matching view, since a node that is
+  fully *requested* takes no more pods however little it is *using*.
+
+  Idle capacity is measured against the **peak**, never the average. A request
+  cannot be cut below what a workload actually reached without risking eviction
+  the next time it gets there — subtracting the average would report as waste
+  exactly the headroom it demonstrably needed.
+
+  Rates are yours to declare in the chart. There is no cloud billing
+  integration and there will not be one: a price this product looked up
+  somewhere would be the first thing it ever sent out of your cluster. With no
+  rates set the screens report cores and bytes and say so, rather than printing
+  a zero that reads as *free*. Off by default —
+  [Cost & waste](/docs/signals/cost).
+
+  It needs no new component. The collector already in your sensor carries both
+  pieces: a receiver that reads container requests and node capacity from the
+  Kubernetes API, and a leader-election lease so **exactly one node** runs it.
+  Reserved capacity is a cluster fact, and reading it from a DaemonSet would
+  multiply every total by the size of your fleet.
+
+- **The map recognises a gateway you named anything at all.** Transport
+  classification could only read workload *names*, and that list is deliberately
+  narrow because a false positive erases a real service from the map. So a
+  gateway called `public-edge` had its hops drawn as application dependencies
+  until somebody noticed. The sensor now carries the labels a mesh writes on its
+  own data plane, and the map believes them.
+
+  Labels only ever *promote* a workload to transport. With a sidecar there is no
+  label to read — the proxy is a container inside the application's pod, wearing
+  the application's labels — so names remain the answer there, and your
+  `applications` override still beats both —
+  [Service map](/docs/signals/service-map#how-a-proxy-is-recognised).
+
+- **A silent control plane says why.** "Not observed" used to cover three
+  different problems: nothing is scraping it, the target is not answering, or it
+  answered with metrics that are not a control plane we can read. Each needs a
+  different fix, and now each says so.
+
+  The third is worth naming: the control-plane card is **Istio-shaped**. Its
+  four readings are istiod's, and other control planes do not publish the same
+  four facts — so rather than map different numbers onto the same labels, avuru
+  obs says it reached something it cannot read. The proxy half of the screen is
+  unaffected: it comes from your own traces and works with any mesh —
+  [Mesh](/docs/signals/mesh#when-it-is-silent-the-card-says-why).
+
+- **Settings stops offering a read-only account the install's configuration.**
+  Viewers — the shared demo above all — were shown the group editor, Storage and
+  Status. Groups is an editor whose every control was already hidden from them;
+  the other two read an admin-only endpoint and rendered "couldn't reach the
+  hub", an outage that was not happening in place of a refusal that was. The
+  same fix restored administration on installs running *without* authentication,
+  where the gate had been refusing what the hub allows.
