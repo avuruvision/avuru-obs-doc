@@ -100,7 +100,35 @@ affirme une relation entre des services qui ne se parlent jamais.
 Avuru Obs classe ces charges de travail comme du transport et les masque par
 défaut. **Afficher mesh et passerelles** les ramène — le hub les rapporte
 toujours, donc la bascule ne coûte aucune requête, et un mesh qu'on ne peut pas
-voir est un mesh qu'on ne peut pas déboguer.
+voir est un mesh qu'on ne peut pas déboguer. Le maillage dispose aussi de
+[son propre écran](/docs/signals/mesh), où les proxys sont le sujet plutôt que le
+bruit.
+
+### La dépendance en dessous
+
+Masquer le saut supprime la fausse affirmation. Cela ne rétablit pas pour autant
+la vraie : les proxys disparus, un parc entièrement maillé n'est plus qu'un
+ensemble de cercles isolés.
+
+Le hub lit donc la **chaîne de parenté propre à chaque trace** — le span de
+l'appelé, son parent, puis le parent de celui-ci — en enjambant les proxys
+jusqu'à atteindre l'application qui a réellement passé l'appel. Cette arête est
+dessinée comme n'importe quelle dépendance, et la survoler nomme le proxy
+traversé (`via istio-proxy`). La ligne de comptage indique combien d'arêtes ont
+été reconstituées ainsi.
+
+C'est la parenté par trace qui rend l'opération sûre. Apparier *en agrégat* les
+arêtes entrantes d'un proxy avec ses arêtes sortantes inventerait un produit
+croisé d'appels qui n'ont jamais eu lieu — un proxy avec quatre appelants et cinq
+backends offre vingt paires possibles, sans moyen de savoir lesquelles se sont
+produites. Remonter les parents d'un span donne exactement un appelant par appel.
+
+:::info Une requête, dessinée une fois
+Une arête `app → app` reconstituée et les deux sauts dont elle provient décrivent
+les **mêmes requêtes**. La bascule *échange* donc les représentations au lieu de
+les empiler : mesh masqué, on voit la dépendance ; mesh affiché, on voit les
+sauts. Jamais les deux, et le trafic n'est jamais compté deux fois.
+:::
 
 ## Frontières
 
@@ -154,10 +182,10 @@ collègue — c'est une fonctionnalité, pas un hasard.
 
 ## Limites
 
-- **Un saut de proxy est masqué, pas résolu.** Mesh masqué, les fausses
-  dépendances `app → proxy → app` disparaissent, mais la vraie dépendance
-  `app → app` derrière elles n'est pas encore reconstituée : cela demande la
-  filiation par trace.
+- **La reconstitution suit au plus trois proxys enchaînés.** Un maillage à
+  sidecars interpose deux spans de proxy, le mode ambient jusqu'à trois ; une
+  chaîne plus profonde n'est pas suivie, et ses sauts restent masqués au lieu
+  d'être dessinés comme des dépendances.
 - **Les arêtes issues des flux portent des octets, pas des débits.** Aucun appel
   tracé à mesurer : elles affichent un volume et aucune latence.
 - **Les dépendances déduites sont regroupées par cible, pas par destination.**

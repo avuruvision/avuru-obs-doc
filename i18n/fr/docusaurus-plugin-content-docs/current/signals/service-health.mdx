@@ -16,9 +16,11 @@ criticité, et applique une règle que les dashboards laissent d'habitude à la
 charge du lecteur : un service ne peut pas s'afficher vert quand une dépendance
 critique est rouge.
 
-Le tout est **dérivé** des traces que vous envoyez déjà. Pas de health checks,
-pas de sondes, pas de nouveau stockage — le hub n'émet jamais de trafic vers
-vos services.
+Le tout est **dérivé** des traces que vous envoyez déjà : pas de nouveau
+stockage, rien à instrumenter. Livré à lui-même, le hub n'émet aucun trafic vers
+vos services — les
+[sondes de point d'entrée](#sondes-de-point-dentrée--la-santé-quand-personne-nappelle)
+sont la seule exception, délibérée, et uniquement si vous les déclarez.
 
 ## Du RED au statut
 
@@ -193,3 +195,85 @@ groupe, un service ou un tier va mal. Voir l'[entrée du
 changelog](/changelog/service-health), la [Feuille de route](/docs/roadmap) et
 l'[État des fonctionnalités](/docs/status).
 :::
+
+## Sondes de point d'entrée : la santé quand personne n'appelle
+
+Tout ce qui précède est dérivé de requêtes faites par **d'autres**. Reste une
+question à laquelle cela ne peut structurellement pas répondre : un groupe sans
+trafic dans la fenêtre est soit au repos, soit mort, et aucune télémétrie
+observée ne le dira. À 3 h du matin, c'est la seule question qui compte.
+
+Une **sonde de point d'entrée** est une requête HTTP planifiée rattachée à un
+groupe — la requête que *nous* faisons, pour que le silence cesse d'être
+ambigu :
+
+```yaml
+serviceGroups:
+  groups:
+    - name: core
+      tier: T0
+      selector:
+        namespaces: [storefront]
+      checks:
+        - id: core-login
+          url: https://app.example.com/api/health
+          interval: 60s
+          expect:
+            status: 200
+            maxLatency: 800ms
+```
+
+- Un groupe silencieux dont la sonde **passe** est rapporté `healthy` — pas
+  `idle`. Quelque chose sert ; nous avons demandé.
+- Un groupe silencieux dont la sonde **échoue** est rapporté `down`. Personne
+  d'autre ne l'appelle, et la seule chose qui l'a fait n'a pas été servie.
+- Un groupe avec du trafic et une sonde en échec est au minimum `degraded` : le
+  trafic dit que quelque chose fonctionne, la sonde dit que quelque chose ne
+  fonctionne pas.
+
+### Deux échecs, jamais un seul
+
+Une sonde ne fait pas bouger un groupe tant qu'elle n'a pas échoué **deux fois de
+suite**. Un échec isolé, c'est un redémarrage progressif, un bail perdu ou un
+paquet tombé — et un tableau qui y réagit est un tableau que l'on cesse de lire.
+Le premier échec reste visible sur la fiche du groupe, distingué d'une sonde qui
+est réellement en échec.
+
+### Une sonde est du trafic, pas un canal parallèle
+
+Chaque sonde émet **son propre span**. Une vérification apparaît donc dans vos
+métriques RED, sur la carte des services et dans l'explorateur de traces
+exactement comme n'importe quel autre client — et une sonde en échec sur ce
+tableau renvoie directement vers la trace de la requête qui a échoué, au lieu de
+vous laisser corréler à la main.
+
+Les spans de sonde sont classés comme trafic auxiliaire par le mécanisme qui
+écarte déjà les spans de health check du RED destiné aux utilisateurs : vos
+chiffres ne bougent donc pas parce que vous avez commencé à sonder.
+
+Le hub envoie ces spans à la passerelle en client OTLP ordinaire, à travers le
+même récepteur et la même vérification de clé d'ingestion que tout le reste. Il
+n'écrit jamais directement dans le stockage.
+
+:::info Aucune sonde, aucun coût
+N'en déclarez aucune et rien ne s'exécute : pas d'ordonnanceur, pas de lignes,
+aucun changement de comportement.
+:::
+
+### Les consulter
+
+`GET /api/v1/checks` liste ce qui est déclaré ; `GET /api/v1/checks/{id}/results`
+renvoie les résultats récents d'une sonde, avec l'identifiant de trace de chacune.
+
+### Ce que les sondes ne sont pas
+
+- **Pas un remplacement des probes Kubernetes.** Liveness et readiness servent
+  l'orchestrateur ; celles-ci servent les humains, et s'exécutent depuis
+  l'extérieur du pod.
+- **Pas des parcours scriptés.** Requêtes simples uniquement — les enchaînements
+  connexion-puis-navigation sont une question plus vaste.
+- **Pas protégées contre les cibles internes, volontairement.** Une sonde existe
+  pour interroger *vos propres* services, précisément sur les réseaux privés
+  qu'une protection SSRF bloquerait. Les URL sont une configuration que vous
+  écrivez, jamais une entrée utilisateur ; ce qui est imposé, c'est un délai
+  d'expiration strict et le refus de suivre une redirection vers un autre hôte.

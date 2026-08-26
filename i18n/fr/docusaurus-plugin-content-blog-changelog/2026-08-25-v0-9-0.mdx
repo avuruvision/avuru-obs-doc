@@ -1,0 +1,80 @@
+---
+slug: v0-9-0
+title: "v0.9.0 : le maillage et le noyau"
+description: "La dépendance cachée derrière le proxy revient sur la carte, le noyau signale enfin les pertes de paquets qu'il voyait déjà, le maillage a son propre écran, et un service sans trafic peut prouver qu'il est vivant."
+authors: [avuru]
+tags: [service-map, platform, ui]
+date: 2026-08-25
+---
+
+**v0.9.0** s'adresse aux clusters où le réseau n'est pas une ligne droite. Un
+maillage de services intercepte chaque appel : un graphe de dépendances y dessine
+donc soit des sauts qui n'en sont pas, soit plus rien du tout — et le noyau, en
+dessous, observait des défauts que personne ne lui demandait.
+
+{/* truncate */}
+
+- **La dépendance cachée derrière le proxy.** Sur un cluster maillé, la forme
+  tracée est `app → proxy → app` : deux arêtes, dont aucune n'est une
+  dépendance. La v0.8 a cessé de les dessiner, ce qui a fait disparaître du même
+  coup la vraie arête en dessous — un parc de cercles isolés. Le hub remonte
+  désormais la chaîne de parenté propre à chaque trace au travers des proxies et
+  rapporte la dépendance `app → app` réellement observée, en nommant le proxy
+  traversé. C'est la parenté par trace qui rend l'opération sûre : apparier en
+  agrégat les arêtes entrantes d'un proxy avec ses arêtes sortantes inventerait
+  un produit croisé d'appels qui n'ont jamais eu lieu — précisément la raison
+  pour laquelle la version précédente masquait sans reconstituer. Un maillage à
+  sidecars interpose deux spans de proxy, le mode ambient jusqu'à trois : les
+  deux sont suivis. Le commutateur **Afficher maillage et passerelles**
+  *échange* désormais les représentations au lieu de les empiler, si bien qu'une
+  même requête n'est jamais comptée deux fois. Voir
+  [la carte des services](/docs/signals/service-map).
+
+- **Le maillage obtient son écran.** Deux versions ont servi à apprendre au
+  produit à voir *au-delà* du maillage : c'est juste pour un graphe de
+  dépendances, et insuffisant comme dernier mot. Là où le maillage *est* le
+  réseau, un proxy qui perd des requêtes est la panne. Chaque proxy et chaque
+  passerelle expose maintenant sa charge, sa latence et son taux de succès — et
+  les appels transportés **en entrée et en sortie comptés séparément**, car du
+  trafic qui arrive sans rien repartir signale un proxy qui a cessé de relayer,
+  une défaillance que son propre taux d'erreur peut parfaitement ignorer. À
+  côté, la **santé du plan de contrôle** : proxies connectés, convergence des
+  poussées de configuration, et la configuration que vos proxies ont
+  **refusée** — le seul signal indiquant que plan de contrôle et plan de données
+  divergent pendant que la flotte continue de servir sa dernière configuration
+  acceptée. Sans collecte configurée, l'écran annonce que le plan de contrôle
+  n'est pas surveillé plutôt que d'afficher un zéro rassurant.
+
+- **Les pertes de paquets que le noyau voyait déjà.** La sonde eBPF passe à une
+  version qui exporte les **retransmissions TCP** : elles rejoignent le RTT et
+  les connexions échouées sur chaque arête — un lien peut perdre des paquets
+  tout en paraissant rapide, ce qui est exactement le défaut que la latence seule
+  masque. Une arête qui retransmet est désormais signalée comme dégradée pour
+  cette seule raison. Voir [la santé réseau](/docs/signals/network-health).
+
+- **L'attribution par arête, prouvée et non supposée.** La carte joint les
+  métriques de flux noyau et de statistiques TCP sur la charge de travail
+  Kubernetes de chaque extrémité ; toutes les couches sous la base de données
+  étaient testées sur des lignes synthétiques portant ces étiquettes, mais rien
+  ne vérifiait qu'une vraie sonde sur un vrai noyau les produisait. Le test
+  d'installation l'affirme désormais sur un cluster réel. Cette vérification a
+  révélé pourquoi la réserve méritait de rester ouverte : la fonctionnalité de
+  statistiques TCP attache un point de trace noyau qui exige un système de
+  fichiers que le pod de la sonde ne montait pas — et la sonde **s'arrête** au
+  lieu d'ignorer une fonctionnalité qu'elle ne peut pas démarrer. Une métrique
+  optionnelle emportait donc avec elle les traces sans code et les flux réseau,
+  pour quiconque l'avait activée. C'est corrigé, et le montage accompagne
+  désormais le commutateur qui l'exige.
+
+- **La santé quand personne n'appelle.** Un groupe sans trafic à 3 h du matin est
+  soit au repos, soit mort, et aucune télémétrie observée ne peut trancher. Les
+  **sondes de point d'entrée** sont des requêtes planifiées rattachées à vos
+  groupes de santé : un groupe silencieux dont la sonde passe est rapporté sain,
+  un groupe dont la sonde échoue est rapporté en panne. Deux échecs consécutifs
+  font bouger un groupe, jamais un seul — un échec isolé, c'est un redémarrage
+  progressif, et un tableau qui y réagit est un tableau que l'on cesse de lire.
+  Chaque sonde émet son propre span : une vérification apparaît donc dans vos
+  métriques RED, sur la carte et dans l'explorateur de traces comme n'importe
+  quel autre client — ce qui permet à une sonde en échec de renvoyer directement
+  vers la trace de la requête qui a échoué. N'en déclarez aucune et rien ne
+  s'exécute. Voir [la santé des services](/docs/signals/service-health).

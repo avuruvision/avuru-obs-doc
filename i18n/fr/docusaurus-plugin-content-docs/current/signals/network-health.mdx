@@ -3,15 +3,22 @@ id: network-health
 title: Santé réseau
 sidebar_label: Santé réseau
 sidebar_position: 8
-description: RTT TCP et connexions échouées par arête sur la carte des services, mesurés dans le noyau par OBI — la santé des connexions sans traces, sans SDK, sans changement d'application.
+description: RTT TCP, connexions échouées et retransmissions par arête sur la carte des services, mesurés dans le noyau par OBI — la santé des connexions sans traces, sans SDK, sans changement d'application.
 ---
 
 # Santé réseau
 
 La carte des services montre ce que vos services *se disent*. La santé réseau
-montre si le fil entre eux est lent ou refuse des connexions : **RTT TCP** et
-**connexions échouées/réinitialisées** par arête, mesurés dans le noyau par
-OBI — sans traces, sans SDK, sans changement d'application.
+montre si le fil entre eux est lent, refuse des connexions ou perd des paquets :
+**RTT TCP**, **connexions échouées/réinitialisées** et **retransmissions** par
+arête, mesurés dans le noyau par OBI — sans traces, sans SDK, sans changement
+d'application.
+
+Les retransmissions comptent plus qu'il n'y paraît. Un lien peut perdre des
+paquets régulièrement tout en affichant un temps d'aller-retour sain, parce que
+ce qui survit à la perte arrive vite : la retransmission est le coût, payé dans
+la latence de queue de l'appelant, et le RTT seul ne le montrera pas. Une arête
+qui retransmet est signalée dégradée pour cette seule raison.
 
 ## Sur l'arête
 
@@ -20,8 +27,8 @@ arêtes s'épaississent, et chacune s'étiquette directement sur le trait avec
 son rpm, son **p95** (la latence propre à ce chemin, vue par l'appelant — un
 chiffre distinct du **p95 de RTT**), son taux d'erreur et son RTT quand OBI l'a
 mesuré, avec une flèche à mi-arête pour indiquer le sens. Survolez une arête
-directement pour l'infobulle complète, qui ajoute les connexions échouées et
-les octets de flux. Dans les deux cas, une arête passe **ambre et en
+directement pour l'infobulle complète, qui ajoute les retransmissions, les
+connexions échouées et les octets de flux. Dans les deux cas, une arête passe **ambre et en
 pointillés** quand le RTT est élevé ou que des connexions échouent ; si les
 traces marquent déjà l'arête en rouge avec des erreurs applicatives, le rouge
 l'emporte — une panne applicative prime sur un fil lent.
@@ -62,8 +69,9 @@ considérez cette fonctionnalité comme expérimentale — elle est livrée
 
 ## Limites
 
-- **Pas de retransmissions** — OBI ne les émet pas, elles ne sont donc pas
-  affichées.
+- **Pas de paquets perdus** — la sonde n'émet pas de compteur de pertes, elles ne
+  sont donc pas affichées. Les retransmissions, qui couvrent l'essentiel du même
+  terrain, le sont.
 - **Le compte de connexions échouées est une approximation** — une somme sur
   un compteur cumulatif, pas un décompte par session.
 - **Seules les arêtes attribuées apparaissent** — une arête a besoin que ses

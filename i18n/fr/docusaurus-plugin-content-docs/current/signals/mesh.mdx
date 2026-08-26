@@ -1,0 +1,122 @@
+---
+id: mesh
+title: Maillage de services
+sidebar_label: Maillage de services
+sidebar_position: 10
+description: Le tissu sur lequel tournent vos services — charge, latence et taux de succès par proxy, et le plan de contrôle programme-t-il encore le maillage.
+---
+
+# Maillage de services
+
+Tous les autres écrans d'Avuru Obs masquent délibérément votre maillage. Un
+sidecar, un waypoint ou une passerelle transporte le trafic *des autres* : le
+dessiner sur un graphe de dépendances affirme donc des relations qui n'existent
+pas — d'où le classement de ces charges de travail comme « transport » par
+[la carte des services](/docs/signals/service-map), derrière une bascule.
+
+C'est le bon choix pour un graphe de dépendances, et un mauvais dernier mot. Sur
+un cluster où le maillage **est** le réseau, un proxy qui a cessé de relayer, ou
+un plan de contrôle qui a cessé de pousser la configuration, *constitue* la
+panne. Cet écran est l'endroit où le tissu lui-même devient le sujet.
+
+:::info Désactivé par défaut
+Le module maillage naît désactivé (`modules.mesh.enabled`). La plupart des
+installations n'ont pas de maillage, et un écran pour une infrastructure que vous
+n'avez pas n'est que du bruit. Activez-le et la moitié « proxys » fonctionne
+immédiatement : elle lit une télémétrie que vous envoyez déjà.
+:::
+
+## Les proxys
+
+Chaque charge de travail que le hub classe comme transport, avec son propre
+débit, son taux de succès et sa latence — et, séparément, **les appels qu'elle a
+transportés en entrée et ceux qu'elle a transportés en sortie**.
+
+Ces deux nombres ne sont volontairement pas additionnés en un « débit ». Un proxy
+dont le trafic arrive sans rien repartir a cessé de faire la seule chose pour
+laquelle il existe, et son propre taux d'erreur peut paraître parfaitement sain
+pendant ce temps : il répond aux requêtes, il ne les relaie simplement plus. Les
+voir côte à côte est ce qui rend cela visible.
+
+Il n'y a **aucune collecte supplémentaire** derrière cet écran. Les proxys
+émettent des spans exactement comme les applications ; la seule raison de leur
+absence ailleurs dans le produit est une décision d'affichage. Si une charge de
+travail semble mal classée ici — une vraie application prise pour un proxy, ou un
+proxy que les motifs intégrés manquent — la classification se corrige par
+installation via la configuration `topology` du hub, sans attendre une version.
+Voir
+[les sauts de maillage sur la carte](/docs/signals/service-map#un-saut-de-mesh-nest-pas-une-dépendance).
+
+## Le plan de contrôle
+
+Un maillage continue de servir sa dernière configuration acceptée longtemps après
+que le plan de contrôle a cessé de pousser. Tous les proxys restent debout, toutes
+les requêtes passent encore, et le déploiement suivant ne prend simplement jamais
+effet. Vu du seul plan de données, c'est indiscernable de la santé.
+
+La carte du plan de contrôle y répond directement :
+
+| Indicateur | Ce qu'il vous dit |
+|---|---|
+| **Proxys connectés** | La part de la flotte à laquelle le plan de contrôle parle réellement |
+| **Poussées** | La distribution de configuration a-t-elle seulement lieu |
+| **Convergence p95** | Le temps qu'un changement met à atteindre les proxys |
+| **Configurations refusées** | La configuration que vos proxys ont **refusée** |
+
+Le dernier est celui que rien d'autre ne peut produire. Une poussée refusée
+signifie que le plan de contrôle et le plan de données divergent sur ce que le
+maillage devrait faire — pendant que la flotte continue de servir sa dernière
+configuration acceptée, en paraissant saine partout ailleurs.
+
+### Quand il n'est pas surveillé
+
+Si le plan de contrôle n'est pas collecté, la carte le dit. Elle n'affiche
+**pas** zéro configuration refusée.
+
+C'est toute la question : « 0 refusée » venant d'un plan de contrôle que personne
+ne surveille se lit comme une santé parfaite, et c'est la chose la plus
+dangereuse que cet écran pourrait afficher. La même discipline s'applique au
+[module énergie](/docs/signals/green), qui rapporte « pas de RAPL » plutôt que
+0 W.
+
+## Activer la santé du plan de contrôle
+
+```yaml
+modules:
+  mesh:
+    enabled: true
+mesh:
+  controlPlane:
+    enabled: true
+    # Le port Prometheus d'istiod sur le Service istiod. Changez l'hôte pour un
+    # plan de contrôle révisionné ou renommé.
+    endpoint: istiod.istio-system.svc.cluster.local:15014
+```
+
+Cela requiert aussi le module infra-metrics, puisque les séries collectées sont
+stockées dans ses tables — un garde-fou du chart refuse l'installation plutôt que
+de collecter dans le vide.
+
+La collecte s'exécute dans la **passerelle**, pas dans la sonde. istiod est un
+unique Deployment et la sonde est un DaemonSet : collecter depuis celle-ci
+produirait une copie de chaque série du plan de contrôle par nœud, et tout total
+sur ces séries serait faux d'un facteur égal à la taille de votre cluster.
+
+## Limites
+
+- **La moitié « plan de contrôle » est façonnée pour Istio.** Elle lit les
+  métriques d'istiod par leur nom. La moitié « par proxy » est agnostique — c'est
+  du RED sur des charges classées — et fonctionne donc pour tout maillage dont
+  les proxys émettent des spans.
+- **La classification se fait par nom de charge de travail**, avec une
+  échappatoire, en attendant que le pipeline porte les étiquettes Kubernetes du
+  maillage.
+- **Pas d'inspection de la configuration par proxy.** Les routes que détient un
+  sidecar donné relèvent du débogage avec l'outillage de votre maillage, pas
+  d'une surface d'observabilité.
+
+## Voir aussi
+
+- [Carte des services](/docs/signals/service-map) — où les sauts de maillage sont
+  masqués, et la dépendance derrière eux reconstituée
+- [Santé réseau](/docs/signals/network-health) — le fil sous le maillage

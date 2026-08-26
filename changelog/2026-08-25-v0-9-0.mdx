@@ -1,0 +1,73 @@
+---
+slug: v0-9-0
+title: "v0.9.0: the mesh and the kernel"
+description: "The dependency behind the proxy is back on the map, the kernel reports the packet loss it was always seeing, the mesh has a screen of its own, and a service with no traffic can finally prove it is alive."
+authors: [avuru]
+tags: [service-map, platform, ui]
+date: 2026-08-25
+---
+
+**v0.9.0** is for clusters where the network is not a straight line. A service
+mesh intercepts every call, so a dependency graph either draws hops that are not
+dependencies or draws nothing at all — and the kernel underneath has been seeing
+faults nobody was asking it for.
+
+{/* truncate */}
+
+- **The dependency behind the proxy.** On a meshed cluster the traced shape is
+  `app → proxy → app`: two edges, neither of them a dependency. v0.8 stopped
+  drawing those, which left the real edge underneath gone too — an estate of
+  disconnected circles. The hub now walks each trace's own parent chain across
+  the proxies and reports the `app → app` dependency that actually happened,
+  named with the proxy it came through. Per-trace ancestry is what makes this
+  safe: pairing a proxy's inbound edges with its outbound ones in aggregate
+  invents a cross-product of calls nobody made, which is exactly why the earlier
+  release shipped the hiding and not the collapsing. A sidecar mesh interposes
+  two proxy spans, ambient mode up to three; both are followed. The **Show mesh
+  & gateways** toggle now *swaps* representations rather than stacking them, so
+  the same request is never counted twice. See
+  [the service map](/docs/signals/service-map).
+
+- **The mesh gets a screen.** Two releases were spent teaching the product to
+  see *past* the mesh, which is right for a dependency graph and wrong as the
+  last word: where the mesh *is* the network, a proxy dropping requests is the
+  outage. Every proxy and gateway now has its load, latency and success rate —
+  and the calls it carried **in and out counted apart**, because traffic
+  arriving with none leaving is a proxy that has stopped forwarding, a failure
+  its own error rate need not show. Beside it, **control-plane health**:
+  connected proxies, push convergence, and the configuration your proxies
+  **refused** — the one signal that says the control plane and the data plane
+  disagree while the fleet keeps serving what it last accepted. With nothing
+  scraped, the screen says the control plane is not being watched rather than
+  reporting a comfortable zero.
+
+- **The packet loss the kernel was already seeing.** The eBPF sensor moves to a
+  version that exports **TCP retransmits**, and they join RTT and failed
+  connections on every edge — a link can lose packets and still measure fast,
+  which is precisely the fault latency alone hides. An edge that is
+  retransmitting is now styled unhealthy on its own account. See
+  [network health](/docs/signals/network-health).
+
+- **Per-edge attribution, proven rather than assumed.** The map joins kernel
+  flow and TCP-stats metrics on the Kubernetes workload each end belongs to, and
+  every layer below the database was tested against synthetic rows carrying
+  those labels — while nothing had ever checked that a real sensor on a real
+  kernel produces them. The install gate now asserts it on a live cluster.
+  Running that found why the caveat was worth keeping open: the TCP-stats
+  feature attaches a kernel tracepoint that needs a filesystem the sensor pod
+  did not mount, and the sensor **exits** rather than skipping a feature it
+  cannot start — so an optional metric had been taking zero-code traces and
+  network flows down with it for anyone who enabled it. Fixed, and the mount now
+  travels with the switch that needs it.
+
+- **Health when nothing is calling.** A group with no traffic at 3 a.m. is
+  either idle or dead, and no amount of observed telemetry can tell you which.
+  **Endpoint checks** are scheduled probes attached to your health groups: a
+  silent group whose probe passes reads healthy, one whose probe fails reads
+  down. Two consecutive failures move a group, never one — a single failed probe
+  is a rolling restart, and a board that reacts to it is a board people stop
+  reading. Each probe emits a span of its own, so a check appears in your RED
+  metrics, on the map and in the trace explorer like any other client — which is
+  what lets a failing check link straight to the trace of the request that
+  failed. Declare none and nothing runs at all. See
+  [service health](/docs/signals/service-health).

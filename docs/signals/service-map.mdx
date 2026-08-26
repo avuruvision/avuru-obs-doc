@@ -96,6 +96,33 @@ never talk to each other.
 Avuru Obs classifies those workloads as transport and hides them by default.
 **Show mesh & gateways** brings them back — the hub always reports them, so the
 toggle costs no refetch, and a mesh you cannot see is a mesh you cannot debug.
+The mesh has [a screen of its own](/docs/signals/mesh) too, where the proxies are
+the subject rather than the noise.
+
+### The dependency underneath
+
+Hiding the hop removes the false claim. It does not, on its own, restore the true
+one: with the proxies gone, a fully meshed estate is a set of disconnected
+circles.
+
+So the hub reads each trace's **own parent chain** — the callee's span, its
+parent, and its parent — stepping over the proxies until it reaches the
+application that actually made the call. That edge is drawn like any other
+dependency, and hovering it names the proxy it came through (`via istio-proxy`).
+The count line says how many edges were recovered that way.
+
+Per-trace ancestry is what makes this safe. Pairing a proxy's inbound edges with
+its outbound ones *in aggregate* would invent a cross-product of calls nobody
+made — a proxy with four callers and five backends has twenty possible pairs and
+no way to tell which twenty happened. Following one span's parents gives exactly
+one caller per call.
+
+:::info One request, drawn once
+A recovered `app → app` edge and the two hops it came from describe the **same
+requests**. The toggle therefore *swaps* representations rather than stacking
+them: hidden mesh shows the dependency, shown mesh shows the hops. You never see
+both, and the traffic is never counted twice.
+:::
 
 ## Boundaries
 
@@ -147,9 +174,9 @@ not an accident.
 
 ## Limitations
 
-- **A proxy hop is hidden, not resolved.** With the mesh hidden, the false
-  `app → proxy → app` dependencies go away, but the real `app → app` dependency
-  behind them is not yet recovered — that needs per-trace ancestry.
+- **Collapsing follows at most three chained proxies.** A sidecar mesh interposes
+  two proxy spans and ambient mode up to three; a deeper chain than that is not
+  followed, and its hops stay hidden rather than being drawn as dependencies.
 - **Flow-derived edges carry bytes, not rates.** They have no traced call to
   measure, so they show volume and no latency.
 - **Derived dependencies collapse by target, not by destination.** Every topic

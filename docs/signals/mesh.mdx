@@ -1,0 +1,117 @@
+---
+id: mesh
+title: Service mesh
+sidebar_label: Service mesh
+sidebar_position: 10
+description: The fabric your services run on — per-proxy load, latency and success rate, and whether the control plane is still programming the mesh at all.
+---
+
+# Service mesh
+
+Every other screen in Avuru Obs deliberately hides your mesh. A sidecar,
+waypoint or gateway carries *other people's* traffic, so drawing it on a
+dependency graph asserts relationships that do not exist — which is why the
+[service map](/docs/signals/service-map) classifies those workloads as transport
+and puts them behind a toggle.
+
+That is the right call for a dependency graph, and the wrong last word. On a
+cluster where the mesh **is** the network, a proxy that has stopped forwarding,
+or a control plane that has stopped pushing configuration, *is* the outage. This
+screen is where the fabric itself gets to be the subject.
+
+:::info Off by default
+The mesh module is born off (`modules.mesh.enabled`). Most installs run no mesh,
+and a screen for infrastructure you do not have is noise. Turn it on and the
+proxy half works immediately — it reads telemetry you are already sending.
+:::
+
+## The proxies
+
+Every workload the hub classifies as transport, with its own rate, success rate
+and latency — and, separately, **the calls it carried in and the calls it
+carried out**.
+
+Those two numbers are deliberately not summed into "throughput". A proxy with
+traffic arriving and nothing leaving has stopped doing the one thing it exists
+to do, and its own error rate can look perfectly healthy while that happens: it
+is answering requests, just not forwarding them. Seeing the two side by side is
+what makes that visible.
+
+There is **no new collection** behind this. Proxies emit spans exactly like
+applications do; the only reason they are absent from the rest of the product is
+a rendering decision. If a workload here looks wrong — a real application
+misread as a proxy, or a proxy the built-in patterns miss — the classification
+is correctable per install through the hub's `topology` configuration, without
+waiting for a release. See
+[mesh hops on the service map](/docs/signals/service-map#mesh-hops-are-not-dependencies).
+
+## The control plane
+
+A mesh keeps serving its last accepted configuration long after the control
+plane stops pushing. Every proxy stays up, every request still flows, and the
+next deployment simply never takes effect. From the data plane alone, that is
+indistinguishable from health.
+
+The control-plane card answers it directly:
+
+| Reading | What it tells you |
+|---|---|
+| **Connected proxies** | How much of the fleet the control plane is actually talking to right now |
+| **Pushes** | Configuration distribution happening at all |
+| **Convergence p95** | How long a change takes to reach the proxies |
+| **Rejected configs** | Configuration your proxies **refused** |
+
+The last one is the reading nothing else can produce. A rejected push means the
+control plane and the data plane disagree about what the mesh should be doing —
+and the fleet carries on serving what it last accepted, looking fine everywhere
+else.
+
+### When it is not being watched
+
+If the control plane is not scraped, the card says so. It does **not** show zero
+rejected configs.
+
+That distinction is the whole point: "0 rejected" from a control plane nobody is
+watching reads as perfect health, and is the single most dangerous thing this
+screen could display. The same discipline applies to the
+[energy module](/docs/signals/green), which reports "no RAPL" rather than 0 W.
+
+## Turning on control-plane health
+
+```yaml
+modules:
+  mesh:
+    enabled: true
+mesh:
+  controlPlane:
+    enabled: true
+    # istiod's Prometheus port on the istiod Service. Change the host for a
+    # revisioned or renamed control plane.
+    endpoint: istiod.istio-system.svc.cluster.local:15014
+```
+
+It also needs the infra-metrics module, since the scraped series are stored in
+its tables — a chart guard refuses the install rather than collecting into
+nowhere.
+
+The scrape runs in the **gateway**, not the sensor. istiod is a single
+Deployment, and the sensor is a DaemonSet: scraping from there would produce one
+copy of every control-plane series per node, and any total over them would be
+wrong by the size of your cluster.
+
+## Limitations
+
+- **The control-plane half is Istio-shaped.** It reads istiod's metrics by name.
+  The per-proxy half is protocol-agnostic — it is RED on classified workloads —
+  so it works for any mesh whose proxies emit spans.
+- **Classification is by workload name**, with an escape hatch, until the
+  pipeline carries the mesh's own Kubernetes labels.
+- **No per-proxy configuration inspection.** What routes a given sidecar holds
+  is a debugging question for your mesh's own tooling, not an observability
+  surface.
+
+## See also
+
+- [Service map](/docs/signals/service-map) — where mesh hops are hidden, and the
+  dependency behind them recovered
+- [Network health](/docs/signals/network-health) — the wire underneath the mesh
