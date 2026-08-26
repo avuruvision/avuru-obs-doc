@@ -1,0 +1,113 @@
+---
+id: cost
+title: Cost & waste
+sidebar_label: Cost
+sidebar_position: 11
+description: What each workload reserved against what it actually used — the capacity your cluster is sized and billed for while nothing runs in it. No pricing API, no egress, no new workload.
+---
+
+# Cost & waste
+
+A Kubernetes cluster is sized by what its workloads **reserve**, not by what
+they use. Every request is capacity the scheduler sets aside and a node is
+bought for — whether or not a single cycle of it is ever spent.
+
+avuru obs already knows what every pod uses. This adds the other half of the
+sentence: what it asked for.
+
+## What you get
+
+- **Waste, ranked.** Every workload's reserved CPU and memory against what it
+  actually drew, ordered by the gap. The biggest workload in your cluster is
+  not a finding; the one reserving eight cores to use a tenth of one is.
+- **Workloads that reserve nothing.** Called out as their own state, not shown
+  as a zero. A container with no request cannot be placed deliberately by the
+  scheduler and is the first thing the kubelet evicts under pressure.
+- **Node allocation beside node usage.** A node that is fully *requested* takes
+  no more pods however little it is *using* — two very different problems that
+  look identical on a utilisation chart.
+- **Money, if you want it.** Set your rates and the same screens report
+  currency. Leave them unset and they report cores and bytes, and say so.
+
+## Idle is measured against the peak
+
+The reclaimable number is **reserved minus the peak**, never reserved minus the
+average.
+
+A request cannot be cut below what the workload actually reached without risking
+eviction the next time it gets there. Subtracting the average would report as
+waste precisely the headroom the workload demonstrably needed. Both are shown —
+the average tells you how much of the time the peak was not happening — but only
+the peak bounds a safe change.
+
+## No pricing API
+
+Rates are yours to declare:
+
+```yaml
+cost:
+  rates:
+    cpuCoreHour: 0.0331
+    memGiBHour: 0.004
+    currency: EUR
+```
+
+There is no cloud billing integration and there will not be one. avuru obs makes
+no outbound call, and a price this product looked up somewhere would be the
+first thing it ever sent out of your cluster.
+
+With no rates configured the screens are still useful — "2.4 cores reserved, 0.3
+used" is already the finding — and they state that no rates are set rather than
+printing a zero that reads as *free*. Both rates are needed together: pricing
+CPU while treating memory as free would rank the wrong workloads first, which is
+the only thing this screen is for.
+
+## Turning it on
+
+```yaml
+modules:
+  infraMetrics:
+    enabled: true   # the "used" half of every number here
+  cost:
+    enabled: true
+```
+
+Born **off**. Switching it on starts watching cluster-scoped Kubernetes objects
+and takes a lease, neither of which your install had before — so it is a
+decision you make, not one an upgrade makes for you. It requires the
+infra-metrics module, and a chart guard refuses an install without it rather
+than rendering a screen of blanks.
+
+## How it works
+
+Reserved capacity is a property of the **cluster**, not of a node — so reading
+it from a DaemonSet would report every value once per node and multiply every
+total by the size of your fleet.
+
+The collector already running in the sensor carries both pieces needed to avoid
+that: a receiver that reads container requests, limits and node allocatable from
+the Kubernetes API, and a leader-election extension that holds a `Lease` so
+**exactly one node** runs it. No new workload, no new image, no new table — the
+series join the OTLP path everything else already takes.
+
+The gateway deliberately stays out of it. It is the component holding your
+ingest port open, cluster-wide object reads do not belong there, and its replica
+count is yours to raise — which would bring the duplication straight back.
+
+The build gate for this feature asserts duplication rather than a value: grouped
+by object and timestamp, no series may appear more than once. A leader-election
+regression shows up as a `2`, where a test on the numbers themselves would read
+a total twice as large as the truth and pass.
+
+## Reading it honestly
+
+- **Reserved is averaged over your window**, not sampled once. A workload that
+  scaled from two replicas to ten reserved more for part of the window, and the
+  last sample would report only where it ended up.
+- **A limit is not a reservation.** Limits are shown beside requests and never
+  in place of them: the request is what the scheduler subtracts from a node, and
+  reading a limit as a reservation overstates waste on every burstable workload
+  you run.
+- **This is an engineering signal, not an invoice.** No shared-cost allocation,
+  no amortisation, no reserved-instance modelling — and nothing here changes a
+  workload. The product says what is over-reserved; the change is yours.

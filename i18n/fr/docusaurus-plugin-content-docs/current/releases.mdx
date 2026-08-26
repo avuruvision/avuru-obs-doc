@@ -22,12 +22,32 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.10.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.11.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
-[Feuille de route](/docs/roadmap)) : classer le transport à partir des étiquettes
-Kubernetes plutôt que des noms de charges de travail, l'attribution des coûts aux
-côtés du module énergie, et les plans de contrôle autres qu'Istio.
+[Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.10.0" date="2026-08-26" status="shipped" statusLabel="Livré">
+
+**Ce que ça coûte.** Un cluster est dimensionné par ce que ses charges de travail
+*réservent*, pas par ce qu'elles consomment — et seule la seconde moitié était
+visible. [Coûts & gaspillage](/docs/signals/cost) ajoute la première : le CPU et
+la mémoire réservés par chaque charge face à ce qu'elle a réellement tiré,
+classés par l'écart, avec les charges ne déclarant aucune requête signalées comme
+un état à part entière et l'allocation d'un nœud affichée à côté de son usage.
+L'inactif se mesure face au pic, jamais à la moyenne, et les tarifs sont les
+vôtres à déclarer — aucune API de tarification, et rien ne sort de votre cluster
+pour produire un chiffre. La [carte des services](/docs/signals/service-map)
+reconnaît désormais une passerelle quel que soit son nom, grâce aux labels que
+votre maillage pose sur son propre plan de données, le nom restant la réponse
+pour les sidecars. Et un [plan de contrôle](/docs/signals/mesh) silencieux dit
+duquel des trois silences il s'agit, dont l'un est « ce n'est pas un plan de
+contrôle que nous savons lire ».
+
+[Notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.10.0) ·
+[Journal des modifications](/fr/changelog/v0-10-0)
 
 </ReleaseEntry>
 

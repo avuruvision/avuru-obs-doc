@@ -99,6 +99,28 @@ toggle costs no refetch, and a mesh you cannot see is a mesh you cannot debug.
 The mesh has [a screen of its own](/docs/signals/mesh) too, where the proxies are
 the subject rather than the noise.
 
+### How a proxy is recognised
+
+Two ways, and the second only ever adds to the first.
+
+**By the labels your mesh writes.** A gateway, waypoint or control-plane
+component created through the Gateway API or by Istio wears a label saying so,
+and the sensor carries a small fixed set of them on the spans it already
+collects. A gateway you called `public-edge` is recognised on the strength of
+that label, without you configuring anything.
+
+**By name**, for everything else. The built-in list is deliberately narrow —
+nothing generic like `*-gateway` or `*-proxy`, because a false positive erases a
+real service from the map, which is worse than the noise it removes. Add your
+own patterns through the hub's `topology` configuration.
+
+A label can only *promote* a workload to transport, never demote one. With a
+sidecar there is no label to read at all: the proxy is a container inside the
+application's pod and wears the application's labels, so absence proves nothing
+and names remain the answer there. And the `applications` list in your `topology`
+configuration still overrides both — an override a signal could defeat would not
+be one.
+
 ### The dependency underneath
 
 Hiding the hop removes the false claim. It does not, on its own, restore the true

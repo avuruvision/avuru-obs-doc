@@ -66,15 +66,39 @@ control plane and the data plane disagree about what the mesh should be doing �
 and the fleet carries on serving what it last accepted, looking fine everywhere
 else.
 
-### When it is not being watched
+### When it is silent, the card says why
 
-If the control plane is not scraped, the card says so. It does **not** show zero
-rejected configs.
+The card never shows zero rejected configs for a control plane it is not
+reading. "0 rejected" from a control plane nobody is watching reads as perfect
+health, and is the single most dangerous thing this screen could display — the
+same discipline the [energy module](/docs/signals/green) applies when it reports
+"no RAPL" rather than 0 W.
 
-That distinction is the whole point: "0 rejected" from a control plane nobody is
-watching reads as perfect health, and is the single most dangerous thing this
-screen could display. The same discipline applies to the
-[energy module](/docs/signals/green), which reports "no RAPL" rather than 0 W.
+Silence has three causes, and they need three different fixes, so the card names
+which one it is:
+
+| Card | What happened | What to do |
+|---|---|---|
+| **Control plane not observed** | Nothing is scraping it | set `mesh.controlPlane.enabled=true` |
+| **Control plane not answering** | The scrape is running and the target is not responding | check `mesh.controlPlane.endpoint` — or the control plane itself is down |
+| **Control plane not recognised** | The target answered, and none of the metrics avuru obs reads came back | see below |
+
+### The control-plane view is Istio-shaped
+
+The four readings above are istiod's — `pilot_xds`, `pilot_xds_pushes`,
+`pilot_total_xds_rejects`, `pilot_proxy_convergence_time`. Other control planes
+do not publish the same four facts: Linkerd's destination controller, for one,
+has no counterpart to *configuration the proxies refused*, which is the most
+valuable reading on the card.
+
+So rather than map different numbers onto the same four labels — which would
+leave the labels right and the answers wrong — avuru obs says plainly that it
+reached a control plane it cannot read.
+
+**The proxy half of this screen is unaffected.** Proxy load, latency and success
+rate come from your own traces and work with any mesh whose proxies are
+classified as transport. Only the control-plane card is Istio-specific, and it
+now tells you so.
 
 ## Turning on control-plane health
 

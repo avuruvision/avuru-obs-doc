@@ -252,15 +252,47 @@ personne n'appelle ? Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des modifications](/changelog/v0-9-0).
 
-## Au-delà de la v0.9 (indicatif)
+## v0.10 — ce que ça coûte (livrée)
 
-- **Transport classé à partir des étiquettes Kubernetes** plutôt que des noms de
-  charges de travail — les noms sont une heuristique avec une échappatoire ; les
-  étiquettes sont le vrai signal.
-- **Les coûts aux côtés du module énergie :** usage, allocation et
-  surprovisionnement par nœud — un seul récit sur le gaspillage.
-- **Les plans de contrôle autres qu'Istio :** la moitié « par proxy » fonctionne
-  déjà partout ; la moitié « plan de contrôle » est façonnée pour Istio.
+Toutes les versions précédentes répondaient à *ce qui se passe*. Celle-ci répond
+à une question posée par quelqu'un qui n'ouvrira jamais une carte des services :
+combien coûte ce cluster, et quelle part de cette somme n'achète rien du tout ?
+
+La réponse vient de la capacité, pas d'une facture. Un cluster est dimensionné et
+facturé sur ce que ses charges de travail **réservent** : l'écart entre cette
+réservation et ce qu'elles consomment, c'est le gaspillage — et
+[coût & gaspillage](/docs/signals/cost) classe chaque charge de travail et chaque
+nœud selon cet écart. L'inutilisé se mesure par rapport au **pic** atteint,
+jamais à la moyenne : on ne peut pas descendre une requête sous son pic sans
+provoquer, la prochaine fois, l'éviction que ce pic déclencherait. Une charge de
+travail qui ne déclare **aucune** requête est signalée comme un état à part
+entière, et non affichée comme un zéro. Les tarifs sont des valeurs que vous
+fixez ; sans tarif, les écrans rapportent des cœurs et des octets et le disent —
+il n'y a pas d'API de tarification ici, et rien ne quitte votre cluster pour
+produire ce chiffre.
+
+À côté, la [carte des services](/docs/signals/service-map) ne dépend plus des
+noms que vous donnez : une passerelle appelée n'importe comment est reconnue à
+partir des étiquettes que votre maillage écrit sur son propre plan de données, et
+ces étiquettes ne font jamais que **promouvoir** une charge de travail au rang de
+transport, jamais l'inverse. Enfin, un [plan de contrôle](/docs/signals/mesh)
+silencieux dit désormais lequel des trois silences il s'agit : rien ne le
+collecte, la cible ne répond pas, ou elle a répondu avec des métriques que ce
+produit ne sait pas lire. Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-10-0).
+
+## Au-delà de la v0.10 (indicatif)
+
+- **Lire un deuxième plan de contrôle**, dès que quelqu'un qui en exploite un
+  pourra dire lesquels de ses signaux répondent aux questions auxquelles répond
+  la carte Istio — et lesquels n'y ont tout simplement pas de réponse.
+- **Le coût joint à l'énergie :** la même capacité réservée-et-inutilisée en Wh
+  et gCO2e, sur une installation qui exécute les deux. Un seul récit sur le
+  gaspillage, en deux unités.
+- **L'incident :** des synthèses de cause racine, avec tout commutateur de
+  fournisseur **désactivé par défaut** — ce serait le premier appel réseau
+  sortant d'un produit dont la promesse est que rien ne quitte le cluster.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
 

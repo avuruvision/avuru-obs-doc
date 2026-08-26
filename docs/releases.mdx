@@ -21,11 +21,29 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.10.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.11.0" date="in development" status="in-progress">
 
-The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)):
-classifying transport from Kubernetes labels rather than workload names, cost
-attribution beside the energy module, and non-Istio control planes.
+The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.10.0" date="2026-08-26" status="shipped">
+
+**What it costs.** A cluster is sized by what its workloads *reserve*, not by
+what they use — and only the second half of that was ever visible.
+[Cost & waste](/docs/signals/cost) adds the first: every workload's reserved CPU
+and memory against what it actually drew, ranked by the gap, with workloads that
+declare no request at all called out as their own state and node allocation
+shown beside node usage. Idle is measured against the peak, never the mean, and
+rates are yours to declare — there is no pricing API and nothing leaves your
+cluster to produce a number. The [service map](/docs/signals/service-map) now
+recognises a gateway you named anything at all, from the labels your mesh writes
+on its own data plane, with names still the answer for sidecars. And a silent
+[control plane](/docs/signals/mesh) says which of the three silences it is, one
+of which is "this is not a control plane we can read".
+
+[Release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.10.0) ·
+[Changelog](/changelog/v0-10-0)
 
 </ReleaseEntry>
 

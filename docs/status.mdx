@@ -80,6 +80,9 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | TCP retransmits on the map's edges — packet loss on a link, which RTT alone cannot reveal, alongside RTT p95 and failed connections; an edge that retransmits is styled unhealthy on its own account | <StatusBadge status="shipped" /> | v0.9 |
 | Per-edge network attribution, asserted on a live eBPF cluster in CI rather than assumed — which uncovered and fixed a latent crash that took the whole sensor down whenever TCP stats were enabled | <StatusBadge status="shipped" /> | v0.9 |
 | Endpoint checks — scheduled probes attached to a service-health group, so a group with no traffic can be told apart from a group with no service. Two consecutive failures move a group, never one, and each probe emits a span of its own so a failing check links to the trace of the request that failed | <StatusBadge status="shipped" /> | v0.9 |
+| Cost & waste — every workload's reserved CPU and memory against what it actually used, ranked by the gap, with workloads that declare **no** request called out as their own state and node allocation shown beside node usage. Idle is measured against the peak, never the mean. Rates are yours to declare; with none set the screens report cores and bytes and say so — there is no pricing API and no egress. Off by default | <StatusBadge status="shipped" /> | v0.10 |
+| Transport recognised from Kubernetes labels — a gateway you named anything at all is classified from the label your mesh wrote on it, with names still the answer for sidecars (which wear their application's labels) and your `applications` override still final | <StatusBadge status="shipped" /> | v0.10 |
+| Control-plane silence explained — nothing scraping, target not answering, or answered with metrics that are not a control plane this product reads. Three states with three different fixes, where there used to be one sentence | <StatusBadge status="shipped" /> | v0.10 |
 
 ## Coming
 

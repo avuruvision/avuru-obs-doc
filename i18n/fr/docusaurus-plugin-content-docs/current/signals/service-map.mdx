@@ -104,6 +104,28 @@ voir est un mesh qu'on ne peut pas déboguer. Le maillage dispose aussi de
 [son propre écran](/docs/signals/mesh), où les proxys sont le sujet plutôt que le
 bruit.
 
+### Comment un proxy est reconnu
+
+De deux façons, et la seconde ne fait jamais qu'ajouter à la première.
+
+**Par les labels que votre maillage écrit.** Une passerelle, un waypoint ou un
+composant de plan de contrôle créé via la Gateway API ou par Istio porte un label
+qui le dit, et le sensor transporte un petit ensemble fixe de ces labels sur les
+spans qu'il collecte déjà. Une passerelle que vous avez appelée `public-edge` est
+reconnue grâce à ce label, sans que vous ayez rien à configurer.
+
+**Par le nom**, pour tout le reste. La liste intégrée est volontairement étroite
+— rien de générique comme `*-gateway` ou `*-proxy`, car un faux positif efface un
+vrai service de la carte, ce qui est pire que le bruit supprimé. Ajoutez vos
+propres motifs via la configuration `topology` du hub.
+
+Un label ne peut que *promouvoir* une charge de travail en transport, jamais la
+rétrograder. Avec un sidecar, il n'y a aucun label à lire : le proxy est un
+conteneur dans le pod de l'application et porte les labels de l'application —
+l'absence ne prouve donc rien, et le nom reste la réponse dans ce cas. Enfin, la
+liste `applications` de votre configuration `topology` l'emporte toujours sur les
+deux : un contournement qu'un signal pourrait défaire n'en serait pas un.
+
 ### La dépendance en dessous
 
 Masquer le saut supprime la fausse affirmation. Cela ne rétablit pas pour autant

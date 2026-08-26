@@ -68,16 +68,42 @@ signifie que le plan de contrôle et le plan de données divergent sur ce que le
 maillage devrait faire — pendant que la flotte continue de servir sa dernière
 configuration acceptée, en paraissant saine partout ailleurs.
 
-### Quand il n'est pas surveillé
+### Quand il se tait, la carte dit pourquoi
 
-Si le plan de contrôle n'est pas collecté, la carte le dit. Elle n'affiche
-**pas** zéro configuration refusée.
+La carte n'affiche jamais zéro configuration refusée pour un plan de contrôle
+qu'elle ne lit pas. « 0 refusée » venant d'un plan de contrôle que personne ne
+surveille se lit comme une santé parfaite, et c'est la chose la plus dangereuse
+que cet écran pourrait afficher — la même discipline que le
+[module énergie](/docs/signals/green) applique en rapportant « pas de RAPL »
+plutôt que 0 W.
 
-C'est toute la question : « 0 refusée » venant d'un plan de contrôle que personne
-ne surveille se lit comme une santé parfaite, et c'est la chose la plus
-dangereuse que cet écran pourrait afficher. La même discipline s'applique au
-[module énergie](/docs/signals/green), qui rapporte « pas de RAPL » plutôt que
-0 W.
+Ce silence a trois causes, qui appellent trois corrections différentes : la carte
+dit donc de laquelle il s'agit.
+
+| Carte | Ce qui s'est passé | Que faire |
+|---|---|---|
+| **Plan de contrôle non observé** | Rien ne le collecte | activez `mesh.controlPlane.enabled=true` |
+| **Plan de contrôle sans réponse** | La collecte tourne et la cible ne répond pas | vérifiez `mesh.controlPlane.endpoint` — ou le plan de contrôle lui-même est tombé |
+| **Plan de contrôle non reconnu** | La cible a répondu, et aucune des métriques que lit avuru obs n'est revenue | voir ci-dessous |
+
+### La vue du plan de contrôle a la forme d'Istio
+
+Les quatre indicateurs ci-dessus sont ceux d'istiod — `pilot_xds`,
+`pilot_xds_pushes`, `pilot_total_xds_rejects`, `pilot_proxy_convergence_time`.
+Les autres plans de contrôle ne publient pas les mêmes quatre faits : le
+contrôleur de destination de Linkerd, par exemple, n'a aucun équivalent de *la
+configuration que les proxys ont refusée*, qui est l'indicateur le plus précieux
+de la carte.
+
+Plutôt que de plaquer d'autres chiffres sur les mêmes quatre libellés — ce qui
+laisserait les libellés justes et les réponses fausses — avuru obs dit
+franchement qu'il a atteint un plan de contrôle qu'il ne sait pas lire.
+
+**La moitié « proxys » de cet écran n'est pas affectée.** La charge, la latence
+et le taux de succès des proxys viennent de vos propres traces et fonctionnent
+avec n'importe quel maillage dont les proxys sont classés comme transport. Seule
+la carte du plan de contrôle est spécifique à Istio, et elle vous le dit
+désormais.
 
 ## Activer la santé du plan de contrôle
 
