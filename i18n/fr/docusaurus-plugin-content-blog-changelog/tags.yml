@@ -37,3 +37,8 @@ docs:
   label: Docs
   permalink: /docs
   description: Documentation
+
+ai:
+  label: IA
+  permalink: /ai
+  description: Appels de modèles, tokens et coût

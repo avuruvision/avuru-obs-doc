@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.7.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.11.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -84,14 +84,21 @@ changements livrés le [Changelog](/changelog).
 | Coûts & gaspillage — le CPU et la mémoire réservés par chaque charge de travail face à ce qu'elle a réellement consommé, classés par l'écart, avec les charges qui ne déclarent **aucune** requête signalées comme un état à part entière et l'allocation d'un nœud affichée à côté de son usage. L'inactif se mesure face au pic, jamais à la moyenne. Les tarifs sont les vôtres à déclarer ; sans eux, les écrans affichent des cœurs et des octets et le disent — aucune API de tarification, aucune sortie de données. Désactivé par défaut | <StatusBadge status="shipped" label="Livré" /> | v0.10 |
 | Transport reconnu par les labels Kubernetes — une passerelle que vous avez nommée n'importe comment est classée grâce au label que votre maillage lui a posé, le nom restant la réponse pour les sidecars (qui portent les labels de leur application) et votre liste `applications` restant décisive | <StatusBadge status="shipped" label="Livré" /> | v0.10 |
 | Silence du plan de contrôle expliqué — rien ne le collecte, la cible ne répond pas, ou elle a répondu avec des métriques qui ne sont pas celles d'un plan de contrôle que ce produit sait lire. Trois états et trois corrections différentes, là où il n'y avait qu'une phrase | <StatusBadge status="shipped" label="Livré" /> | v0.10 |
+| Observabilité IA — les appels de modèles que vos applications envoient déjà : par modèle, les appels, les tokens en entrée et en sortie, la latence, les échecs et les troncatures ; par service appelant, les mêmes chiffres avec un propriétaire. Le modèle qui a **répondu** l'emporte sur celui demandé, les deux orthographes des tokens sont lues, un appel sans usage rapporté est exclu plutôt que compté à zéro, et la troncature est signalée à part de l'échec. Les tarifs sont les vôtres à déclarer ; il n'y a pas d'API de tarification. Désactivé par défaut | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
+| Prompts et complétions supprimés à la passerelle par défaut — le contenu des messages n'atteint le stockage que parce que le SDK d'une application l'a capturé, et il y était jusqu'ici conservé avec la rétention habituelle et montré à tout Viewer. Ancré pour qu'un *compteur* de tokens ne soit jamais pris pour un prompt, et délibérément **non** conditionné au module IA | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
+| Répartition des traces — le trafic en treemap et en anneau, groupé par service, opération, issue, type de span ou n'importe quel attribut de span/ressource, pondéré par nombre de requêtes ou par temps total, sur une population de spans explicite (servi / entré / tous les spans). La queue est une vraie catégorie, donc les parts composent le tout | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
+| Page de détail par service — la santé d'un service, son RED dans le temps, ses appelants et ses dépendances en deux listes séparées, et ses traces, journaux et incidents derrière des onglets. Composée de lectures qui existaient déjà | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
+| Chemin de trace — le graphe au niveau service d'une seule requête, pondéré par le temps passé *dans* chaque service plutôt que par la durée du span, avec les dépendances qui n'ont jamais émis dessinées comme les sauts terminaux qu'elles sont | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
+| Refusé — le 4xx côté serveur comme issue à part entière, à côté de ok et erreur, sur le badge du span, l'aperçu des opérations, la table des traces et le filtre de recherche, et délibérément tenu hors du taux d'erreur | <StatusBadge status="shipped" label="Livré" /> | v0.11 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
-| Transport classé à partir des étiquettes Kubernetes plutôt que des noms de charges de travail — le vrai signal, dès que le pipeline portera ces attributs | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
-| Attribution des coûts aux côtés du module énergie — usage, allocation et surprovisionnement par nœud : un seul récit sur le gaspillage | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
-| Plans de contrôle autres qu'Istio — la moitié « par proxy » fonctionne déjà partout ; la moitié « plan de contrôle » est aujourd'hui façonnée pour Istio | <StatusBadge status="planned" label="Prévu" /> | v0.10 |
+| Plans de contrôle autres qu'Istio — la moitié « par proxy » fonctionne déjà partout ; la moitié « plan de contrôle » est aujourd'hui façonnée pour Istio | <StatusBadge status="planned" label="Prévu" /> | prochaine |
+| Agents et appels d'outils comme un graphe — les spans `execute_tool` et les attributs d'agent décrivent un graphe, et la vue chemin de trace en dessine déjà un | <StatusBadge status="planned" label="Prévu" /> | prochaine |
+| Budgets de tokens et alertes — un seuil sur la dépense de modèles, comme les budgets carbone existants | <StatusBadge status="planned" label="Prévu" /> | prochaine |
+| Coût joint au module vert — la même capacité réservée et inutilisée en Wh et gCO2e, sur une installation qui exécute les deux | <StatusBadge status="planned" label="Prévu" /> | prochaine |
 
 :::info La carte des services aujourd'hui
 Les arêtes de topologie sont **dérivées des spans de traces** (paires

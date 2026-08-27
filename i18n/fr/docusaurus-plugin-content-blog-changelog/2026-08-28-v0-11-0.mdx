@@ -1,0 +1,120 @@
+---
+slug: v0-11-0
+title: "v0.11.0 : ce qui était déjà dans vos traces"
+description: "Les appels de modèles que vos applications envoyaient déjà, où va réellement votre trafic, une page par service et la forme d'une seule requête — le tout depuis des spans que vous stockiez déjà. Et une décision sur les prompts."
+authors: [avuru]
+tags: [ai, traces, ui, security]
+date: 2026-08-28
+---
+
+**v0.11.0** n'ajoute aucune collecte. Chaque fonctionnalité lit des spans
+qu'avuru obs stocke depuis vos cinq premières minutes, et leur pose des
+questions que le produit ne savait pas poser — une installation mise à jour voit
+donc son **historique**, pas seulement ce qui arrivera ensuite.
+
+{/* truncate */}
+
+- **Observabilité IA.** Vos applications appellent des modèles, et comme ces
+  appels arrivent sous forme de spans ordinaires, ils étaient déjà dans le
+  stockage des traces — un par un, dans une cascade, sans moyen de demander ce
+  que leur ensemble représentait. Le nouveau module [IA](/docs/signals/ai)
+  rapporte, par modèle, les appels, les tokens en entrée et en sortie, la
+  latence, les échecs et la fréquence à laquelle une réponse a été coupée au
+  plafond de tokens — et par service appelant, les mêmes chiffres avec un
+  propriétaire.
+
+  Quatre lectures font le travail, et chacune protège d'une manière d'avoir tort
+  avec assurance. Le modèle qui a **répondu** l'emporte sur celui qui a été
+  demandé, car un alias est résolu chez le fournisseur et c'est la réponse qui
+  sert au calcul d'une facture. Les **deux** orthographes des tokens sont lues,
+  puisqu'une large part des instrumentations en production émet encore la
+  première paire : ne lire que l'actuelle afficherait ce trafic comme n'ayant
+  rien consommé. Un appel qui n'a rapporté **aucun** usage est compté et exclu
+  des totaux de tokens plutôt que moyenné à zéro. Et une réponse **tronquée**
+  n'est pas un échec : l'appel a réussi et a atteint le plafond, cause la plus
+  fréquente d'une réponse inexploitable, donc elle a sa propre colonne.
+
+  Les tarifs sont les vôtres à déclarer, par million de tokens, et absents par
+  défaut — auquel cas les écrans affichent des tokens et le disent. Un modèle
+  sans tarif est nommé plutôt que chiffré à zéro : un total est alors
+  explicitement un plancher. Il n'y a pas d'API de tarification, qui serait le
+  premier appel sortant d'un produit dont la promesse est que rien ne quitte
+  votre cluster, ni de table de prix embarquée, qui serait périmée en un mois
+  tout en paraissant aussi fiable qu'un chiffre saisi par vous. Désactivé par
+  défaut.
+
+- **Les prompts et les complétions sont désormais supprimés à la passerelle par
+  défaut.** Le contenu des messages n'atteint avuru obs que parce que le SDK de
+  votre application a été configuré pour le capturer — rien ici ne le réclame.
+  Mais rien ici ne le refusait non plus : sur toute installation dont
+  l'instrumentation capture le contenu, du texte utilisateur était écrit dans le
+  stockage des traces avec votre rétention habituelle et affiché dans la vue
+  trace à quiconque possède le rôle **Viewer**.
+
+  Il est maintenant supprimé avant écriture. La règle ne vise que les clés
+  `gen_ai.*` porteuses de texte, ancrée pour qu'un *compteur* de tokens dans
+  l'ancienne orthographe ne soit jamais pris pour un prompt ; un événement de
+  span qui portait du contenu conserve son nom et perd ses attributs, donc vous
+  voyez encore que votre instrumentation émet du contenu sans en conserver la
+  moindre ligne. Et elle n'est **pas** liée au module IA : le contenu arrive que
+  vous utilisiez cet écran ou non.
+
+  Elle s'applique à partir de la mise à jour ; le texte déjà stocké reste
+  jusqu'à l'expiration de votre rétention, et rien ne réécrit votre historique.
+  Pour conserver le contenu, réglez `gateway.genai.redactContent=false`. Les
+  compteurs de tokens, les modèles, la latence et le coût sont inchangés dans
+  les deux cas.
+
+- **Où va réellement le trafic.** Chaque surface de traces renvoyait des lignes
+  — quelles requêtes, et à quelle lenteur — et aucune ne répondait *combien de
+  quoi*. Un nouvel onglet **Répartition** sur [Traces](/docs/signals/traces)
+  dessine cette distribution en treemap et en anneau, groupée par service,
+  opération, issue, type de span, ou n'importe quel attribut de span ou de
+  ressource — une route HTTP, une base de données, un namespace, un
+  environnement, une étiquette métier.
+
+  Elle se pondère par nombre de requêtes **ou** par temps total, parce que les
+  deux classent différemment : une opération rare et lente et une opération
+  fréquente et rapide se ressemblent dans l'une et n'ont rien de commun dans
+  l'autre. La queue de distribution est une vraie catégorie, calculée avant la
+  limite, donc les parts composent le tout au lieu qu'un top 20 se redessine
+  discrètement comme votre parc entier. Et la population de spans est un choix
+  explicite — ce que chaque service a été *chargé de servir*, où le trafic est
+  *entré*, ou tous les spans — car sur un parc maillé les deux premières
+  diffèrent d'un facteur deux.
+
+- **Une page par service.** Cliquer un service ouvrait une liste de traces
+  filtrée, qui répond à ce qu'il a servi et à rien d'autre. Il y a désormais une
+  page par service : sa santé et pourquoi, son débit, ses erreurs et sa latence
+  dans le temps, **qui l'appelle et de quoi il dépend** en deux listes séparées,
+  et ses traces, journaux et incidents derrière des onglets. Appelants et
+  appelés sont montrés à part volontairement : l'un dit qui est affecté quand ce
+  service tombe, l'autre ce qui pourrait le faire tomber.
+
+- **La forme d'une requête.** Une trace se lisait span par span, et à trois
+  cents spans les services traversés y sont sans être visibles. Une nouvelle vue
+  **Chemin** dessine le graphe au niveau service d'une seule requête, pondéré
+  par le temps passé *dans* chaque service plutôt que par la durée de son span —
+  le span d'un appelant contient celui de son appelé, donc la durée créditerait
+  le point d'entrée de toute la requête. Les dépendances qui n'ont jamais émis
+  de span sont dessinées comme les sauts terminaux qu'elles sont, nommées par le
+  point de terminaison que l'appelant a enregistré.
+
+- **Refusé : une troisième réponse à « est-ce que ça a marché ? »** Un serveur
+  qui répond 4xx n'a ni échoué ni réussi, et le produit n'avait que ces deux
+  mots — une requête bloquée, ou une couche d'autorisation qui écarte un appel,
+  était rapportée comme `OK`. Le 4xx côté serveur est désormais sa propre classe
+  sur le badge du span, dans l'aperçu des opérations, dans la table des traces
+  et dans le filtre de recherche. Il est délibérément tenu **hors** du taux
+  d'erreur : l'y fondre mettrait chaque défi d'authentification et chaque 404 de
+  robot dans le chiffre sur lequel on réveille les gens.
+
+- **Une carte qui dit ce qu'elle montre.** Une application est maintenant un
+  hexagone et la base de données dont elle dépend un fût, pour que le glyphe le
+  plus fréquent soit le distinctif et que la base reçoive la forme qui a toujours
+  voulu dire « base de données ». Et la liste des traces affiche le code de
+  statut renvoyé par le span au lieu du mot « OK » qu'elle contredisait un
+  panneau plus loin.
+
+Détail complet dans les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.11.0).

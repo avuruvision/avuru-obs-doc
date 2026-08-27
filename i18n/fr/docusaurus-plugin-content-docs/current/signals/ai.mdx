@@ -1,0 +1,183 @@
+---
+id: ai
+title: Observabilité IA
+sidebar_label: IA
+sidebar_position: 12
+description: Ce que vos applications ont demandé aux modèles — par modèle et par appelant, avec les tokens, la latence, les échecs, les réponses tronquées et un coût optionnel. Lu depuis des spans que vous envoyez déjà, et avec les prompts supprimés à la passerelle par défaut.
+---
+
+# Observabilité IA
+
+Vos applications appellent des modèles. Comme les conventions OpenTelemetry
+`gen_ai` décrivent ces appels comme des spans ordinaires, ils **arrivent déjà**
+— toutes les instrumentations courantes des SDK LLM les émettent, et avuru obs
+stocke chaque span qu'on lui envoie.
+
+Jusqu'ici vous pouviez ouvrir l'un de ces appels dans une trace. Vous ne pouviez
+pas demander ce que leur ensemble représentait.
+
+## Ce que vous obtenez
+
+- **Par modèle.** Appels, tokens en entrée et en sortie, latence, échecs, et la
+  fréquence à laquelle une réponse a été coupée au plafond de tokens.
+- **Par service appelant.** Les mêmes chiffres avec un propriétaire : une
+  facture a alors quelqu'un à qui parler.
+- **Un coût optionnel.** Déclarez vos tarifs et les écrans affichent de
+  l'argent ; laissez-les vides et ils affichent des tokens, et le disent.
+- **Un signalement sur le contenu des messages.** Si des prompts ou des
+  complétions atteignent le stockage malgré la suppression faite à la
+  passerelle, cet écran est le seul endroit capable de vous le dire. Il les
+  compte. Il ne les affiche jamais.
+
+Rien de nouveau n'est collecté et aucun schéma ne change. Activer le module vous
+montre votre **historique**, pas seulement ce qui arrivera ensuite.
+
+## Quatre chiffres, et pourquoi chacun est lu ainsi
+
+Chacun protège d'une manière d'avoir tort avec assurance.
+
+**Le modèle qui a répondu l'emporte sur celui que vous avez demandé.** Demander
+`gpt-4o` est servi par une version datée, et c'est le modèle répondant qui sert
+au calcul d'une facture. Lorsque rien n'a indiqué ce qui a répondu, la ligne est
+attribuée au modèle demandé et **étiquetée** comme telle : une affirmation plus
+faible, présentée comme telle.
+
+**Les deux orthographes des tokens sont lues.** La convention a renommé
+`prompt_tokens`/`completion_tokens` en `input_tokens`/`output_tokens`, et une
+large part des instrumentations en production émet encore la première paire. Ne
+lire que l'actuelle afficherait ce trafic comme n'ayant consommé aucun token —
+une erreur invisible, puisque ces appels apparaissent dans toutes les autres
+colonnes.
+
+**Un appel qui n'a rapporté aucun usage n'est pas un appel qui n'a rien
+consommé.** Il est compté, exclu des totaux de tokens et de coût, et signalé
+dans sa propre catégorie. Le moyenner à zéro sous-estimerait chaque total de la
+page.
+
+**Une réponse tronquée n'est pas un échec.** `finish_reasons` contenant
+`length` signifie que le modèle s'est arrêté au plafond de tokens. L'appel a
+réussi et la réponse est réelle — mais c'est aussi la cause la plus fréquente
+d'une réponse inexploitable, donc elle a sa propre colonne plutôt que d'être
+fondue dans le taux d'erreur ou supprimée.
+
+## Prompts et complétions
+
+**Le contenu des messages est supprimé à la passerelle par défaut.**
+
+Il n'atteint avuru obs que parce que le SDK de votre application a été configuré
+pour le capturer — rien ici ne le réclame. Mais avant cette version, rien ici ne
+le refusait non plus : le texte des prompts et des complétions était écrit dans
+le stockage des traces avec votre rétention habituelle, et affiché dans la vue
+trace à quiconque possède le rôle **Viewer**.
+
+La passerelle supprime désormais ces attributs avant écriture. La règle est
+volontairement étroite :
+
+- elle ne vise que les clés `gen_ai.*` qui portent du **texte**, ancrée pour
+  qu'un *compteur* de tokens dans l'ancienne orthographe ne puisse jamais
+  correspondre ;
+- un événement de span qui portait du contenu conserve son **nom** et perd ses
+  attributs : vous voyez encore que votre instrumentation émet du contenu, sans
+  en conserver la moindre ligne ;
+- elle n'est **pas** liée au module IA. Le contenu arrive que vous utilisiez cet
+  écran ou non, donc conditionner la protection à l'écran ne protégerait que les
+  installations qui sont allées regarder.
+
+Elle s'applique à partir de la mise à jour. Le texte déjà stocké reste jusqu'à
+l'expiration de votre rétention — rien ici ne réécrit votre historique.
+
+Si vous avez décidé de conserver le contenu, et que vous avez une politique de
+rétention et d'accès pour lui :
+
+```yaml
+gateway:
+  genai:
+    redactContent: false
+```
+
+Les compteurs de tokens, les modèles, la latence et le coût sont inchangés dans
+les deux cas : ce sont des attributs, pas du contenu.
+
+## Tarifs
+
+Les tarifs sont les vôtres à déclarer, par **million** de tokens — l'unité dans
+laquelle les fournisseurs les publient :
+
+```yaml
+ai:
+  currency: EUR
+  prices:
+    - model: gpt-4o
+      inputPer1MTokens: 2.5
+      outputPer1MTokens: 10
+    - model: claude-sonnet
+      inputPer1MTokens: 3
+      outputPer1MTokens: 15
+```
+
+`model` correspond exactement à l'identifiant présent dans votre télémétrie,
+**ou en tant que préfixe** — tarifer `gpt-4o` tarife donc aussi
+`gpt-4o-2024-08-06`. Une entrée exacte l'emporte toujours sur un préfixe, le
+préfixe le plus long l'emporte entre préfixes, et un coût issu d'une règle de
+préfixe est signalé à l'écran : c'est un chiffre déduit par le produit, pas un
+chiffre que vous avez écrit.
+
+L'entrée et la sortie sont tarifées séparément parce que chaque fournisseur les
+facture différemment, souvent d'un facteur trois ou plus. Les fondre en un seul
+tarif classerait mal exactement les charges que cet écran sert à classer.
+
+Un modèle **sans** tarif déclaré est listé et nommé plutôt que chiffré à zéro,
+et le total indique explicitement qu'il s'agit d'un plancher.
+
+Il n'y a pas d'API de tarification et il n'y en aura pas : ce serait le premier
+appel sortant d'un produit dont la promesse est que rien ne quitte votre
+cluster. Il n'y a pas non plus de table de prix embarquée, l'erreur la plus
+tentante : elle serait périmée en un mois tout en paraissant aussi fiable qu'un
+chiffre que vous auriez saisi vous-même.
+
+## Activation
+
+```yaml
+modules:
+  ai:
+    enabled: true
+```
+
+Désactivé par défaut. La plupart des installations n'appellent aucun modèle, et
+une entrée de navigation pour quelque chose que vous n'avez pas est du bruit.
+Désactiver le module ne désactive **pas** la suppression du contenu : c'est
+`gateway.genai.redactContent`, délibérément indépendant.
+
+## Ce qu'il lit
+
+Les attributs `gen_ai.*` des spans que votre application envoie déjà. Un span
+compte comme un appel de modèle s'il porte `gen_ai.operation.name`, ou à défaut
+un fournisseur (`gen_ai.system` ou `gen_ai.provider.name`).
+
+| Attribut | Sert à |
+|---|---|
+| `gen_ai.operation.name` | détecter un appel de modèle |
+| `gen_ai.system` / `gen_ai.provider.name` | le fournisseur, et la détection de repli |
+| `gen_ai.response.model` | le modèle qui regroupe une ligne |
+| `gen_ai.request.model` | le repli, étiqueté « demandé seulement » |
+| `gen_ai.usage.input_tokens` / `prompt_tokens` | tokens d'entrée |
+| `gen_ai.usage.output_tokens` / `completion_tokens` | tokens de sortie |
+| `gen_ai.response.finish_reasons` | troncature (`length`) |
+
+La latence est celle de **l'appel entier** telle que l'appelant l'a mesurée, pas
+le temps jusqu'au premier token — celui-ci est une métrique, et ceci lit des
+spans.
+
+## Limites, énoncées
+
+- **Une seule convention.** Les espaces de noms d'attributs propres à un éditeur
+  ne sont pas lus. Ils ne sont pas isolés des attributs applicatifs ordinaires,
+  et une règle les visant revendiquerait des spans appartenant à des services
+  qui n'appellent aucun modèle.
+- **Aucune évaluation.** Rien ici ne juge une réponse. Cela demanderait une
+  vérité de référence que ce produit n'a pas et ne doit pas inventer.
+- **Le coût est estimé** à partir des compteurs de tokens et des tarifs que vous
+  avez déclarés. C'est un signal d'ingénierie, pas une facture.
+- **Les agents et les appels d'outils** ne sont pas encore dessinés comme un
+  graphe. Les spans `execute_tool` apparaissent dans la trace comme les autres ;
+  une vue dédiée est à la feuille de route.

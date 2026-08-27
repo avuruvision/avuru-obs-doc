@@ -21,9 +21,33 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.11.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.12.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.11.0" date="2026-08-28" status="shipped">
+
+**What was already in your traces.** No new collection at all: every feature
+reads spans avuru obs has been storing since your first five minutes, so an
+upgrade shows you your history rather than only what arrives next.
+[AI observability](/docs/signals/ai) reports the model calls your applications
+were already sending — per model and per calling service, with tokens, latency,
+failures and truncation, and a cost if you declare your rates. The same release
+takes a position on message content: prompts and completions are now **dropped
+at the gateway by default**, because they were being stored under your ordinary
+retention and shown to every Viewer, and nobody had ever decided that.
+
+[Traces](/docs/signals/traces) gain a **Breakdown** — the traffic as a treemap
+and a donut, grouped by anything a span carries, weighted by count or by total
+time, with a tail that is a real bucket so the parts sum to the whole. There is
+a page per service, a **Path** view drawing the service-level shape of a single
+request, and **Refused**: server-side 4xx as its own outcome, deliberately kept
+out of the error rate.
+
+See the [changelog entry](/changelog/v0-11-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.11.0).
 
 </ReleaseEntry>
 
