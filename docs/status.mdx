@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.7.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.11.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -83,14 +83,21 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Cost & waste — every workload's reserved CPU and memory against what it actually used, ranked by the gap, with workloads that declare **no** request called out as their own state and node allocation shown beside node usage. Idle is measured against the peak, never the mean. Rates are yours to declare; with none set the screens report cores and bytes and say so — there is no pricing API and no egress. Off by default | <StatusBadge status="shipped" /> | v0.10 |
 | Transport recognised from Kubernetes labels — a gateway you named anything at all is classified from the label your mesh wrote on it, with names still the answer for sidecars (which wear their application's labels) and your `applications` override still final | <StatusBadge status="shipped" /> | v0.10 |
 | Control-plane silence explained — nothing scraping, target not answering, or answered with metrics that are not a control plane this product reads. Three states with three different fixes, where there used to be one sentence | <StatusBadge status="shipped" /> | v0.10 |
+| AI observability — the model calls your applications already send: per model, calls, tokens in and out, latency, failures and truncation; per calling service, the same with an owner. The model that **answered** wins over the one requested, both token spellings are read, a call that reported no usage is excluded rather than counted as zero, and truncation is reported apart from failure. Prices are yours to declare; there is no pricing API. Off by default | <StatusBadge status="shipped" /> | v0.11 |
+| Prompt and completion text dropped at the gateway by default — message content reaches storage only because an application's SDK captured it, and until now it was stored under the ordinary retention and shown to every Viewer. Anchored so a token *count* is never mistaken for a prompt, and deliberately **not** gated on the AI module | <StatusBadge status="shipped" /> | v0.11 |
+| Trace breakdown — the traffic as a treemap and a donut, grouped by service, operation, outcome, span kind or any span/resource attribute, weighted by request count or total time, over an explicit span population (served / entered / every span). The tail is a real bucket, so the parts sum to the whole | <StatusBadge status="shipped" /> | v0.11 |
+| Service detail page — one service's health, RED over time, callers and dependencies as two separate lists, and its traces, logs and error issues behind tabs. Composed from reads that already existed | <StatusBadge status="shipped" /> | v0.11 |
+| Trace path — the service-level graph of a single request, weighted by time spent *inside* each service rather than span duration, with dependencies that never reported drawn as the terminal hops they are | <StatusBadge status="shipped" /> | v0.11 |
+| Refused — server-side 4xx as its own outcome beside ok and error, on the span badge, the operations overview, the trace table and the search filter, and deliberately kept out of the error rate | <StatusBadge status="shipped" /> | v0.11 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
-| Transport classified from Kubernetes labels rather than workload names — the real signal, once the pipeline carries the attributes | <StatusBadge status="planned" /> | v0.10 |
-| Cost attribution beside the energy module — usage, allocation and overprovisioning per node, one story about waste | <StatusBadge status="planned" /> | v0.10 |
-| Control planes other than Istio — the per-proxy half already works anywhere; the control-plane half is Istio-shaped today | <StatusBadge status="planned" /> | v0.10 |
+| Control planes other than Istio — the per-proxy half already works anywhere; the control-plane half is Istio-shaped today | <StatusBadge status="planned" /> | next |
+| Agents and tool calls as a shape — `execute_tool` spans and agent attributes describe a graph, and the trace path view already draws one | <StatusBadge status="planned" /> | next |
+| Token budgets and alerts — a threshold on model spend, the way carbon budgets already work | <StatusBadge status="planned" /> | next |
+| Cost joined to green — the same reserved-and-idle capacity in Wh and gCO2e, on an install running both | <StatusBadge status="planned" /> | next |
 
 :::info Service map today
 Topology edges are **derived from trace spans** (cross-service Client/Server

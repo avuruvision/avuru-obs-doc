@@ -1,0 +1,111 @@
+---
+slug: v0-11-0
+title: "v0.11.0: what was already in your traces"
+description: "The model calls your applications were already sending, where your traffic actually goes, a page for one service and the shape of a single request — all from spans you were already storing. Plus a decision about prompts."
+authors: [avuru]
+tags: [ai, traces, ui, security]
+date: 2026-08-27
+---
+
+**v0.11.0** adds no collection at all. Every feature in it reads spans avuru obs
+has been storing since your first five minutes, and asks them questions the
+product could not previously ask — so an install that upgrades sees its
+**history**, not just what arrives next.
+
+{/* truncate */}
+
+- **AI observability.** Your applications are calling models, and because those
+  calls arrive as ordinary spans they were already in the trace store — one at a
+  time, in a waterfall, with no way to ask what any of it added up to. The new
+  [AI](/docs/signals/ai) module reports per model — calls, tokens in and out,
+  latency, failures, and how often an answer was cut off at the token ceiling —
+  and per calling service, the same numbers with an owner.
+
+  Four readings do the work, and each guards a way of being confidently wrong.
+  The model that **answered** wins over the one requested, because an alias
+  resolves at the provider and the response is what a bill is computed against.
+  **Both** token spellings the convention has had are read, since a large share
+  of production instrumentation still emits the earlier pair and reading only
+  the current one would show that traffic as having spent nothing at all. A call
+  that reported **no** usage is counted and left out of the token totals rather
+  than averaged in as a zero. And a **truncated** answer is not a failed one:
+  the call succeeded and hit the ceiling, which is the commonest reason a
+  response comes back unusable, so it gets a column of its own.
+
+  Prices are yours to declare, per million tokens, and absent by default — in
+  which case the screens report tokens and say so. A model with no rate is named
+  rather than costed at zero, so a total is explicitly a floor. There is no
+  pricing API, which would be the first outbound call in a product whose promise
+  is that nothing leaves your cluster, and no bundled price table, which would
+  be stale within a month while looking exactly as authoritative as a number you
+  typed yourself. Off by default.
+
+- **Prompts and completions are now dropped at the gateway by default.** Model
+  message content reaches avuru obs only because an application's own SDK was
+  configured to capture it — nothing here asks for it. But nothing here refused
+  it either, so on any install whose instrumentation captures content, user text
+  was being written to the trace store under your ordinary retention and
+  rendered in the trace view to anyone holding the **Viewer** role.
+
+  It is now deleted before it is written. The rule matches only the `gen_ai.*`
+  keys that carry message text, anchored so a token *count* under the
+  convention's older spelling is never mistaken for a prompt; a span event that
+  carried content keeps its name and loses its attributes, so you can still see
+  that your instrumentation is emitting content without holding any of it. And
+  it is **not** tied to the AI module — content arrives whether or not you run
+  that screen.
+
+  It applies from the upgrade forward; text already stored stays until your
+  retention expires it, and nothing rewrites your history. If you want content
+  kept, set `gateway.genai.redactContent=false`. Token counts, models, latency
+  and cost are unaffected either way.
+
+- **Where the traffic actually goes.** Every trace surface returned rows — which
+  requests, and how slow — and none answered *how much of what*. A new
+  **Breakdown** tab on [Traces](/docs/signals/traces) draws that distribution as
+  a treemap and a donut, grouped by service, operation, outcome, span kind, or
+  any span or resource attribute — an HTTP route, a database, a namespace, an
+  environment, a business tag.
+
+  It can be weighted by request count **or** by total wall time, because the two
+  rank differently: a rare slow operation and a frequent fast one look identical
+  in one and nothing alike in the other. The tail is a real bucket, computed
+  before the limit, so the parts sum to the whole rather than a top-20 quietly
+  redrawing itself as your entire estate. And the span population is an explicit
+  choice — what each service was *asked to do*, where traffic *entered*, or
+  every span — because on a meshed estate the first two differ by a factor of
+  two.
+
+- **A page for one service.** Clicking a service used to open a filtered trace
+  list, which answers what it served and nothing else. There is now a page per
+  service: its health and why, its rate, errors and latency over time, **who
+  calls it and what it depends on** as two separate lists, and its traces, logs
+  and error issues behind tabs. Callers and callees are shown apart on purpose —
+  one is who is affected when this breaks, the other is what could be breaking
+  it.
+
+- **The shape of one request.** A trace could be read span by span, and at three
+  hundred spans the services it crossed are in there and cannot be seen. A new
+  **Path** view draws the service-level graph of a single request, weighted by
+  the time spent *inside* each service rather than by how long its span lasted —
+  a caller's span contains its callee's, so duration would credit the entry
+  point with the whole request. Dependencies that never sent a span of their own
+  are drawn as the terminal hops they are, named by the endpoint the caller
+  recorded.
+
+- **Refused: a third answer to "did it work?"** A server replying 4xx has
+  neither failed nor succeeded, and the product had only those two words — so a
+  blocked request, or an authorization layer turning one away, was reported as
+  `OK`. Server-side 4xx is now its own class across the span badge, the
+  operations overview, the trace table and the search filter. It is deliberately
+  kept **out of** the error rate: folding it in would put every auth challenge
+  and every crawler 404 into the number people are paged on.
+
+- **A map that says what it means.** An application is now a hexagon and the
+  datastore it depends on a barrel, so the glyph a reader meets most often is
+  the distinctive one and the datastore gets the shape that has always meant
+  datastore. And the trace list shows the status code a span answered instead of
+  the word "OK" it used to contradict one panel over.
+
+Full detail in the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.11.0).

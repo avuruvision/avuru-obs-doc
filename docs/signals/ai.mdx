@@ -1,0 +1,176 @@
+---
+id: ai
+title: AI observability
+sidebar_label: AI
+sidebar_position: 12
+description: What your applications asked models to do — per model and per caller, with tokens, latency, failures, truncation and an optional cost. Read from spans you are already sending, and with prompts dropped at the gateway by default.
+---
+
+# AI observability
+
+Your applications are calling models. Because the OpenTelemetry `gen_ai`
+conventions describe those calls as ordinary spans, they are **already arriving**
+— every common LLM SDK instrumentation emits them, and avuru obs stores every
+span it is sent.
+
+Until now you could open one of those calls in a trace. You could not ask what
+all of them added up to.
+
+## What you get
+
+- **Per model.** Calls, input and output tokens, latency, failures, and how
+  often an answer was cut off at the token ceiling.
+- **Per calling service.** The same numbers with an owner, so a bill has
+  somebody to talk to about it.
+- **An optional cost.** Declare your rates and the screens report money;
+  leave them unset and they report tokens and say so.
+- **A report on message content.** If prompts or completions are reaching
+  storage despite the gateway's redaction, this screen is the only place that
+  can tell you. It counts them. It never shows them.
+
+Nothing new is collected and no schema changes. Switching the module on shows
+you your **history**, not just what arrives next.
+
+## Four numbers, and why each is read the way it is
+
+Every one of these guards a way of being confidently wrong.
+
+**The model that answered wins over the one you asked for.** Requesting
+`gpt-4o` is answered by a dated build, and the responding model is what a bill
+is computed against. Where nothing reported what answered, the row is
+attributed to the requested model and **labelled** as such — a weaker claim,
+shown as one.
+
+**Both token spellings are read.** The convention renamed
+`prompt_tokens`/`completion_tokens` to `input_tokens`/`output_tokens`, and a
+large share of production instrumentation still emits the earlier pair.
+Reading only the current one would report that traffic as having spent no
+tokens at all — an error that is invisible, because those calls still appear in
+every other column.
+
+**A call that reported no usage is not a call that used nothing.** It is
+counted, excluded from the token and cost totals, and reported in its own
+bucket. Averaging it in as a zero would understate every total on the page.
+
+**Truncation is not failure.** `finish_reasons` containing `length` means the
+model stopped at the token ceiling. The call succeeded and the response is
+real — but it is also the commonest reason an answer comes back unusable, so it
+gets a column of its own rather than being folded into the error rate or
+dropped.
+
+## Prompts and completions
+
+**Message content is dropped at the gateway by default.**
+
+It reaches avuru obs only because an application's own SDK was configured to
+capture it — nothing here asks for it. But before this release nothing here
+refused it either: prompt and completion text was written to the trace store
+under your ordinary retention and rendered in the trace view to anyone holding
+the **Viewer** role.
+
+The gateway now deletes those attributes before they are written. The rule is
+narrow on purpose:
+
+- it matches only the `gen_ai.*` keys that carry message **text**, anchored so a
+  token *count* under the older spelling can never match;
+- a span event that carried content keeps its **name** and loses its
+  attributes, so you can still see that your instrumentation is emitting
+  content without holding any of it;
+- it is **not** tied to the AI module. Content arrives whether or not you run
+  this screen, so gating the protection on the screen would protect only the
+  installs that went looking.
+
+It applies from the upgrade forward. Text already stored stays until your
+retention expires it — nothing here rewrites your history.
+
+If you have decided you want content kept, and have a retention and access
+story for it:
+
+```yaml
+gateway:
+  genai:
+    redactContent: false
+```
+
+Token counts, models, latency and cost are unaffected either way: those are
+attributes, not content.
+
+## Prices
+
+Rates are yours to declare, per **million** tokens, which is how providers
+publish them:
+
+```yaml
+ai:
+  currency: USD
+  prices:
+    - model: gpt-4o
+      inputPer1MTokens: 2.5
+      outputPer1MTokens: 10
+    - model: claude-sonnet
+      inputPer1MTokens: 3
+      outputPer1MTokens: 15
+```
+
+`model` matches the id in your telemetry exactly, **or as a prefix of it** — so
+pricing `gpt-4o` also prices `gpt-4o-2024-08-06`. An exact entry always beats a
+prefix, the longest prefix wins among prefixes, and a cost derived from a
+prefix rule is marked on the screen: it is a number the product inferred, not
+one you wrote down.
+
+Input and output are priced separately because every provider charges them
+differently, usually by a factor of three or more. Blending them into one rate
+would misrank exactly the workloads this screen exists to rank.
+
+A model with **no** declared rate is listed and named rather than costed at
+zero, and the total says explicitly that it is a floor.
+
+There is no pricing API and there will not be one — it would be the first
+outbound call in a product whose promise is that nothing leaves your cluster.
+There is no bundled price table either, which is the more tempting mistake: it
+would be stale within a month while looking exactly as authoritative as a
+number you typed yourself.
+
+## Turning it on
+
+```yaml
+modules:
+  ai:
+    enabled: true
+```
+
+Off by default. Most installs call no models, and a navigation entry for
+something you do not have is noise. Turning the module **off** does not turn
+off content redaction — that is `gateway.genai.redactContent`, and it is
+deliberately independent.
+
+## What it reads
+
+The `gen_ai.*` attributes on spans your application already sends. A span
+counts as a model call when it carries `gen_ai.operation.name`, or failing that
+a provider (`gen_ai.system` or `gen_ai.provider.name`).
+
+| Attribute | Used for |
+|---|---|
+| `gen_ai.operation.name` | detecting a model call |
+| `gen_ai.system` / `gen_ai.provider.name` | the provider, and detection fallback |
+| `gen_ai.response.model` | the model a row is grouped by |
+| `gen_ai.request.model` | the fallback, labelled as requested-only |
+| `gen_ai.usage.input_tokens` / `prompt_tokens` | input tokens |
+| `gen_ai.usage.output_tokens` / `completion_tokens` | output tokens |
+| `gen_ai.response.finish_reasons` | truncation (`length`) |
+
+Latency is the **whole call** as the caller measured it, not time to first
+token — that is a metric, and this reads spans.
+
+## Limits, stated
+
+- **One convention.** Vendor-private attribute namespaces are not read. They
+  are not namespaced away from ordinary application attributes, so a rule over
+  them would claim spans belonging to services that call no model at all.
+- **No evaluation.** Nothing here judges an output. That needs ground truth
+  this product does not have and should not invent.
+- **Cost is estimated** from token counts and the rates you declared. It is an
+  engineering signal, not an invoice.
+- **Agents and tool calls** are not yet drawn as a shape. `execute_tool` spans
+  appear in the trace like any other; a dedicated view is on the roadmap.

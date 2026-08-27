@@ -13,11 +13,14 @@ module off skips its storage schema, its API, its collection, and its screen in
 the UI — so a traces-only install carries none of the storage or CPU weight of
 logs or profiling.
 
-Almost everything is on by default — you turn modules **off**, and the service
-map still lights up in minutes either way. The one exception is **green**
-(energy & carbon): it ships **off**, because the signal depends on RAPL
-hardware and a default-on module would silently flip on for every existing
-install on the next upgrade.
+Most modules are on by default — you turn them **off**, and the service map
+still lights up in minutes either way. Four ship **off**: **green**, **mesh**,
+**cost** and **ai**. Each is off for the same reason, which is what happens at
+*upgrade*: a default-on module would silently switch itself on for every
+existing install. Green depends on RAPL hardware, cost starts watching
+cluster-scoped objects and takes a lease, and mesh and ai would light up a
+navigation entry for infrastructure — a service mesh, a model — that most
+installs do not have.
 
 ## The modules
 
@@ -28,10 +31,23 @@ install on the next upgrade.
 | **infra-metrics** | Node and pod metrics, the sensor inventory | `modules.infraMetrics.enabled` |
 | **profiling** | Continuous CPU profiling and flame graphs | `modules.profiling.enabled` |
 | **green** | Per-service [energy & carbon](/docs/signals/green) from CNCF Kepler | `modules.green.enabled` — **off by default** (needs RAPL; also opt in `sensor.green.enabled`, and it requires `infra-metrics`) |
+| **error-tracking** | Deduplicated, triageable [issues](/docs/signals/errors) derived from spans and logs | `modules.errorTracking.enabled` |
+| **service-health** | [Group health](/docs/signals/service-health) with criticality tiers, rolled up from RED | `modules.serviceHealth.enabled` |
+| **alerting** | Webhook [notifications](/docs/signals/alerting) on health transitions | `modules.alerting.enabled` — inert until you configure rules |
+| **mesh** | Proxy RED and control-plane health ([mesh](/docs/signals/mesh)) | `modules.mesh.enabled` — **off by default**; the control-plane half also needs `infra-metrics` |
+| **cost** | Reserved against used capacity ([cost & waste](/docs/signals/cost)) | `modules.cost.enabled` — **off by default** (also opt in `sensor.agent.cluster.enabled`, and it requires `infra-metrics`) |
+| **ai** | Model calls, tokens and cost ([AI](/docs/signals/ai)) from the `gen_ai.*` spans you already send | `modules.ai.enabled` — **off by default**; owns no schema and needs no other module |
 
 RED metrics are derived from your traces, not from the metrics tables, so the
 **Metrics** view is part of core and stays available even with `infra-metrics`
 off.
+
+:::caution The AI module does not gate prompt redaction
+`gateway.genai.redactContent` drops model message content **whether or not**
+you run the `ai` module — content arrives either way, so gating the protection
+on the screen would protect only the installs that went looking. See
+[AI observability](/docs/signals/ai).
+:::
 
 ## Turn a module off
 

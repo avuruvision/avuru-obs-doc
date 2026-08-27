@@ -22,10 +22,36 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.11.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.12.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.11.0" date="2026-08-27" status="shipped" statusLabel="Livré">
+
+**Ce qui était déjà dans vos traces.** Aucune nouvelle collecte : chaque
+fonctionnalité lit des spans qu'avuru obs stocke depuis vos cinq premières
+minutes, donc une mise à jour vous montre votre historique et pas seulement ce
+qui arrivera ensuite. L'[observabilité IA](/docs/signals/ai) rapporte les appels
+de modèles que vos applications envoyaient déjà — par modèle et par service
+appelant, avec les tokens, la latence, les échecs et les troncatures, et un coût
+si vous déclarez vos tarifs. La même version prend position sur le contenu des
+messages : les prompts et les complétions sont désormais **supprimés à la
+passerelle par défaut**, parce qu'ils étaient conservés avec votre rétention
+habituelle et montrés à tout Viewer, sans que personne ne l'ait jamais décidé.
+
+Les [traces](/docs/signals/traces) gagnent une **Répartition** — le trafic en
+treemap et en anneau, groupé par n'importe quel attribut porté par un span,
+pondéré par nombre ou par temps total, avec une queue de distribution qui est
+une vraie catégorie pour que les parts composent le tout. Il y a une page par
+service, une vue **Chemin** qui dessine la forme d'une requête au niveau
+service, et **Refusé** : le 4xx côté serveur comme issue à part entière,
+délibérément tenu hors du taux d'erreur.
+
+Voir l'[entrée de changelog](/changelog/v0-11-0) et les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.11.0).
 
 </ReleaseEntry>
 
