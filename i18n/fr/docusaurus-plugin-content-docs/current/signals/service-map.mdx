@@ -52,8 +52,8 @@ service en bonne santé.
 
 ### Les formes disent ce qu'est un nœud
 
-- **Cercle** — une application.
-- **Hexagone en tirets** — une base de données, un cache ou un broker.
+- **Hexagone** — une application.
+- **Tonneau en tirets** — une base de données, un cache ou un broker.
 - **Losange** — un proxy de service mesh ou une passerelle. Masqué par défaut ;
   voir [les sauts de mesh](#un-saut-de-mesh-nest-pas-une-dépendance).
 - **Contour vide** — un pair vu dans le trafic qui n'a jamais rien émis.
@@ -65,7 +65,7 @@ nature de nœud ne coûte jamais à la carte une couleur qu'elle utilisait déj�
 
 PostgreSQL, Redis et Kafka n'embarquent ni SDK ni sonde. Sans rien faire, un
 service qui passe l'essentiel de sa latence dans une base est dessiné comme un
-cercle isolé que rien n'explique — et quatre services partageant un même cache
+hexagone isolé que rien n'explique — et quatre services partageant un même cache
 forment un rayon de souffle que personne ne voit.
 
 Avuru Obs les déduit des **spans de sortie des services qui les appellent**.
@@ -130,7 +130,7 @@ deux : un contournement qu'un signal pourrait défaire n'en serait pas un.
 
 Masquer le saut supprime la fausse affirmation. Cela ne rétablit pas pour autant
 la vraie : les proxys disparus, un parc entièrement maillé n'est plus qu'un
-ensemble de cercles isolés.
+ensemble de nœuds isolés.
 
 Le hub lit donc la **chaîne de parenté propre à chaque trace** — le span de
 l'appelé, son parent, puis le parent de celui-ci — en enjambant les proxys
