@@ -10,6 +10,13 @@ updates:
       docs-npm:
         patterns:
           - "*"
+    ignore:
+      # TypeScript 7 removes `baseUrl`, and @docusaurus/tsconfig still declares
+      # it (along with the `paths` mapping for "@site/*" that depends on it), so
+      # `npm run typecheck` fails on the shipped config rather than on ours.
+      # Revisit when Docusaurus publishes a TS7-clean tsconfig.
+      - dependency-name: "typescript"
+        versions: [">=7"]
 
   - package-ecosystem: github-actions
     directory: /
