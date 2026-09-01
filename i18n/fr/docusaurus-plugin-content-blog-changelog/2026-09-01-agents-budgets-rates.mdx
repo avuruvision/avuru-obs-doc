@@ -1,0 +1,90 @@
+---
+slug: agents-budgets-and-rates
+title: "La dépense sur laquelle agir : tours d'agent, budgets et une seule grille tarifaire"
+description: "Les appels d'outils ne comptent plus comme des appels de modèles, un tour d'agent est dessiné comme le graphe qu'il est, un dépassement de dépense vous alerte, et ce que coûte votre parc s'écrit une seule fois."
+authors: [avuru]
+tags: [ai, traces, platform, ui]
+date: 2026-09-01
+---
+
+Lire ce que coûtent vos modèles n'est pas la même chose que pouvoir agir dessus.
+Cette version comble cet écart — et elle s'ouvre en corrigeant une façon de lire
+ces spans qui s'est révélée fausse.
+
+{/* truncate */}
+
+- **Les appels d'outils ne comptent plus comme des appels de modèles.** Le module
+  [IA](/docs/signals/ai) déterminait ce qui comptait comme un appel de modèle en
+  vérifiant la *présence* de `gen_ai.operation.name`, sans jamais en lire la
+  valeur — or `chat` n'est qu'une des valeurs définies par la convention. Une
+  instrumentation d'agent émet `execute_tool` pour chaque outil exécuté : sur une
+  charge agentique, **chaque exécution d'outil était donc comptée comme un appel
+  de modèle**, et quatre chiffres devenaient faux ensemble. Le nombre d'appels
+  gonflait (un tour consultant deux outils en rapportait cinq), les percentiles
+  de latence classaient une requête en base au même rang qu'une complétion, le
+  modèle ne se résolvait plus et cette ligne vide comptait ensuite comme un
+  modèle à part entière, et le compartiment « aucun usage rapporté » — qui existe
+  pour nommer honnêtement un défaut d'instrumentation — se remplissait de spans
+  qui n'étaient pas des appels de modèles.
+
+  Les appels sont désormais séparés par opération, et chaque vue existante lit la
+  population d'inférence pour laquelle elle a été conçue. Les embeddings restent
+  comptés comme des appels de modèles : un embedding consomme de vrais tokens sur
+  un vrai modèle. Un parc dont les applications ne font que des complétions
+  classiques n'a jamais été affecté et ne verra aucun changement ; un parc
+  agentique verra son nombre d'appels retomber à la vérité.
+
+- **Les outils que vos agents exécutent réellement.** Une fois les exécutions
+  d'outils distinguées, elles méritaient d'être rapportées — et la table des
+  modèles ne pouvait pas les montrer. Une nouvelle table **Outils** nomme chaque
+  outil exécuté par un agent, sa fréquence, son taux d'échec, sa latence au p95
+  et les services qui l'appellent. Un outil sollicité quatre fois dans un tour
+  forme une seule ligne avec un compteur : c'est la boucle qu'il faut voir.
+
+  Ni tokens ni coût, délibérément : une exécution d'outil ne consomme ni l'un ni
+  l'autre, et un zéro se lirait « cet outil est gratuit » plutôt que « les tokens
+  ne sont pas l'unité ici ». Un outil dont l'instrumentation n'a pas fourni de nom
+  est rapporté sous le nom de son span et signalé comme tel, plutôt qu'écarté.
+
+- **Un tour d'agent, dessiné tel qu'il est.** Un tour n'est pas une liste : c'est
+  un appel de modèle qui décide, un éventail vers des outils, des résultats qui
+  reviennent, souvent un second appel de modèle ensuite. Les questions qu'on se
+  pose sont des questions de graphe : quel outil est lent, lequel échoue, combien
+  de sauts avant convergence, sur lequel une boucle de réessai s'est bloquée. Une
+  nouvelle vue **Tour** sur la [trace](/docs/signals/traces) dessine exactement
+  cela, et n'apparaît que sur les traces qui en contiennent un.
+
+  Le temps est pondéré par ce qui a été passé *à l'intérieur* de chaque appel
+  plutôt que par la durée du span : le span d'un appel de modèle contient les
+  spans des outils qu'il a déclenchés, et la durée attribuerait au modèle un temps
+  passé par les outils.
+
+- **Un seuil sur la dépense.** Personne ne surveille un écran. Des **budgets**
+  mensuels — en tokens ou en monnaie, pour un service appelant ou pour tout le
+  parc — se déclenchent désormais via les canaux d'[alerting](/docs/signals/alerting)
+  déjà en place : un avertissement à 80 % du plafond par défaut, une alerte au
+  plafond, chacun se résolvant seul au changement de mois ou quand la dépense
+  redescend.
+
+  Un budget en monnaie est refusé au démarrage si aucun prix n'est déclaré : une
+  dépense mesurée sans prix vaut zéro, et un tel budget resterait éternellement
+  sous tous les seuils sans jamais se déclencher. Lorsque seuls certains modèles
+  concernés sont tarifés, l'alerte le dit — qui lit « à 82 % » est en droit de
+  savoir que le chiffre réel est plus élevé.
+
+- **Une seule grille tarifaire, écrite une fois.** Déclarer ce que coûte votre
+  parc demandait de le faire **deux fois**, dans deux formats, dont l'un exigeait
+  un redémarrage de pod : les prix des modèles dans une ConfigMap montée, les
+  tarifs de calcul dans des variables d'environnement lues une seule fois au
+  démarrage. Les deux avaient leur propre champ de devise : une installation
+  pouvait afficher un écran en EUR et un autre en USD sans que rien ne le signale.
+
+  Les deux vivent maintenant dans une seule table, éditable dans
+  **Paramètres → Tarifs** et appliquée sans redéploiement. Les valeurs déclarées
+  dans votre chart continuent de fonctionner à l'identique et s'affichent en
+  lecture seule — proposer une modification promettrait un changement qu'un
+  `helm upgrade` annulerait silencieusement — les entrées saisies dans l'interface
+  venant se superposer, chaque ligne indiquant son origine. Il n'y a plus qu'une
+  devise, et une installation qui en avait défini deux différentes reçoit au
+  démarrage un avertissement les nommant toutes les deux, plutôt qu'un choix
+  silencieux.
