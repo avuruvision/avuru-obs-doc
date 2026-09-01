@@ -1,0 +1,63 @@
+---
+slug: v0-12-0
+title: "v0.12.0: the spend you can act on"
+description: "Budgets that fire through your existing alerting, one rate table with one currency, tool calls no longer counted as model calls, and an MCP server so an agent can investigate your estate read-only."
+authors: [avuru]
+tags: [ai, platform, security]
+date: 2026-09-01
+---
+
+**v0.12.0** turns AI spend from a number on a screen into something that reaches
+you — and opens the estate, read-only and on your switch, to an agent that can
+investigate it.
+
+{/* truncate */}
+
+- **A threshold on spend.** Nobody watches a screen. Monthly **budgets** in
+  tokens or in money, for one calling service or across the estate, now fire
+  through the alerting channels an install already has. A money budget on an
+  install that declared no prices is refused at startup, naming what is missing —
+  rather than sitting quietly under every threshold forever — and a partly priced
+  scope says its figure is a floor.
+
+- **One rate table, written down once.** Model prices and compute rates used to
+  be declared twice, in two formats, with two currency fields — one of them
+  needing a pod restart. They now resolve through a single table, editable in
+  **Settings → Rates** and applied without a redeploy. Chart-declared values keep
+  working and are shown read-only; UI entries overlay them, each row saying which
+  it is. The budget evaluator and the screens read the **same** resolver, so a
+  budget cannot be measured against a price other than the one on display.
+
+- **Tool calls are no longer counted as model calls.** The AI module tested that
+  `gen_ai.operation.name` was *present* and never read its value, so on an agent
+  workload every tool execution counted as a call to a model: call counts
+  inflated, latency ranked a database lookup against a completion, the model
+  resolved to nothing, and that empty row counted as a model of its own. Four
+  numbers were wrong together; they are right now, and **tools get a table of
+  their own** — calls, failures, p95 and the services invoking each one, with no
+  token or cost columns, because a tool execution spends neither.
+
+- **An agent turn, drawn as the shape it is.** A turn is a graph, not a list:
+  model calls and tool executions as distinct node kinds, weighted by time spent
+  *inside* each call rather than span duration. Offered only on traces that
+  actually hold a turn.
+
+- **[An agent can read this estate](/changelog/mcp-server).** A new MCP module
+  serves a Model Context Protocol server at `POST /mcp` — six read-only tools
+  over the traces, logs, error issues and health you already store, authenticated
+  with personal API tokens that resolve their owner's live permissions. It adds
+  no collection, no schema change and no container. It is **off by default**,
+  because what an agent reads leaves your cluster for the model provider you
+  chose, and every tool call is logged with the token owner, the tool, its
+  arguments and the row count.
+
+- **Both collector images below their advisories.** The gateway distro pins
+  `x/crypto`, `x/text` and `grpc` above the versions its collector line resolves,
+  and the node agent — which needs receivers the minimal distro does not carry —
+  moved to the collector line that scans clearest. This is a deployment concern,
+  not just a report: a registry with a block-on-critical policy stops serving a
+  flagged image, and that surfaces as a rollout timing out on the first node it
+  touches.
+
+Upgrade with the [Helm chart](/docs/setup/kubernetes) as usual; nothing in this
+release changes collection, and the MCP module stays off unless you enable it.

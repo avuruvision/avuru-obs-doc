@@ -1,0 +1,69 @@
+---
+slug: v0-12-0
+title: "v0.12.0 : la dépense sur laquelle vous pouvez agir"
+description: "Des budgets qui passent par votre alerting existant, une seule grille tarifaire avec une seule devise, les appels d'outils qui cessent d'être comptés comme des appels de modèles, et un serveur MCP pour qu'un agent enquête sur votre parc en lecture seule."
+authors: [avuru]
+tags: [ai, platform, security]
+date: 2026-09-01
+---
+
+La **v0.12.0** fait de la dépense IA autre chose qu'un chiffre sur un écran :
+quelque chose qui vient vous chercher. Et elle ouvre le parc, en lecture seule et
+sur votre interrupteur, à un agent capable d'enquêter dessus.
+
+{/* truncate */}
+
+- **Un seuil sur la dépense.** Personne ne regarde un écran. Des **budgets**
+  mensuels — en tokens ou en monnaie, pour un service appelant ou pour tout le
+  parc — se déclenchent désormais via les canaux d'alerting que l'installation
+  possède déjà. Un budget en monnaie sur une installation qui n'a déclaré aucun
+  prix est refusé au démarrage, en nommant ce qui manque, plutôt que de rester
+  éternellement sous tous les seuils ; et un périmètre partiellement tarifé
+  annonce que son chiffre est un plancher.
+
+- **Une seule grille tarifaire, écrite une seule fois.** Les prix des modèles et
+  les tarifs de calcul se déclaraient deux fois, dans deux formats, avec deux
+  champs de devise — dont l'un exigeait un redémarrage de pod. Ils passent
+  maintenant par une table unique, éditable dans **Paramètres → Tarifs** et
+  appliquée sans redéploiement. Les valeurs déclarées dans le chart continuent de
+  fonctionner et sont affichées en lecture seule ; les entrées de l'interface s'y
+  superposent, chaque ligne indiquant son origine. L'évaluateur de budgets et les
+  écrans lisent le **même** résolveur : un budget ne peut pas être mesuré contre
+  un prix autre que celui qui est affiché.
+
+- **Les appels d'outils ne sont plus comptés comme des appels de modèles.** Le
+  module IA vérifiait la *présence* de `gen_ai.operation.name` sans jamais en lire
+  la valeur : sur une charge agentique, chaque exécution d'outil comptait donc
+  comme un appel de modèle. Le nombre d'appels gonflait, la latence classait une
+  requête de base de données à côté d'une complétion, le modèle ne se résolvait
+  pas, et cette ligne vide comptait comme un modèle à part entière. Quatre
+  chiffres faux ensemble ; ils sont justes désormais, et **les outils ont leur
+  propre table** — appels, échecs, p95 et services appelants, sans colonne de
+  tokens ni de coût, parce qu'une exécution d'outil ne dépense ni l'un ni l'autre.
+
+- **Un tour d'agent, dessiné pour ce qu'il est.** Un tour est un graphe, pas une
+  liste : appels de modèles et exécutions d'outils comme types de nœuds distincts,
+  pondérés par le temps passé *à l'intérieur* de chaque appel plutôt que par la
+  durée du span. Proposé uniquement sur les traces qui en contiennent un.
+
+- **[Un agent peut lire ce parc](/changelog/mcp-server).** Un nouveau module MCP
+  sert un serveur Model Context Protocol sur `POST /mcp` — six outils en lecture
+  seule sur les traces, les logs, les issues et la santé que vous stockez déjà,
+  authentifiés par des jetons d'API personnels qui résolvent les permissions
+  vivantes de leur propriétaire. Aucune collecte, aucun changement de schéma,
+  aucun conteneur supplémentaire. Il est **éteint par défaut**, parce que ce qu'un
+  agent lit sort de votre cluster vers le fournisseur de modèle que vous avez
+  choisi, et chaque appel d'outil est journalisé avec le propriétaire du jeton,
+  l'outil, ses arguments et le nombre de lignes.
+
+- **Les deux images de collecteur sous leurs avis de sécurité.** La distro de la
+  passerelle épingle `x/crypto`, `x/text` et `grpc` au-dessus des versions que sa
+  ligne de collecteur résout, et l'agent de nœud — qui a besoin de receivers
+  absents de la distro minimale — rejoint la ligne du collecteur qui scanne le
+  plus proprement. Ce n'est pas qu'une affaire de rapport : un registre appliquant
+  une policy « blocage sur Critical » cesse de servir une image signalée, et cela
+  se manifeste par un déploiement qui expire sur le premier nœud touché.
+
+Mettez à jour avec le [chart Helm](/docs/setup/kubernetes) comme d'habitude :
+rien dans cette version ne change la collecte, et le module MCP reste éteint tant
+que vous ne l'activez pas.
