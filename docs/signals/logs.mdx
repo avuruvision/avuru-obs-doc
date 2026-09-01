@@ -15,6 +15,44 @@ the service logged during that request.
 - **Ingestion** — via OTLP logs or the collector's log receivers.
 - **Correlation** — by `trace_id` / `span_id` and resource attributes.
 
+## What your service should emit
+
+The node agent tails every pod's stdout, so a service gets logs collected with
+no configuration at all. To get *useful* logs, emit **one JSON object per
+line** carrying these three things:
+
+| Field | Why |
+|---|---|
+| `level` | Becomes `SeverityNumber`. Both dialects are understood: numeric (pino: `30`, `50`) and named (logback: `"INFO"`, `"ERROR"`). |
+| `trace_id` | Becomes the `TraceId` column — this, and only this, is what makes a trace show its logs. |
+| `span_id` | Becomes `SpanId`, narrowing a log to the operation inside the trace. |
+
+Anything else in the object becomes a queryable log attribute, and the raw line
+stays searchable in full text.
+
+Without a `level`, a log record's severity is **unset** — and severity is a
+floor comparison, so such a record matches *no* severity filter at all and is
+never promoted to an [error issue](/docs/signals/errors) (which keys on `ERROR`
+and above). Lines that are not JSON — startup banners, stack traces — are
+ingested unchanged rather than rejected.
+
+Getting `trace_id` onto the line is the language runtime's job:
+
+- **Node / pino** — a `mixin` reading `trace.getActiveSpan()?.spanContext()`.
+  Do not rely on `@opentelemetry/instrumentation-pino` in an ESM service: it
+  patches nothing without the loader hook, and the omission is silent.
+- **Java / logback** — the Micrometer tracing MDC keys, already present in the
+  standard console pattern.
+
+:::note Prefer stdout to OTLP logs
+A service that also exports logs over OTLP is ingested **twice**, since the
+node agent is already reading its stdout. An SDK-emitted record also carries no
+`k8s.namespace.name`, so the gateway cannot tell which project it belongs to
+and files it under the fallback tenant. Set the signal-specific
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` rather than the generic
+`OTEL_EXPORTER_OTLP_ENDPOINT`, which switches on every signal at once.
+:::
+
 ## Explore logs
 
 The logs explorer is **live** today:
@@ -26,5 +64,5 @@ The logs explorer is **live** today:
 - Keyset pagination for gap-free scrolling through large time windows.
 
 :::note This page is expanding
-Parsing, structured-log fields and retention are being documented.
+Retention and per-project overrides are being documented.
 :::
