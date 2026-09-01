@@ -22,10 +22,44 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.12.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.13.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.12.0" date="2026-09-01" status="shipped" statusLabel="Livré">
+
+**La dépense sur laquelle vous pouvez agir — et un parc qu'un agent peut lire.**
+La dépense IA cesse d'être un chiffre sur un écran : des **budgets** mensuels, en
+tokens ou en monnaie, se déclenchent via les canaux d'alerting que vous avez
+déjà, et les prix des modèles comme les tarifs de calcul tiennent désormais dans
+[une seule grille](/changelog/agents-budgets-and-rates), avec une seule devise,
+éditable dans les Paramètres et appliquée sans redéploiement. L'évaluateur de
+budgets et les écrans lisent le *même* résolveur : un budget ne peut donc jamais
+être mesuré contre un prix différent de celui qui est affiché.
+
+Le module IA cesse aussi de compter les **exécutions d'outils comme des appels de
+modèles** — un défaut qui gonflait le nombre d'appels, mêlait une requête de base
+de données à la latence des complétions et remplissait le seau « sans usage » de
+spans qui n'avaient jamais appelé un modèle. Les outils obtiennent leur propre
+table, et un tour d'agent est dessiné comme le graphe qu'il est.
+
+Nouveauté de cette version, le [serveur MCP](/changelog/mcp-server) : six outils
+en lecture seule sur les traces, les logs, les issues et la santé que vous
+stockez déjà, pour qu'un agent enquête directement sur un incident. Aucune
+collecte ni conteneur supplémentaire — un seul handler sur le hub, authentifié
+par des jetons d'API personnels — et il reste **éteint tant que vous ne l'allumez
+pas**, parce que ce qu'un agent lit sort de votre cluster.
+
+Les deux images de collecteur qu'une installation exécute passent également sous
+leurs avis de sécurité : la distro de la passerelle épingle ses planchers de
+dépendances, et l'agent de nœud rejoint la ligne du collecteur qui scanne le plus
+proprement.
+
+Voir l'[entrée de changelog](/changelog/v0-12-0) et les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.12.0).
 
 </ReleaseEntry>
 

@@ -1,0 +1,62 @@
+---
+slug: mcp-server
+title: "Laissez un agent enquêter sur votre parc, en lecture seule et sur votre interrupteur"
+description: "Un serveur Model Context Protocol sur le hub : six outils en lecture seule sur les traces, les logs, les issues et la santé que vous stockez déjà, authentifiés par les jetons personnels que vous émettez déjà, éteints tant que vous ne les allumez pas."
+authors: [avuru]
+tags: [ai, platform, security]
+date: 2026-09-01
+---
+
+Depuis la v0.11, avuru obs sait beaucoup de choses sur les agents — les appels de
+modèles que font vos applications, ce qu'ils coûtent, quand ils franchissent un
+budget. Rien ne permettait à un agent de savoir quoi que ce soit sur **votre
+parc**. Le nouveau module MCP inverse ce sens de circulation.
+
+{/* truncate */}
+
+- **Six outils en lecture seule, une seule porte d'entrée.** Le hub sert un
+  serveur Model Context Protocol sur `POST /mcp` : Claude Code, ou n'importe quel
+  autre client MCP, peut enquêter sur un incident à partir de ce que vous stockez
+  déjà, au lieu qu'une personne lise un écran et retape ce qu'elle y a vu.
+  `service_context` est le point d'entrée : un appel renvoie le débit, le taux
+  d'erreur et les percentiles de latence d'un service, qui l'appelle et ce dont
+  il dépend avec le débit, le taux d'erreur et le p95 par chemin, ses issues
+  ouvertes, et toute alerte active dans le projet. Ensuite `search_traces`,
+  `get_trace`, `search_logs` et `list_error_issues` creusent. `get_trace` porte
+  le **temps propre** par service — le temps passé *dans* un service plutôt qu'à
+  attendre un appelé — soit le chiffre qui désigne le maillon lent.
+
+- **Trois règles qui empêchent un modèle de se tromper avec aplomb.** Un nom de
+  service mal orthographié renvoie une **erreur qui nomme les correspondances les
+  plus proches**, jamais un résultat vide : un modèle à qui l'on tend `[]` conclut
+  que le service est mort et l'affirme avec assurance. Un outil dont le module est
+  éteint est **absent** de la liste plutôt que présent et systématiquement en
+  échec. Et une section de `service_context` à laquelle l'installation ne peut pas
+  répondre est absente **et nommée** — le silence sur un module manquant se lit
+  comme une absence de problème. Chaque réponse est bornée, et le dit.
+
+- **Aucune collecte nouvelle, aucun conteneur ajouté.** C'est un seul handler sur
+  le hub, authentifié par les [jetons d'API personnels](/reference/api) qui
+  existent depuis la v0.5 et qui résolvent les permissions **vivantes** de leur
+  propriétaire : un jeton lit exactement ce que cette personne lit dans l'UI, dans
+  les projets qui lui sont accordés.
+
+- **Éteint par défaut, et délibérément.** avuru obs ne passe toujours aucun appel
+  sortant de lui-même — mais un agent que *vous* connectez fait sortir des traces
+  et des corps de logs de votre cluster vers le fournisseur de modèle que vous avez
+  choisi, et les corps de logs sont l'endroit où vivent les données utilisateur sur
+  les installations qui en ont. Nous ne les masquons pas : la ligne que vous
+  masqueriez est immanquablement celle qui explique la panne. L'interrupteur est
+  donc le vôtre (`modules.mcp.enabled`), et **chaque appel d'outil est journalisé**
+  avec le propriétaire du jeton, l'outil, ses arguments et le nombre de lignes —
+  jamais le contenu renvoyé. « Qu'a lu l'agent, et avec le jeton de qui » se
+  répond depuis les logs du hub.
+
+Pour connecter Claude Code :
+
+```bash
+claude mcp add --transport http avuruobs https://<votre-hub>/mcp \
+  --header "Authorization: Bearer avurut_…"
+```
+
+Les connecteurs claude.ai réclament OAuth 2.1, qui arrivera séparément.

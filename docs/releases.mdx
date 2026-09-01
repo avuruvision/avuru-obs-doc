@@ -21,9 +21,40 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.12.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.13.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.12.0" date="2026-09-01" status="shipped">
+
+**The spend you can act on — and an estate an agent can read.** AI spend stops
+being a number on a screen: monthly **budgets** in tokens or money fire through
+the alerting channels you already have, and model prices and compute rates now
+live in [one rate table](/changelog/agents-budgets-and-rates) with one currency,
+editable in Settings and applied without a redeploy. The budget evaluator and the
+screens read the *same* resolver, so a budget can never be measured against a
+price other than the one on display.
+
+The AI module also stops counting **tool executions as model calls** — a defect
+that inflated call counts, mixed a database lookup into completion latency and
+filled the no-usage bucket with spans that never called a model. Tools get a
+table of their own, and an agent turn is drawn as [the graph it
+is](/changelog/agents-budgets-and-rates).
+
+New in this release, the [MCP server](/changelog/mcp-server): six read-only tools
+over the traces, logs, error issues and health you already store, so an agent can
+investigate an incident directly. It adds no collection and no container — one
+handler on the hub, authenticated with personal API tokens — and it is **off
+until you turn it on**, because what an agent reads leaves your cluster.
+
+Both collector images an install runs were also brought below their advisories:
+the gateway distro pins its dependency floors, and the node agent moved to the
+collector line that scans clearest.
+
+See the [changelog entry](/changelog/v0-12-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.12.0).
 
 </ReleaseEntry>
 
