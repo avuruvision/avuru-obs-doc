@@ -25,7 +25,7 @@ minutes**, zéro changement applicatif. Chaque jalon est jugé à cette aune, et
 c'est vérifié par une porte d'intégration continue.
 :::
 
-## v0.1 — le coin (publiée le 15 juillet 2026)
+## v0.1 — le coin (publiée le 15/07/2026)
 
 Les niveaux de signaux livrés pour `0.1` :
 
@@ -84,7 +84,7 @@ changement de SDK ni de code.
 
 </MilestoneGrid>
 
-## v0.2 — profondeur et contrôle (publiée le 28 juillet 2026)
+## v0.2 — profondeur et contrôle (publiée le 28/07/2026)
 
 Tout ce qui visait la v0.2 est livré dans la
 [v0.2.0](/docs/releases) : l'authentification sécurisée par défaut avec rôles
@@ -97,7 +97,7 @@ licence AGPL-3.0 à partir de cette version. Le détail complet est sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-2-0).
 
-## v0.3 — une multi-tenance digne de confiance (publiée le 31 juillet 2026)
+## v0.3 — une multi-tenance digne de confiance (publiée le 31/07/2026)
 
 La v0.2 avait sécurisé la lecture ; la [v0.3.0](/docs/releases) verrouille
 l'écriture. Les projets deviennent quelque chose que vous administrez —
@@ -112,7 +112,7 @@ contrôle de la collecte à chaud, et le renommage de la couche de déploiement 
 page [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-3-0).
 
-## v0.4 — des comptes que vous administrez (publiée le 7 août 2026)
+## v0.4 — des comptes que vous administrez (publiée le 07/08/2026)
 
 La [v0.4.0](/docs/releases) termine le cycle de vie des comptes entamé en
 v0.2 : la **gestion des utilisateurs depuis l'interface** — modifier le nom et
@@ -208,7 +208,7 @@ dessinés comme des dépendances. Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des changements](/changelog/v0-7-0).
 
-## v0.8 — la carte grandit (publiée le 2026-08-24)
+## v0.8 — la carte grandit (publiée le 24/08/2026)
 
 La carte est la page d'accueil du produit depuis la v0.1, et un graphe de
 cercles depuis tout aussi longtemps. [v0.8.0](/docs/releases) lui a appris à en
@@ -228,7 +228,7 @@ minutes restant inchangé. Détail complet sur
 [état des fonctionnalités](/docs/status) et dans le
 [changelog](/changelog/v0-8-0).
 
-## v0.9 — le maillage et le noyau (livrée)
+## v0.9 — le maillage et le noyau (publiée le 25/08/2026)
 
 La v0.8 a empêché la carte de *mentir* sur un cluster maillé. Elle n'en disait
 pas encore toute la vérité : les proxys masqués, les fausses dépendances avaient
@@ -252,7 +252,7 @@ personne n'appelle ? Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des modifications](/changelog/v0-9-0).
 
-## v0.10 — ce que ça coûte (livrée)
+## v0.10 — ce que ça coûte (publiée le 26/08/2026)
 
 Toutes les versions précédentes répondaient à *ce qui se passe*. Celle-ci répond
 à une question posée par quelqu'un qui n'ouvrira jamais une carte des services :
@@ -282,17 +282,132 @@ produit ne sait pas lire. Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des modifications](/changelog/v0-10-0).
 
-## Au-delà de la v0.10 (indicatif)
+## v0.11 — ce qui était déjà dans vos traces (publiée le 28/08/2026)
+
+La v0.10 disait ce que coûte un cluster, et il lui a fallu une nouvelle collecte
+pour y parvenir. Cette version n'en ajoute aucune : chacune de ses
+fonctionnalités lit des spans que le coin stocke depuis les cinq premières
+minutes. Une installation qui se met à jour voit donc son historique, et pas
+seulement ce qui arrivera ensuite.
+
+Le [module IA](/docs/signals/ai) lit les appels de modèles que vos applications
+envoyaient déjà. Par modèle : appels, jetons entrants et sortants, latence,
+échecs et troncatures ; par service appelant, la même chose avec un
+responsable. Quatre règles le gardent honnête — le modèle qui a *répondu*
+l'emporte sur celui qui était demandé, les deux orthographes des attributs de
+jetons sont acceptées, un appel sans usage rapporté est compté et nommé plutôt
+que moyenné comme un zéro, et une réponse tronquée n'est pas un échec. Les prix
+sont des valeurs que vous déclarez, absentes par défaut : il n'y a pas d'API de
+tarification ici. À côté, et délibérément **non** conditionné au module, la
+passerelle supprime par défaut le contenu des invites et des réponses — une
+décision sur ce que ce produit stocke, pas une option d'écran.
+
+Les surfaces de traces ont grandi dans le même esprit. Un [onglet
+Répartition](/docs/signals/traces) regroupe les spans par service, opération ou
+attribut et les pondère par nombre *ou* par temps écoulé, avec un vrai
+compartiment de queue pour que les parties fassent bien le tout. Un service a
+gagné sa propre page, et une requête isolée une vue Chemin pondérée par le temps
+passé *à l'intérieur* de chaque service plutôt que par sa durée à l'écran.
+Enfin, **refusé** est devenu une troisième réponse à côté de « ok » et
+« erreur » — délibérément hors du taux d'erreur, car une requête rejetée n'est
+pas une requête cassée. Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-11-0).
+
+## v0.12 — la dépense sur laquelle agir (publiée le 01/09/2026)
+
+Un rapport n'est pas une action. La v0.12 comble la distance entre les deux — et
+elle s'ouvre en corrigeant une lecture des spans qui s'est révélée fausse.
+
+Le [module IA](/docs/signals/ai) décidait de ce qui comptait comme appel de
+modèle en vérifiant la *présence* de `gen_ai.operation.name`, sans jamais en
+lire la valeur. Or `execute_tool`, `invoke_agent` et `create_agent` sont des
+valeurs légitimes de ce même attribut : sur une charge de travail à base
+d'agents, chaque exécution d'outil était donc comptée comme un appel de modèle.
+Les compteurs gonflaient, les quantiles de latence mélangeaient une requête de
+base de données avec une complétion, le modèle ne se résolvait à rien, et le
+compartiment qui existe pour nommer honnêtement un manque d'instrumentation se
+remplissait de spans qui n'avaient jamais été des appels de modèle. Séparer la
+population par classe d'opération rétablit les quatre.
+
+Une fois les outils distingués, [le reste
+suit](/changelog/agents-budgets-and-rates). Un tour d'agent est dessiné comme le
+petit graphe qu'il est — un outil appelé quatre fois est **un** nœud portant un
+compteur, parce que c'est la boucle qui mérite d'être vue. Les **budgets de
+dépense** se déclenchent via les alertes que vous utilisez déjà, en jetons ou en
+monnaie, par service appelant ou à l'échelle du parc ; un budget monétaire
+portant sur des modèles que vous n'avez pas tarifés est refusé à l'analyse de la
+configuration, plutôt que de passer sous tous les seuils en ignorant la moitié
+de la dépense. Enfin, **une seule table de tarifs** remplace deux formats qui
+pouvaient se contredire, modifiable dans les Réglages et appliquée sans
+redéploiement, les valeurs déclarées par le chart restant lisibles et marquées en
+lecture seule.
+
+La version porte aussi quelque chose qui n'était pas prévu pour elle : un
+[**serveur MCP**](/changelog/mcp-server), six outils en lecture seule sur les
+traces, journaux, problèmes d'erreur et l'état de santé qu'une installation
+stocke déjà — de quoi laisser un agent enquêter sur un incident au lieu qu'une
+personne retape un écran. Un seul gestionnaire sur le hub — aucune nouvelle
+collecte, aucun schéma, aucun conteneur — authentifié par les jetons d'API
+personnels qui existent depuis la v0.5 et résolvant les permissions vivantes de
+leur propriétaire, et [documenté dans la référence d'API](/reference/api). Il est
+**désactivé par défaut**, car ce qu'un agent lit quitte votre cluster vers le
+fournisseur de modèle que vous avez choisi : c'est une décision à vous laisser,
+pas une décision à prendre à votre place. Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-12-0).
+
+## v0.13 — des dépendances que l'on voit (publiée le 04/09/2026)
+
+Pas une version à thème. La v0.13, c'est ce qui était prêt, et les deux choses
+qui l'étaient n'ont rien en commun sinon d'achever un travail qu'une version
+antérieure avait laissé en suspens.
+
+La page d'un service nomme ses appelants et ses dépendances depuis la v0.8, sous
+forme de deux tableaux triés par volume. Une liste ne peut pas montrer une forme
+— qu'un seul appelant porte tout le trafic, qu'une seule dépendance est celle qui
+vire au rouge, qu'un saut n'existe que parce que le hub a suivi une trace à
+travers un proxy de maillage. L'onglet Aperçu s'ouvre désormais sur un
+[**schéma de voisinage**](/changelog/service-neighbourhood) : les appelants à
+gauche, ce service au milieu, ce dont il dépend à droite, chaque flèche portant
+le débit et le p95 côté appelant de ce chemin précis. Cela ne coûte aucune
+requête supplémentaire — la page lisait déjà la réponse de la
+[carte des services](/docs/signals/service-map), et le schéma dessine ces mêmes
+arêtes. Tout ce que les tableaux refusaient d'affirmer, le schéma le refuse
+aussi : un saut reconstruit à travers un proxy affiche `via <proxy>`, une arête
+que personne n'a chronométrée ne porte aucune latence plutôt que `0 ms`, et un
+pair qui n'a jamais émis de span est dessiné en contour plutôt qu'en plein.
+
+L'autre moitié concerne l'installation même du produit. La v0.12 avait fermé les
+vulnérabilités critiques de la passerelle avec une distribution de collecteur
+propre ; l'agent de nœud ne pouvait pas suivre, car il lui faut des composants
+présents seulement dans contrib et l'avis concerné n'est corrigé dans aucune
+version de collecteur. Il reçoit donc lui aussi sa propre distribution, ne
+portant que ce que sa configuration rendue utilise réellement. **Toutes les
+images que le chart télécharge par défaut sont désormais exemptes de
+vulnérabilité critique ou haute corrigeable**, si bien qu'une politique de
+registre qui bloque les critiques n'a plus rien à excepter — et les exceptions
+qui subsistent sont nommées dans le fichier de valeurs plutôt que cachées dans un
+registre. Cela compte, car une telle politique se manifeste par un déploiement
+qui expire, pas par un rapport d'analyse. Détail complet sur la page
+[état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-13-0).
+
+## Au-delà de la v0.13 (indicatif)
 
 - **Lire un deuxième plan de contrôle**, dès que quelqu'un qui en exploite un
   pourra dire lesquels de ses signaux répondent aux questions auxquelles répond
   la carte Istio — et lesquels n'y ont tout simplement pas de réponse.
-- **Le coût joint à l'énergie :** la même capacité réservée-et-inutilisée en Wh
-  et gCO2e, sur une installation qui exécute les deux. Un seul récit sur le
-  gaspillage, en deux unités.
+- **Le coût joint au module « green » :** la même capacité
+  réservée-et-inutilisée en Wh et gCO2e, sur une installation qui exécute les
+  deux. Un seul récit sur le gaspillage, en deux unités.
 - **L'incident :** des synthèses de cause racine, avec tout commutateur de
   fournisseur **désactivé par défaut** — ce serait le premier appel réseau
   sortant d'un produit dont la promesse est que rien ne quitte le cluster.
+- **Des parcours de vérification scriptés en plusieurs étapes**, si la demande
+  se manifeste — la v0.9 livre délibérément des vérifications à requête unique.
+- **Un profilage plus profond :** profils hors-CPU et mémoire, à mesure que le
+  profileur eBPF amont les développe.
 - **Réévaluation du stockage :** ClickHouse reste derrière l'interface
   `storage.Store` ; GreptimeDB sera réévalué mi-2027 sans changer le code du hub.
 

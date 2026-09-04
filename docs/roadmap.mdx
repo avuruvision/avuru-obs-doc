@@ -205,7 +205,7 @@ list, with the first-five-minutes path unchanged. Full detail on
 [the service map](/docs/signals/service-map), the
 [feature status](/docs/status) page and in the [changelog](/changelog/v0-8-0).
 
-## v0.9 — the mesh and the kernel (shipped)
+## v0.9 — the mesh and the kernel (released 2026-08-25)
 
 v0.8 stopped the map *lying* about a meshed cluster. It did not yet tell the
 whole truth about one: with the proxies hidden, the false dependencies were gone
@@ -227,7 +227,7 @@ the question observed traffic cannot: whether anything is serving when nobody is
 calling. Full detail on the [feature status](/docs/status) page and in the
 [changelog](/changelog/v0-9-0).
 
-## v0.10 — what it costs (shipped)
+## v0.10 — what it costs (released 2026-08-26)
 
 Every release before this one answered *what is happening*. This one answers a
 question that arrives from someone who will never open a service map: what is
@@ -253,16 +253,116 @@ nothing is scraping it, the target is not answering, or it answered with metrics
 this product cannot read. Full detail on the [feature status](/docs/status) page
 and in the [changelog](/changelog/v0-10-0).
 
-## Beyond v0.10 (directional)
+## v0.11 — what was already in your traces (released 2026-08-28)
+
+v0.10 answered what a cluster costs, and needed new collection to do it. This
+release adds none at all: every feature in it reads spans the wedge has been
+storing since the first five minutes, so an install that upgrades sees its
+history rather than only what arrives next.
+
+The [AI module](/docs/signals/ai) reads the model calls your applications were
+already sending. Per model: calls, tokens in and out, latency, failures and
+truncation; per calling service, the same with an owner attached. Four rules
+keep it honest — the model that *answered* wins over the one that was asked
+for, both spellings of the token attributes are accepted, a call that reported
+no usage is counted and named rather than averaged in as a zero, and a truncated
+answer is not a failure. Prices are values you declare, absent by default: there
+is no pricing API here. Alongside it, and deliberately **not** gated on the
+module, the gateway drops prompt and completion content by default — a decision
+about what this product stores, not a feature of a screen you can switch off.
+
+The trace surfaces grew in the same spirit. A [Breakdown
+tab](/docs/signals/traces) groups spans by service, operation or attribute and
+weights them by count *or* by wall time, with a real tail bucket so the parts
+sum to the whole. A service gained a page of its own, and a single request
+gained a Path view weighted by the time spent *inside* each service rather than
+the time it was on screen. And **refused** became a third answer beside ok and
+error — deliberately outside the error rate, because a rejected request is not a
+broken one. Full detail on the [feature status](/docs/status) page and in the
+[changelog](/changelog/v0-11-0).
+
+## v0.12 — the spend you can act on (released 2026-09-01)
+
+A report is not an action. v0.12 is about the distance between the two — and it
+opens by fixing a way of reading spans that turned out to be wrong.
+
+The [AI module](/docs/signals/ai) decided what counted as a model call by
+testing that `gen_ai.operation.name` was *present*, never reading its value. But
+`execute_tool`, `invoke_agent` and `create_agent` are legal values of that same
+attribute, so on an agent workload every tool execution was counted as a call to
+a model: counts inflated, latency quantiles mixed a database lookup with a
+completion, the model resolved to nothing, and the bucket that exists to name an
+instrumentation gap filled with spans that were never model calls. Splitting the
+population by operation class restores all four.
+
+With tools told apart, [the rest follows](/changelog/agents-budgets-and-rates).
+An agent turn is drawn as the small graph it is — a tool hit four times is one
+node with a count, because the loop is the thing worth seeing. **Spend budgets**
+fire through the alerting you already have, in tokens or money, per calling
+service or across the estate; a money budget over models you have not priced is
+refused when the config is parsed, rather than sitting under every threshold by
+being ignorant of half the spend. And **one rate table** replaces two formats
+that could disagree, editable in Settings and applied without a redeploy, with
+chart-declared values still readable and marked read-only.
+
+The release also carries something that was not planned for it: an [**MCP
+server**](/changelog/mcp-server), six read-only tools over the traces, logs,
+error issues and health an install already stores, so an agent can investigate
+an incident instead of a person retyping a screen. One handler on the hub — no
+new collection, no schema, no container — authenticated with the personal API
+tokens that have existed since v0.5 and resolving their owner's live
+permissions, and [documented in the API reference](/reference/api). It is **off
+by default**, because what an agent reads leaves your cluster for whichever
+model provider you chose: that is a decision to hand over, not one to make for
+you. Full detail on the [feature status](/docs/status) page and in the
+[changelog](/changelog/v0-12-0).
+
+## v0.13 — dependencies you can see (released 2026-09-04)
+
+Not a themed line. v0.13 is what was ready, and the two things that were have
+nothing in common beyond being the follow-through on work an earlier release
+left standing.
+
+The service page has named callers and dependencies since v0.8, as two tables
+sorted by volume. A list cannot show shape — that one caller carries all of the
+traffic, that a single dependency is the one going red, that a hop exists only
+because the hub walked a trace across a mesh proxy. The Overview tab now opens
+on a [**neighbourhood diagram**](/changelog/service-neighbourhood): callers on
+the left, this service in the middle, what it depends on on the right, each
+arrow labelled with that path's rate and caller-side p95. It costs no extra
+request — the page was already reading the [service
+map](/docs/signals/service-map)'s response, and the diagram is those same edges
+drawn. Everything the tables refused to claim, the diagram refuses too: a hop
+recovered across a proxy reads `via <proxy>`, an edge nobody timed carries no
+latency rather than `0ms`, and a peer that never sent a span is outlined rather
+than filled.
+
+The other half is about installing the product at all. v0.12 closed the
+gateway's Criticals with a collector distro of its own; the node agent could not
+follow, because it needs contrib-only components and the advisory in question is
+fixed in no collector release. It gets a distro of its own too, carrying exactly
+what its rendered config uses and nothing more. **Every image the chart pulls by
+default now scans free of a fixable Critical or High**, so a registry policy
+that blocks Criticals has nothing left to make an exception for — and the
+exceptions that do remain are named in the values file rather than hidden in a
+registry. That matters because such a policy surfaces as a rollout that times
+out, not as a scan report. Full detail on the [feature status](/docs/status)
+page and in the [changelog](/changelog/v0-13-0).
+
+## Beyond v0.13 (directional)
 
 - **Read a second control plane**, once someone running one can say which of its
   signals answer the questions the Istio card answers — and which simply have no
   answer there.
-- **Cost joined to energy:** the same reserved-and-idle capacity in Wh and
+- **Cost joined to green:** the same reserved-and-idle capacity in Wh and
   gCO2e, on an install running both. One story about waste, in two units.
 - **The incident:** root-cause summaries, with any provider switch **disabled by
   default** — it would be the first outbound call in a product whose whole
   promise is that nothing leaves the cluster.
+- **Scripted multi-step check journeys**, if demand appears — v0.9 ships
+  single-request checks deliberately.
+- **Deeper profiling:** off-CPU and memory profiles, as the upstream eBPF
+  profiler grows them.
 - **Storage re-evaluation:** ClickHouse stays behind the `storage.Store`
   interface; GreptimeDB is slated for re-evaluation mid-2027 without changing hub
   code.
