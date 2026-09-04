@@ -1,0 +1,60 @@
+---
+slug: mcp-oauth
+title: "Connect a hosted assistant to your estate, on a consent you can take back"
+description: "The MCP server now speaks OAuth 2.1, so a hosted client can sign in the way every other client does — with a consent screen that says plainly what leaves your installation, and a way to disconnect."
+authors: [avuru]
+tags: [ai, platform, security]
+date: 2026-09-05
+---
+
+The MCP server that shipped in v0.12 accepted exactly one credential: a personal
+API token, in a header. That works for a client you run yourself — Claude Code,
+the CLI — and it cannot work for a hosted one, which has no way to be handed a
+token you minted. Which is to say it could not serve the client the module's
+whole warning was written for.
+
+The hub can now act as an **OAuth 2.1 authorization server**.
+
+{/* truncate */}
+
+## What changed
+
+An MCP client discovers where to authenticate, registers itself, sends a person
+here to approve, and exchanges an authorization code for a short-lived token —
+the flow every other OAuth client already speaks. Discovery metadata, dynamic
+client registration, authorization code with PKCE, rotating refresh tokens.
+
+It is **off by default**, and behind its own switch rather than the module's.
+Turning it on opens a registration endpoint that by necessity accepts anyone,
+and it needs a public URL and TLS to mean anything at all. An install that only
+ever points its own tooling at its own hub should leave it off and keep using
+API tokens.
+
+## What a person is told before they approve
+
+The consent screen is the point of this release, not a step on the way to it.
+It says, in the same words the values file uses with an operator:
+
+- **Approving sends data out of this installation.** That application will pull
+  traces and **log bodies** out of your cluster and into whichever model
+  provider sits behind it. Log bodies are where user data lives.
+- **The application's name is not verified.** Registration is open by necessity,
+  so the name is whatever the application typed. The host it will send you back
+  to is shown beside it, because that is the one fact you can actually check.
+- **Every request it makes is recorded** with your name, the tool and its
+  arguments — never the data returned.
+- **One project.** Access is limited to a single project, chosen from the ones
+  you can already read, and to what you can already read in it.
+
+Cancel is the default focus.
+
+## And a consent you can withdraw
+
+Settings → Access now lists the applications you have connected. Disconnecting
+one revokes the consent and every token issued under it, so the application
+stops reading on its **next request** rather than whenever something expires.
+
+That is possible because the tokens are opaque rather than signed claims: what a
+token may reach is read from a row on every call. It is also why an MCP
+credential is refused outright on the rest of the API — it is a key to one door,
+not a key that happens not to be tried elsewhere.
