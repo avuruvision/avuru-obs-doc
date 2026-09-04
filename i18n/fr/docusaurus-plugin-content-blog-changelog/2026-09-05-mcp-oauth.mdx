@@ -1,0 +1,65 @@
+---
+slug: mcp-oauth
+title: "Connecter un assistant hébergé à votre parc, sur un consentement révocable"
+description: "Le serveur MCP parle désormais OAuth 2.1 : un client hébergé peut s'authentifier comme tous les autres — avec un écran de consentement qui dit clairement ce qui quitte votre installation, et de quoi se déconnecter."
+authors: [avuru]
+tags: [ai, platform, security]
+date: 2026-09-05
+---
+
+Le serveur MCP livré en v0.12 n'acceptait qu'un seul identifiant : un jeton d'API
+personnel, dans un en-tête. Cela convient à un client que vous exécutez vous-même
+— Claude Code, la CLI — et ne peut pas convenir à un client hébergé, qui n'a
+aucun moyen de recevoir un jeton que vous avez créé. Autrement dit, il ne pouvait
+pas servir le client pour lequel l'avertissement du module avait été écrit.
+
+Le hub peut désormais faire office de **serveur d'autorisation OAuth 2.1**.
+
+{/* truncate */}
+
+## Ce qui change
+
+Un client MCP découvre où s'authentifier, s'enregistre lui-même, envoie une
+personne ici pour approuver, puis échange un code d'autorisation contre un jeton
+de courte durée — le déroulé que tout client OAuth connaît déjà. Métadonnées de
+découverte, enregistrement dynamique de client, code d'autorisation avec PKCE,
+jetons de rafraîchissement à rotation.
+
+C'est **désactivé par défaut**, et derrière son propre interrupteur plutôt que
+celui du module. L'activer ouvre un point d'entrée d'enregistrement qui, par
+nécessité, accepte n'importe qui, et cela exige une URL publique et TLS pour
+avoir le moindre sens. Une installation qui ne pointe que ses propres outils vers
+son propre hub devrait le laisser désactivé et continuer avec les jetons d'API.
+
+## Ce qu'une personne lit avant d'approuver
+
+L'écran de consentement est l'objet même de cette version, pas une étape vers
+elle. Il dit, dans les mêmes termes que le fichier de valeurs emploie avec un
+opérateur :
+
+- **Approuver fait sortir des données de cette installation.** Cette application
+  va extraire des traces et le **corps des journaux** de votre cluster, vers le
+  fournisseur de modèle qui se trouve derrière elle. Le corps des journaux, c'est
+  là que vivent les données de vos utilisateurs.
+- **Le nom de l'application n'est pas vérifié.** L'enregistrement est ouvert par
+  nécessité : le nom est donc celui que l'application a déclaré. L'hôte vers
+  lequel elle vous renverra est affiché à côté, parce que c'est le seul fait que
+  vous puissiez réellement vérifier.
+- **Chaque requête qu'elle effectue est enregistrée** avec votre nom, l'outil et
+  ses arguments — jamais les données retournées.
+- **Un seul projet.** L'accès se limite à un projet unique, choisi parmi ceux que
+  vous pouvez déjà lire, et à ce que vous pouvez déjà y lire.
+
+Annuler reçoit le focus par défaut.
+
+## Et un consentement que l'on peut retirer
+
+Réglages → Accès liste désormais les applications que vous avez connectées. En
+déconnecter une révoque le consentement et tous les jetons émis sous celui-ci :
+l'application cesse de lire dès sa **requête suivante**, et non à l'expiration de
+quoi que ce soit.
+
+C'est possible parce que les jetons sont opaques plutôt que des revendications
+signées : ce qu'un jeton peut atteindre est relu à chaque appel. C'est aussi
+pourquoi un identifiant MCP est refusé d'emblée sur le reste de l'API — c'est une
+clé pour une porte, pas une clé qu'on se contente de ne pas essayer ailleurs.
