@@ -349,7 +349,39 @@ registry. That matters because such a policy surfaces as a rollout that times
 out, not as a scan report. Full detail on the [feature status](/docs/status)
 page and in the [changelog](/changelog/v0-13-0).
 
-## Beyond v0.13 (directional)
+## v0.14 — the estate an agent can reach (in progress)
+
+v0.12 said an agent can read the estate, and it could — over a token a person
+had to mint and paste by hand, from a server nothing routed, describing a meshed
+cluster differently from the way the screens describe it. Each of those is a gap
+between what the release claimed and what an operator got.
+
+**A hosted assistant can now sign in.** The MCP server speaks
+[OAuth 2.1](/changelog/mcp-oauth): discovery, dynamic registration,
+authorization code with PKCE, rotating refresh tokens. Access tokens are opaque
+and bound to the MCP endpoint, so one can never be replayed against the rest of
+the API, and what it may reach is re-read on every request rather than frozen
+into a signed claim — which is what makes disconnecting take effect on the
+application's next call. The consent screen states that approving sends traces
+and **log bodies** out of the installation, marks the application's self-declared
+name as unverified, and limits access to one project; Settings → Access lists
+what you have connected. Off by default, behind its own switch.
+
+**And the same estate, described the same way.** `service_context` now reports
+the dependency behind a mesh proxy rather than the proxy — the collapse the
+[service map](/docs/signals/service-map) has done since v0.9, through the same
+code rather than a second implementation. The trace Path view reads the hub's
+per-service self time instead of computing its own, which surfaced a real defect
+along the way: the MCP tool counted only a raw error status, so a service
+returning 5xx from an auto-instrumented client was reported as healthy.
+
+The line also carries three repairs. `/mcp` reached nothing on a Helm install —
+the endpoint v0.12 announced answered with the UI's 404 page for its whole life.
+The v0.13 neighbourhood diagram drew a proxy as a caller on a meshed cluster.
+And release images are cross-compiled rather than emulated, which is what stood
+between a pushed tag and a published release.
+
+## Beyond v0.14 (directional)
 
 - **Read a second control plane**, once someone running one can say which of its
   signals answer the questions the Istio card answers — and which simply have no
