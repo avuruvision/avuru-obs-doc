@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # État des fonctionnalités
 
 Un aperçu de ce qui est disponible aujourd'hui par rapport à ce qui arrive.
-avuru obs [**v0.11.0** est publiée](/docs/releases) et le tronc évolue vite —
+avuru obs [**v0.13.0** est publiée](/docs/releases) et le tronc évolue vite —
 pour le plan, voir la [Feuille de route](/docs/roadmap), et pour les
 changements livrés le [Changelog](/changelog).
 
@@ -23,6 +23,8 @@ changements livrés le [Changelog](/changelog).
 | Cibles virtuelles — les bases de données, caches et brokers dont vos services dépendent, déduits de leurs spans de sortie ; aucun agent dans la dépendance, et un broker dessiné des deux côtés | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
 | Frontières sur la carte — groupez le graphe par namespace Kubernetes ou par groupe de services, chacun dessiné en conteneur étiqueté | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
 | Pairs non détectés — l'extrémité d'une connexion que personne n'a instrumentée, dessinée au lieu d'être jetée, et comptée à part des services | <StatusBadge status="shipped" label="Livré" /> | v0.8 |
+| Voisinage d'un service — les appelants et les dépendances d'un service dessinés en schéma fixe, de gauche à droite, sur son onglet Vue d'ensemble, chaque flèche portant le débit et le p95 côté appelant de ce chemin. Mêmes arêtes que les tableaux, aucune requête supplémentaire, et les mêmes refus : un saut reconstitué à travers un proxy de maillage indique `via <proxy>`, une arête non chronométrée ne porte aucune latence plutôt qu'un `0ms`, et un pair qui n'a jamais émis de span est dessiné en contour plutôt qu'en plein | <StatusBadge status="shipped" label="Livré" /> | v0.13 |
+| Mise au point sur la carte — « Voir sur la carte » conserve un service **et son voisinage à un saut** au lieu de filtrer le graphe jusqu'à un nœud isolé | <StatusBadge status="shipped" label="Livré" /> | v0.13 |
 | Traces — recherche, filtres (tags, ordre, durée, statut), heatmap de latence, aperçu RED par opération | <StatusBadge status="shipped" label="Livré" /> | M1 |
 | Visualiseur de traces — chronologie, table des spans, flamegraph, statistiques, graphe, JSON | <StatusBadge status="shipped" label="Livré" /> | M4 |
 | Comparaison de traces — diff structurel de deux traces | <StatusBadge status="shipped" label="Livré" /> | M4 |
@@ -97,14 +99,13 @@ changements livrés le [Changelog](/changelog).
 | Une seule grille tarifaire — prix des modèles et tarifs de calcul dans un même document avec une seule devise, éditable dans les Paramètres et appliquée sans redéploiement. Les valeurs déclarées dans le chart restent lisibles et en lecture seule, les entrées de l'interface s'y superposent, et chaque ligne indique son origine | <StatusBadge status="shipped" label="Livré" /> | v0.12 |
 | Serveur MCP — six outils en lecture seule sur les traces, les logs, les issues et la santé déjà stockés, pour qu'un agent enquête sur un incident au lieu qu'une personne retape un écran. Un seul handler sur le hub, authentifié par les jetons d'API personnels qui résolvent les permissions vivantes de leur propriétaire. Un service mal orthographié renvoie les correspondances les plus proches plutôt qu'un résultat vide, et une section à laquelle l'installation ne peut pas répondre est nommée plutôt que silencieusement absente. **Éteint par défaut** : ce qu'un agent lit sort de votre cluster vers le fournisseur de modèle choisi, l'interrupteur est donc le vôtre — et chaque appel d'outil est journalisé avec le propriétaire du jeton, l'outil, ses arguments et le nombre de lignes | <StatusBadge status="shipped" label="Livré" /> | v0.12 |
 | Des images de collecteur sans Critical corrigeable — la distro de la gateway épingle `x/crypto`, `x/text` et `grpc` au-dessus de leurs avis de sécurité, et l'agent de nœud suit la ligne du collecteur qui scanne le plus proprement. Un registre appliquant une policy « blocage sur Critical » cesse de servir une image signalée, ce qui se manifeste par un déploiement qui expire plutôt que par un rapport de scan | <StatusBadge status="shipped" label="Livré" /> | v0.12 |
+| Aucune image n'a besoin d'exception dans un registre — l'agent de nœud reçoit sa propre distribution de collecteur, ne portant exactement que les composants utilisés par sa configuration rendue et fixant `x/crypto` et `x/mod` là où aucune version du collecteur ne le fait. Chaque image tirée par défaut par le chart est exempte de vulnérabilité critique ou haute corrigeable ; l'image amont d'origine reste disponible en surcharge, et le fichier de valeurs dit ce que cela coûte | <StatusBadge status="shipped" label="Livré" /> | v0.13 |
 
 ## À venir
 
 | Capacité | État | Cible |
 |---|---|---|
 | Plans de contrôle autres qu'Istio — la moitié « par proxy » fonctionne déjà partout ; la moitié « plan de contrôle » est aujourd'hui façonnée pour Istio | <StatusBadge status="planned" label="Prévu" /> | prochaine |
-| Agents et appels d'outils comme un graphe — les spans `execute_tool` et les attributs d'agent décrivent un graphe, et la vue chemin de trace en dessine déjà un | <StatusBadge status="planned" label="Prévu" /> | prochaine |
-| Budgets de tokens et alertes — un seuil sur la dépense de modèles, comme les budgets carbone existants | <StatusBadge status="planned" label="Prévu" /> | prochaine |
 | Coût joint au module vert — la même capacité réservée et inutilisée en Wh et gCO2e, sur une installation qui exécute les deux | <StatusBadge status="planned" label="Prévu" /> | prochaine |
 
 :::info La carte des services aujourd'hui

@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.11.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.13.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -23,6 +23,8 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Virtual targets — the databases, caches and message brokers your services depend on, derived from their exit spans; no agent in the dependency, and a broker drawn from both ends | <StatusBadge status="shipped" /> | v0.8 |
 | Map boundaries — group the graph by Kubernetes namespace or by service group, each drawn as a labelled container | <StatusBadge status="shipped" /> | v0.8 |
 | Undetected peers — the far end of a connection nobody instrumented, drawn instead of discarded, and counted apart from services | <StatusBadge status="shipped" /> | v0.8 |
+| Service neighbourhood — a service's callers and dependencies drawn as a fixed left-to-right diagram on its Overview tab, each arrow labelled with that path's rate and caller-side p95. Same edges as the tables, no extra request, and the same refusals: a hop recovered across a mesh proxy reads `via <proxy>`, an untimed edge carries no latency rather than `0ms`, and a peer that never sent a span is outlined rather than filled | <StatusBadge status="shipped" /> | v0.13 |
+| Focus on the map — "Show on the map" keeps a service **and its one-hop neighbourhood** instead of filtering the graph down to an isolated node | <StatusBadge status="shipped" /> | v0.13 |
 | Traces — search, filters (tags, order, duration, status), latency heatmap, per-operation RED overview | <StatusBadge status="shipped" /> | M1 |
 | Trace viewer — timeline, spans table, flamegraph, statistics, trace graph, JSON | <StatusBadge status="shipped" /> | M4 |
 | Trace comparison — structural diff of two traces | <StatusBadge status="shipped" /> | M4 |
@@ -96,14 +98,13 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | One rate table — model prices and compute rates in a single document with a single currency, editable in Settings and applied without a redeploy. Chart-declared values stay readable and read-only, UI entries overlay them, and every row says which it is | <StatusBadge status="shipped" /> | v0.12 |
 | MCP server — six read-only tools over the traces, logs, error issues and health you already store, so an agent can investigate an incident instead of a person retyping a screen. One handler on the hub, authenticated with personal API tokens resolving their owner's live permissions. A misspelled service returns the closest matches rather than an empty result, and a section this install cannot answer is named rather than silently missing. **Off by default**: what an agent reads leaves your cluster for the model provider you chose, so the switch is yours — and every tool call is logged with the token owner, the tool, its arguments and the row count | <StatusBadge status="shipped" /> | v0.12 |
 | Collector images without a fixable Critical — the gateway distro pins `x/crypto`, `x/text` and `grpc` above their advisories, and the node agent tracks the collector line that scans clearest. A registry with a block-on-critical policy stops serving a flagged image, which surfaces as a rollout that times out rather than as a scan report | <StatusBadge status="shipped" /> | v0.12 |
+| No image needs a registry allowlist — the node agent gets a first-party collector distro of its own, carrying exactly the components its rendered config uses and pinning `x/crypto` and `x/mod` where no collector release does. Every image the chart pulls by default scans free of a fixable Critical or High; the stock upstream image stays available as an override, and the values file says what that costs | <StatusBadge status="shipped" /> | v0.13 |
 
 ## Coming
 
 | Capability | Status | Target |
 |---|---|---|
 | Control planes other than Istio — the per-proxy half already works anywhere; the control-plane half is Istio-shaped today | <StatusBadge status="planned" /> | next |
-| Agents and tool calls as a shape — `execute_tool` spans and agent attributes describe a graph, and the trace path view already draws one | <StatusBadge status="planned" /> | next |
-| Token budgets and alerts — a threshold on model spend, the way carbon budgets already work | <StatusBadge status="planned" /> | next |
 | Cost joined to green — the same reserved-and-idle capacity in Wh and gCO2e, on an install running both | <StatusBadge status="planned" /> | next |
 
 :::info Service map today

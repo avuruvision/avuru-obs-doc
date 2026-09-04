@@ -1,0 +1,45 @@
+---
+slug: service-neighbourhood
+title: "See what a service is connected to, at a glance"
+description: "The service page opens on a diagram of its callers and dependencies, each arrow carrying that path's rate and caller-side p95 — the same edges the tables held, drawn."
+authors: [avuru]
+tags: [service-map, ui]
+date: 2026-09-04
+---
+
+A service page could name what calls a service and what it calls. It could not
+show you the shape of it. Now it draws it.
+
+{/* truncate */}
+
+- **The Overview tab opens on a neighbourhood.** Callers on the left, this
+  service in the middle, what it depends on on the right. Each arrow is labelled
+  with the rate and the caller-side p95 of that exact path, so the one caller
+  carrying all of the traffic, and the one dependency going red, are visible
+  before you read a number.
+
+- **Direction is the whole claim, so the layout is fixed.** The
+  [service map](/docs/signals/service-map) draws your whole estate and lets a
+  force layout place it; a neighbourhood has a left, a middle and a right, and
+  keeping them there is what makes it readable at a glance.
+
+- **It costs no extra request.** The page was already fetching these edges to
+  fill the two tables. The diagram is the same data, drawn. The tables are one
+  click away and the choice rides in the URL (`?deps=table`), so a plain link to
+  a service still arrives on the picture.
+
+- **It claims nothing the tables refused to claim.** A dependency recovered
+  across a mesh proxy is labelled `via <proxy>`, so a reconstructed edge never
+  reads as a directly observed one. An edge nobody timed carries **no** latency
+  rather than `0ms`. A connection the kernel saw with no traced call behind it
+  shows bytes rather than a rate of zero. A database, a queue or a workload that
+  never sent a span is outlined rather than filled, says its numbers were
+  measured at the caller, and does not pretend to have a page to open. Past
+  eight peers a side the column stops and says how many are left — the table is
+  still the complete list, which is what makes stopping honest.
+
+**Also fixed:** *Show on the map* used to pass the service as a **filter**,
+which kept that one node and dropped every edge it had — landing you on an
+isolated dot, on the one screen whose whole subject is connections. It now keeps
+the service and its one-hop neighbourhood, highlights it, and says what it is
+showing with a way back to the whole estate.
