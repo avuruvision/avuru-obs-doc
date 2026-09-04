@@ -1,0 +1,48 @@
+---
+slug: service-neighbourhood
+title: "Voir d'un coup d'œil à quoi un service est relié"
+description: "La page d'un service s'ouvre sur un schéma de ses appelants et de ses dépendances, chaque flèche portant le débit et le p95 côté appelant de ce chemin précis — les mêmes arêtes que les tableaux, dessinées."
+authors: [avuru]
+tags: [service-map, ui]
+date: 2026-09-04
+---
+
+La page d'un service savait nommer ce qui l'appelle et ce qu'il appelle. Elle ne
+savait pas en montrer la forme. Désormais, elle la dessine.
+
+{/* truncate */}
+
+- **L'onglet Vue d'ensemble s'ouvre sur un voisinage.** Les appelants à gauche,
+  le service au milieu, ses dépendances à droite. Chaque flèche porte le débit et
+  le p95 côté appelant de ce chemin précis : l'unique appelant qui concentre tout
+  le trafic, et l'unique dépendance qui vire au rouge, se voient avant même
+  qu'on lise un chiffre.
+
+- **La direction est tout le propos : la mise en page est donc fixe.** La
+  [carte des services](/docs/signals/service-map) dessine le parc entier et
+  laisse un placement par forces s'en charger ; un voisinage a une gauche, un
+  milieu et une droite, et les y maintenir est ce qui le rend lisible d'un coup
+  d'œil.
+
+- **Cela ne coûte aucune requête supplémentaire.** La page récupérait déjà ces
+  arêtes pour remplir les deux tableaux. Le schéma, ce sont les mêmes données,
+  dessinées. Les tableaux restent à un clic et le choix voyage dans l'URL
+  (`?deps=table`) : un lien simple vers un service arrive donc bien sur l'image.
+
+- **Il n'affirme rien que les tableaux refusaient d'affirmer.** Une dépendance
+  reconstituée à travers un proxy de maillage est étiquetée `via <proxy>` : une
+  arête reconstruite ne se lit jamais comme une arête observée directement. Une
+  arête que personne n'a chronométrée ne porte **aucune** latence plutôt qu'un
+  `0ms`. Une connexion vue par le noyau, sans appel tracé derrière, affiche des
+  octets plutôt qu'un débit nul. Une base de données, une file ou une charge de
+  travail qui n'a jamais émis de span est dessinée en contour plutôt qu'en plein,
+  précise que ses chiffres ont été mesurés côté appelant, et ne prétend pas avoir
+  une page à ouvrir. Au-delà de huit pairs par colonne, celle-ci s'arrête et
+  annonce combien il en reste — le tableau reste la liste complète, et c'est ce
+  qui rend cet arrêt honnête.
+
+**Corrigé également :** *Voir sur la carte* passait le service comme un
+**filtre**, ce qui conservait ce seul nœud et supprimait toutes ses arêtes — vous
+arriviez sur un point isolé, sur le seul écran dont le sujet même est les
+connexions. Le lien conserve désormais le service et son voisinage à un saut, le
+met en évidence, et annonce ce qu'il montre avec un retour vers le parc entier.

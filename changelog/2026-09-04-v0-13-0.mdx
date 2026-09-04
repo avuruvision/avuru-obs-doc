@@ -1,0 +1,53 @@
+---
+slug: v0-13-0
+title: "v0.13.0: dependencies you can see"
+description: "A service's callers and dependencies drawn as the neighbourhood they are, and every image an install pulls by default free of a fixable Critical — with nothing allowlisted anywhere."
+authors: [avuru]
+tags: [service-map, ui, security]
+date: 2026-09-04
+---
+
+**v0.13.0** draws the connections the service page could only list — and
+finishes the work of making every image an install pulls clean at the source
+rather than excused by a registry.
+
+{/* truncate */}
+
+- **[A service's neighbourhood, drawn](/changelog/service-neighbourhood).** The
+  Overview tab opens on a fixed left-to-right diagram: callers, this service,
+  what it depends on, each arrow labelled with that path's rate and caller-side
+  p95. It costs no extra request — the page was already reading those edges to
+  fill two tables — and it claims nothing the tables refused to claim. A hop
+  recovered across a mesh proxy reads `via <proxy>`, an edge nobody timed
+  carries no latency rather than `0ms`, and a peer that never sent a span is
+  outlined rather than filled. The tables stay one click away, and the choice
+  rides in the URL.
+
+- **"Show on the map" lands on a neighbourhood, not an isolated dot.** The link
+  passed the service as a *filter*, which kept that one node and dropped every
+  edge it had. It now keeps the service and its one-hop neighbourhood, lights it
+  the way hovering a node already does, and offers a way back to the whole
+  estate.
+
+- **No image an install pulls needs an allowlist.** v0.13 finishes what v0.12
+  started. The node agent could not follow the gateway onto a first-party
+  distro, because it needs receivers the minimal distro does not carry — and
+  `CVE-2026-56854` (`x/crypto/ssh`, authentication bypass) is fixed in **no**
+  collector release, so every version bump left it in place. The agent now has a
+  **distro of its own**, built the same way as the gateway's, carrying exactly
+  the components its rendered config uses and nothing else, and pinning the
+  floors upstream does not: `x/crypto` and `x/mod`. The gateway's own floors
+  moved with it — `grpc`, after an advisory landed on the version its floor
+  pinned, and `apache/thrift`, which arrives through the Jaeger receiver and
+  sits in the image whether or not you wire a listener.
+
+  Every image the chart pulls by default now scans free of a fixable Critical or
+  High, so a registry with a block-on-critical policy has nothing left to
+  except. That matters as a deployment concern, not a report: such a registry
+  stops serving a flagged image, and you meet it as a rollout timing out on the
+  first node it touches. The stock upstream image still works as an override for
+  anyone who prefers it, and the values file says what that costs.
+
+Upgrade with the [Helm chart](/docs/setup/kubernetes) as usual. Nothing in this
+release changes collection or storage; the agent image simply moves to one we
+build, and can be pointed back with a single value.

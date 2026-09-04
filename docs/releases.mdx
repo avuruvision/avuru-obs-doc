@@ -21,9 +21,37 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.13.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.14.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.13.0" date="2026-09-04" status="shipped">
+
+**Dependencies you can see.** A service page could name what calls a service and
+what it calls; it could not show the shape of it. The Overview tab now opens on a
+[neighbourhood diagram](/changelog/service-neighbourhood) — callers on the left,
+the service in the middle, its dependencies on the right, each arrow labelled
+with that path's rate and caller-side p95. It costs no extra request, because the
+page was already reading those edges to fill two tables, and it claims nothing
+the tables refused to claim: a hop recovered across a mesh proxy reads
+`via <proxy>`, an edge nobody timed carries no latency rather than `0ms`, and a
+peer that never sent a span is outlined rather than filled. The map link that
+used to strand a service on an empty graph now lands on its one-hop
+neighbourhood.
+
+The release also finishes v0.12's work on images. The node agent gets a
+**first-party collector distro of its own** — it needs receivers the minimal
+distro does not carry, and `CVE-2026-56854` is fixed in no collector release, so
+no version bump could have closed it. Every image the chart pulls by default now
+scans free of a fixable Critical or High, which means a registry with a
+block-on-critical policy has nothing left to except: relevant because such a
+registry stops serving a flagged image, and you meet that as a rollout timing out
+rather than as a scan report.
+
+See the [changelog entry](/changelog/v0-13-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.13.0).
 
 </ReleaseEntry>
 

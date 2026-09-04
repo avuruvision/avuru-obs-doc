@@ -1,0 +1,59 @@
+---
+slug: v0-13-0
+title: "v0.13.0 : les dépendances, enfin visibles"
+description: "Les appelants et les dépendances d'un service dessinés comme le voisinage qu'ils forment, et chaque image tirée par défaut débarrassée de toute vulnérabilité critique corrigeable — sans la moindre exception déclarée dans un registre."
+authors: [avuru]
+tags: [service-map, ui, security]
+date: 2026-09-04
+---
+
+La **v0.13.0** dessine les connexions que la page d'un service savait seulement
+énumérer — et achève le travail consistant à rendre propre à la source chaque
+image tirée par une installation, plutôt que de la faire excuser par un
+registre.
+
+{/* truncate */}
+
+- **[Le voisinage d'un service, dessiné](/changelog/service-neighbourhood).**
+  L'onglet Vue d'ensemble s'ouvre sur un schéma fixe, de gauche à droite : les
+  appelants, ce service, ses dépendances, chaque flèche portant le débit et le
+  p95 côté appelant de ce chemin. Cela ne coûte aucune requête supplémentaire —
+  la page lisait déjà ces arêtes pour remplir deux tableaux — et n'affirme rien
+  que les tableaux refusaient d'affirmer. Un saut reconstitué à travers un proxy
+  de maillage indique `via <proxy>`, une arête que personne n'a chronométrée ne
+  porte aucune latence plutôt qu'un `0ms`, et un pair qui n'a jamais émis de span
+  est dessiné en contour plutôt qu'en plein. Les tableaux restent à un clic, et
+  le choix voyage dans l'URL.
+
+- **« Voir sur la carte » arrive sur un voisinage, plus sur un point isolé.** Le
+  lien passait le service comme un *filtre* : il gardait ce seul nœud et
+  supprimait toutes ses arêtes. Il conserve désormais le service et son voisinage
+  à un saut, le met en évidence comme le fait déjà le survol d'un nœud, et
+  propose un retour vers le parc entier.
+
+- **Aucune image tirée par une installation n'a besoin d'exception.** La v0.13
+  achève ce que la v0.12 avait commencé. L'agent de nœud ne pouvait pas suivre la
+  passerelle vers une distribution maison : il lui faut des récepteurs que la
+  distribution minimale ne porte pas — et la `CVE-2026-56854` (`x/crypto/ssh`,
+  contournement d'authentification) n'est corrigée dans **aucune** version du
+  collecteur, si bien que chaque montée de version la laissait en place. L'agent
+  dispose désormais de **sa propre distribution**, construite comme celle de la
+  passerelle, ne portant exactement que les composants utilisés par sa
+  configuration rendue, et fixant les planchers que l'amont ne fixe pas :
+  `x/crypto` et `x/mod`. Les planchers de la passerelle ont bougé avec :
+  `grpc`, après qu'un avis de sécurité a touché la version que son plancher
+  épinglait, et `apache/thrift`, qui arrive par le récepteur Jaeger et se trouve
+  dans l'image que vous branchiez ou non un écouteur.
+
+  Chaque image tirée par défaut par le chart est désormais exempte de
+  vulnérabilité critique ou haute corrigeable : un registre qui bloque les
+  critiques n'a plus rien à excepter. C'est un sujet de déploiement, pas un
+  rapport : un tel registre cesse de servir une image signalée, et cela se
+  manifeste par un déploiement qui expire sur le premier nœud touché. L'image
+  amont d'origine reste utilisable en surcharge pour qui la préfère, et le
+  fichier de valeurs dit ce que cela coûte.
+
+Mettez à jour avec le [chart Helm](/docs/setup/kubernetes) comme d'habitude.
+Rien dans cette version ne change la collecte ni le stockage ; l'image de l'agent
+passe simplement à une image que nous construisons, et une seule valeur suffit
+pour revenir en arrière.

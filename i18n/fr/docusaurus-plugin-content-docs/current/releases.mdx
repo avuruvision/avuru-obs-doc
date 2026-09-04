@@ -22,10 +22,41 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.13.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.14.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.13.0" date="2026-09-04" status="shipped" statusLabel="Livré">
+
+**Les dépendances, enfin visibles.** La page d'un service savait nommer ce qui
+l'appelle et ce qu'il appelle ; elle n'en montrait pas la forme. L'onglet Vue
+d'ensemble s'ouvre désormais sur un
+[schéma de voisinage](/changelog/service-neighbourhood) — les appelants à gauche,
+le service au milieu, ses dépendances à droite, chaque flèche portant le débit et
+le p95 côté appelant de ce chemin. Cela ne coûte aucune requête supplémentaire,
+puisque la page lisait déjà ces arêtes pour remplir deux tableaux, et n'affirme
+rien que les tableaux refusaient d'affirmer : un saut reconstitué à travers un
+proxy de maillage indique `via <proxy>`, une arête que personne n'a chronométrée
+ne porte aucune latence plutôt qu'un `0ms`, et un pair qui n'a jamais émis de
+span est dessiné en contour plutôt qu'en plein. Le lien vers la carte, qui
+laissait un service sur un graphe vide, arrive maintenant sur son voisinage à un
+saut.
+
+Cette version achève également le travail de la v0.12 sur les images. L'agent de
+nœud reçoit **sa propre distribution de collecteur** : il lui faut des récepteurs
+que la distribution minimale ne porte pas, et la `CVE-2026-56854` n'est corrigée
+dans aucune version du collecteur — aucune montée de version n'aurait pu la
+fermer. Chaque image tirée par défaut par le chart est désormais exempte de
+vulnérabilité critique ou haute corrigeable, si bien qu'un registre appliquant
+une policy « blocage sur Critical » n'a plus rien à excepter : ce qui compte,
+car un tel registre cesse de servir une image signalée, et cela se manifeste par
+un déploiement qui expire plutôt que par un rapport de scan.
+
+Voir l'[entrée du changelog](/changelog/v0-13-0) et les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.13.0).
 
 </ReleaseEntry>
 
