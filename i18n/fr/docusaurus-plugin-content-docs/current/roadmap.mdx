@@ -393,7 +393,43 @@ qui expire, pas par un rapport d'analyse. Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des modifications](/changelog/v0-13-0).
 
-## Au-delà de la v0.13 (indicatif)
+## v0.14 — le parc qu'un agent peut atteindre (en cours)
+
+La v0.12 affirmait qu'un agent peut lire le parc, et c'était vrai — au moyen d'un
+jeton qu'une personne devait créer et coller à la main, depuis un serveur que
+rien n'acheminait, et qui décrivait un cluster maillé autrement que les écrans ne
+le décrivent. Chacun de ces points est un écart entre ce que la version
+annonçait et ce qu'un opérateur obtenait.
+
+**Un assistant hébergé peut désormais s'authentifier.** Le serveur MCP parle
+[OAuth 2.1](/changelog/mcp-oauth) : découverte, enregistrement dynamique, code
+d'autorisation avec PKCE, jetons de rafraîchissement à rotation. Les jetons
+d'accès sont opaques et liés au point d'entrée MCP : l'un d'eux ne peut jamais
+être rejoué contre le reste de l'API, et ce qu'il peut atteindre est relu à
+chaque requête plutôt que figé dans une revendication signée — c'est ce qui fait
+qu'une déconnexion prend effet dès l'appel suivant de l'application. L'écran de
+consentement indique qu'approuver fait sortir traces et **corps de journaux** de
+l'installation, signale que le nom déclaré par l'application n'est pas vérifié,
+et limite l'accès à un seul projet ; Réglages → Accès liste ce que vous avez
+connecté. Désactivé par défaut, derrière son propre interrupteur.
+
+**Et le même parc, décrit de la même façon.** `service_context` rapporte
+désormais la dépendance située derrière un proxy de maillage plutôt que le proxy
+— la fusion que la [carte des services](/docs/signals/service-map) opère depuis
+la v0.9, via le même code plutôt qu'une seconde implémentation. La vue Chemin
+des traces lit le temps propre par service calculé par le hub au lieu de le
+recalculer, ce qui a mis au jour un vrai défaut au passage : l'outil MCP ne
+comptait qu'un statut d'erreur brut, si bien qu'un service renvoyant des 5xx
+depuis un client auto-instrumenté était rapporté comme sain.
+
+La version porte aussi trois réparations. `/mcp` n'était acheminé nulle part sur
+une installation Helm — le point d'entrée annoncé en v0.12 a répondu par la page
+404 de l'interface pendant toute sa vie. Le schéma de voisinage de la v0.13
+dessinait un proxy comme appelant sur un cluster maillé. Enfin, les images de
+publication sont compilées de façon croisée plutôt qu'émulées, ce qui était le
+seul obstacle entre un tag poussé et une version publiée.
+
+## Au-delà de la v0.14 (indicatif)
 
 - **Lire un deuxième plan de contrôle**, dès que quelqu'un qui en exploite un
   pourra dire lesquels de ses signaux répondent aux questions auxquelles répond
