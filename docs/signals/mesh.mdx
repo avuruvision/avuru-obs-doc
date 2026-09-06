@@ -3,7 +3,7 @@ id: mesh
 title: Service mesh
 sidebar_label: Service mesh
 sidebar_position: 10
-description: The fabric your services run on — per-proxy load, latency and success rate, and whether the control plane is still programming the mesh at all.
+description: The fabric your services run on — every proxy by role with what it carries, whether the control plane is still programming the mesh, and what your mesh configuration gets wrong without emitting a single span.
 ---
 
 # Service mesh
@@ -45,6 +45,61 @@ is correctable per install through the hub's `topology` configuration, without
 waiting for a release. See
 [mesh hops on the service map](/docs/signals/service-map#mesh-hops-are-not-dependencies).
 
+### Every proxy has a role
+
+A mesh is not one undifferentiated fleet, and a list that treats it as one is
+unreadable the moment it has more than a handful of rows. Each proxy is filed
+under what it actually is:
+
+| Role | What it is |
+|---|---|
+| **Control plane** | The component programming everything else |
+| **Ingress gateway** / **Egress gateway** | Traffic entering or leaving the mesh |
+| **Gateway** | A gateway whose direction the cluster does not state |
+| **Waypoint** | The L7 proxy serving a namespace or a workload, in a mesh without sidecars |
+| **Ztunnel** | The per-node L4 proxy |
+| **Sidecar** | A proxy inside the application's own pod |
+
+Role and namespace are both **facets**, so *show me every waypoint* or *show me
+this namespace's proxies* is a click. Neither is guessed: a proxy whose labels
+and name settle neither question shows a blank rather than a plausible default.
+
+`Gateway` exists as its own role for a reason worth stating. The Gateway API
+label establishes that a workload **is** a gateway and not which direction it
+faces — and in a mesh without sidecars a waypoint is itself a Gateway resource
+wearing that label. Filing every one of them as an ingress gateway would be
+confidently wrong, so names decide the role and labels refine it.
+
+### What it moved, and over what
+
+Calls in and calls out are counts. With the infra-metrics module active, each
+proxy also reports the **bytes** it actually moved — measured from kernel flows,
+not inferred from spans — and the health of the links it moved them over: the
+round-trip time of its **worst** link, its failed connections, and its
+retransmits.
+
+An install that measures none of that gets **no column**, not a column of
+zeroes. A proxy reported as moving 0 bytes and suffering 0 failed connections,
+when nothing was watching the wire, is exactly the false reassurance the rest of
+this screen is built to avoid.
+
+### Opening a proxy
+
+A proxy opens on its own rate, errors and latency over time — and on the one
+thing nothing else here can answer: **what it carries**.
+
+Not the calls it handled, which is a count. The real `app → app` dependencies
+recovered *through* it, each with the number of proxies that request crossed.
+That is the [hop collapse](/docs/signals/service-map#mesh-hops-are-not-dependencies)
+the map performs, read from the other end: the map asks *what depends on what,
+ignoring the mesh*, and this asks *what is this proxy responsible for*. Same
+edges, opposite question, no additional query.
+
+The **Graph** tab draws the mesh with those hops **left in** — ztunnel to
+waypoint to ztunnel, as the traffic really goes. That is precisely what the
+service map exists to take out, which is why it is a separate view rather than a
+toggle on the map.
+
 ## The control plane
 
 A mesh keeps serving its last accepted configuration long after the control
@@ -60,6 +115,13 @@ The control-plane card answers it directly:
 | **Pushes** | Configuration distribution happening at all |
 | **Convergence p95** | How long a change takes to reach the proxies |
 | **Rejected configs** | Configuration your proxies **refused** |
+| **Push p95** | How long a push itself takes, which convergence alone conflates with how long proxies take to apply it |
+| **Write timeouts** | Pushes that never landed, because a proxy was too slow to receive them |
+| **Config events** | How much configuration churn the control plane is absorbing |
+
+The last three are omitted, not zeroed, when their series are not in your
+scrape's keep-list or not in the window — an older scrape configuration reports
+fewer readings rather than reassuring ones.
 
 The last one is the reading nothing else can produce. A rejected push means the
 control plane and the data plane disagree about what the mesh should be doing —
@@ -123,16 +185,107 @@ Deployment, and the sensor is a DaemonSet: scraping from there would produce one
 copy of every control-plane series per node, and any total over them would be
 wrong by the size of your cluster.
 
+## Your namespaces, and what the configuration gets wrong
+
+Everything above is derived from traffic. That is its strength and its ceiling:
+**a mesh misconfiguration that stops traffic produces no traffic to look at.**
+A namespace enrolled in the mesh with nothing behind it, a route pointing at a
+service that does not exist, a gateway nothing attaches to — each is silent, and
+silence is what every telemetry-derived screen renders as an absence rather than
+a problem.
+
+A second module, **`mesh-config`**, reads your cluster's own Istio and Gateway
+API objects and judges them.
+
+:::caution A separate module, and a separate permission
+`mesh-config` is off by default and **separate from the mesh module**, which is
+the design decision rather than an accident of packaging. Everything above needs
+no cluster permissions at all. Folding a `ClusterRole` into the same switch
+would have handed a cluster-wide read to every install already running the mesh
+screens, on their next upgrade — so the grant is its own explicit choice.
+
+The permission is `get`, `list` and `watch`, on its own service account, over
+namespaces, workloads and mesh resources. There is no write verb, and the chart
+refuses to render if one is ever added.
+:::
+
+### Namespaces the traffic cannot show you
+
+The namespace list comes from the cluster's **labels**, not from telemetry, so
+a namespace that is enrolled and completely silent finally has a row — and in a
+mesh without sidecars, *enrolled and silent* is the most common way the thing is
+misconfigured. Each row carries its data-plane mode, the waypoint serving it,
+its mTLS mode, the services and workloads that did send telemetry in the window,
+and its finding counts.
+
+Telemetry is joined onto that list by namespace, using the same resolution the
+service map uses, so the two screens can never disagree about where a workload
+lives.
+
+### Six checks, aimed at what emits nothing
+
+| Finding | Fires when |
+|---|---|
+| `MESH_ROUTE_BACKEND_MISSING` | A route sends traffic to a Service, or a port, that does not exist |
+| `MESH_ROUTE_PARENT_MISSING` | A route names a gateway that is not there |
+| `MESH_GATEWAY_NO_ROUTES` | A gateway listener nothing attaches to |
+| `MESH_HOST_UNRESOLVED` | A rule's host matches no service in the cluster |
+| `MESH_MTLS_CONFLICT` | A rule disables TLS underneath a strict policy |
+| `MESH_WAYPOINT_MISSING` | A workload is sent to a waypoint that does not exist |
+
+Each finding says what is wrong, what to do about it and which object to open,
+and they roll up per namespace so the namespace list stays scannable rather than
+becoming a wall of individual problems.
+
+The checks are deliberately **conservative**. A host that is a wildcard, or an
+external domain the cluster cannot be expected to define, is skipped rather than
+reported — a screen that cries wolf about working configuration gets ignored,
+and then it is worth nothing when it is right.
+
+### When it cannot read the cluster
+
+As everywhere else here, each failure reads differently and names its own fix:
+
+| State | What happened | What to do |
+|---|---|---|
+| **Unconfigured** | The module is on and the hub is not running inside a cluster | expected outside Kubernetes; nothing to fix |
+| **Forbidden** | The `ClusterRole` was not granted | the reason names the role and the chart value |
+| **No CRDs** | Your mesh's custom resources are not installed | install them, or turn the module off |
+| **Truncated** | The cluster is larger than the snapshot cap | stated explicitly — never a silently short list |
+
+Configuration lives in memory, rebuilt from the cluster on startup. There is no
+table, no migration and no retention interplay: it is small, it changes rarely,
+and the freshest copy is the one the cluster itself holds.
+
+### Turning it on
+
+```yaml
+modules:
+  mesh:
+    enabled: true
+  meshConfig:
+    enabled: true
+```
+
+It requires the mesh module — the deploy fails loudly rather than quietly
+rendering a screen with nothing above it.
+
 ## Limitations
 
 - **The control-plane half is Istio-shaped.** It reads istiod's metrics by name.
   The per-proxy half is protocol-agnostic — it is RED on classified workloads —
   so it works for any mesh whose proxies emit spans.
-- **Classification is by workload name**, with an escape hatch, until the
-  pipeline carries the mesh's own Kubernetes labels.
-- **No per-proxy configuration inspection.** What routes a given sidecar holds
-  is a debugging question for your mesh's own tooling, not an observability
-  surface.
+- **Two checks are deliberately not implemented.** *This policy's selector
+  matches no workload* needs pod labels the hub cannot see for workloads created
+  outside a Deployment, and would announce that a policy protects nothing about
+  a policy that protects something. *Enrolled but never actually behind the L4
+  proxy* needs the telemetry join rather than the configuration alone. A false
+  finding is worse than a missing one on a screen whose entire job is to be
+  believed, so both are named here instead of guessed at.
+- **Findings are about configuration, not about live proxy state.** What routes
+  a given proxy has *loaded* is still a question for your mesh's own tooling.
+  What this reads is what the cluster was told to do, and where that instruction
+  does not add up.
 
 ## See also
 

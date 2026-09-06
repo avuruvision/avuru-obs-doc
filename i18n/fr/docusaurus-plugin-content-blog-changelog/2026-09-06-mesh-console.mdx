@@ -1,0 +1,85 @@
+---
+slug: mesh-console
+title: "Lire votre maillage, et plus seulement ses proxys"
+description: "Chaque proxy gagne un rôle, un espace de noms et de vrais octets ; un proxy s'ouvre sur ce qu'il transporte ; et un module accordé séparément lit la configuration de maillage de votre cluster et dit ce qui ne va pas."
+authors: [avuru]
+tags: [service-map, platform, ui]
+date: 2026-09-06
+---
+
+L'écran Maillage savait dire si vos proxys allaient bien et si votre plan de
+contrôle poussait encore la configuration. Sur un cluster où le maillage
+fonctionne sans sidecars, cela fait deux lignes et quatre chiffres. Il se lit
+désormais comme une console dédiée au tissu réseau.
+
+{/* truncate */}
+
+- **Chaque proxy a un rôle et un espace de noms.** Plan de contrôle, passerelle
+  d'entrée, passerelle de sortie, waypoint, ztunnel, sidecar — sous forme de
+  facettes, pour que « montre-moi les waypoints » soit un clic et non un
+  plissement d'yeux sur une colonne de noms. Rien de nouveau n'est collecté pour
+  cela : la sonde transporte depuis la v0.10 les labels que votre maillage pose
+  sur son propre plan de données, et le stockage les réduisait à un oui/non. Les
+  valeurs étaient déjà là.
+
+- **Deux colonnes ont cessé de mentir.** « Transporté en entrée » et
+  « Transporté en sortie » affichaient des **nombres d'appels** sous des
+  intitulés qui annonçaient des octets. Elles se lisent maintenant **Appels
+  entrants** et **Appels sortants** — et les octets ont leurs propres colonnes,
+  mesurés sur les mêmes flux noyau que la
+  [carte des services](/docs/signals/service-map) dessine déjà, aux côtés du
+  temps d'aller-retour, des connexions échouées et des retransmissions des liens
+  empruntés. Une installation qui ne mesure rien de tout cela n'obtient aucune
+  colonne, jamais un zéro.
+
+- **Un proxy s'ouvre.** Son propre débit, ses erreurs et sa latence dans le
+  temps — et ce que rien d'autre ici ne savait dire : **ce qu'il transporte.**
+  Les vraies dépendances `app → app` reconstituées *à travers* ce proxy, chacune
+  avec le nombre de proxys traversés par la requête. C'est la reconstitution de
+  saut de la v0.9 lue par l'autre bout, et elle ne coûte aucune requête
+  supplémentaire. Un onglet **Graphe** dessine le maillage en conservant ces
+  sauts, c'est-à-dire exactement ce que la carte existe pour retirer.
+
+- **Le plan de contrôle en dit plus sur une poussée lente.** La latence de
+  poussée, distincte de la convergence ; les poussées qui ne sont jamais
+  arrivées parce qu'un proxy était trop lent pour les recevoir ; et la quantité
+  de changements de configuration que le plan de contrôle absorbe.
+
+## Et la configuration elle-même
+
+Un nouveau module **`mesh-config`** lit les objets Istio et Gateway API de votre
+cluster et les juge. Il est **désactivé par défaut et séparé du module de
+maillage**, ce qui relève de la décision de conception et non du hasard
+d'empaquetage : les écrans de maillage ne demandent aucune permission sur le
+cluster, et y intégrer un ClusterRole aurait accordé une lecture à l'échelle du
+cluster à toute installation qui les utilise déjà, dès sa prochaine mise à jour.
+La permission se limite à `get`, `list` et `watch`, sur son propre compte de
+service — et le chart refuse de se rendre si un verbe d'écriture y est un jour
+ajouté.
+
+- **Vos espaces de noms incluent enfin ceux que le trafic ne peut pas montrer.**
+  Un espace de noms inscrit au maillage mais sans rien derrière n'émet rien : il
+  n'avait donc de ligne nulle part ici — et « inscrit et silencieux » est la
+  façon la plus courante de mal configurer un maillage sans sidecars. Il est
+  désormais listé, avec son mode de plan de données, son waypoint, son mode mTLS
+  et ses problèmes.
+
+- **Six contrôles, visant les pannes qui n'émettent aucune télémétrie.** Une
+  route pointant vers un Service ou un port qui n'existe pas. Une route nommant
+  une passerelle inexistante. Une passerelle à laquelle rien ne se rattache. Un
+  hôte ne correspondant à aucun service. Une règle désactivant TLS sous une
+  règle stricte. Une charge dirigée vers un waypoint absent. Chaque constat
+  nomme ce qui ne va pas, ce qu'il faut faire et l'objet à ouvrir, et ils sont
+  agrégés par espace de noms pour que la liste reste lisible d'un coup d'œil.
+
+- **Deux contrôles ont été délibérément retenus.** L'un exige des labels de pods
+  que nous ne voyons pas pour les charges créées en dehors d'un Deployment, et
+  annoncerait « cette règle ne protège rien » à propos d'une règle qui protège
+  quelque chose. Un constat faux est pire qu'un constat manquant sur un écran
+  dont tout le travail est d'être cru.
+
+Chaque manière dont cela peut échouer se lit différemment et nomme son propre
+correctif : module désactivé, permission non accordée, CRD de maillage absentes,
+hub exécuté hors du cluster, ou cluster assez grand pour que l'instantané ait
+été plafonné — ce qu'il annonce, au lieu de renvoyer discrètement une liste
+tronquée.
