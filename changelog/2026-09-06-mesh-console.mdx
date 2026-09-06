@@ -1,0 +1,77 @@
+---
+slug: mesh-console
+title: "Read your mesh, not just its proxies"
+description: "Every proxy gains a role, a namespace and real bytes; a proxy opens on what it carries; and a separately-granted module reads your cluster's own mesh configuration and says what is wrong with it."
+authors: [avuru]
+tags: [service-map, platform, ui]
+date: 2026-09-06
+---
+
+The Mesh screen could tell you whether your proxies were healthy and whether
+your control plane was still pushing config. On a cluster where the mesh runs
+without sidecars, that is two rows and four numbers. It now reads like a
+console for the fabric.
+
+{/* truncate */}
+
+- **Every proxy has a role and a namespace.** Control plane, ingress gateway,
+  egress gateway, waypoint, ztunnel, sidecar — as facets, so *show me the
+  waypoints* is a click rather than a squint at a name column. Nothing new is
+  collected for this: the sensor has been carrying the labels your mesh writes
+  on its own data plane since v0.10, and storage was reducing them to a yes/no.
+  The values were already stored.
+
+- **Two columns stopped lying.** *Carried in* and *Carried out* rendered call
+  **counts** under headings that claim bytes. They now read **Calls in** and
+  **Calls out** — and bytes have columns of their own, measured from the same
+  kernel flows the [service map](/docs/signals/service-map) already draws,
+  alongside the round-trip time, failed connections and retransmits of the links
+  each proxy moved them over. An install that measures none of that gets no
+  column, never a zero.
+
+- **A proxy opens.** Its own rate, errors and latency over time — and the thing
+  nothing else in this product could answer: **what it carries.** The real
+  `app → app` dependencies recovered *through* that proxy, each with the number
+  of proxies the request crossed. That is v0.9's hop collapse read from the
+  other end, and it costs no new query. A **Graph** tab draws the mesh with
+  those hops left in, which is precisely what the map exists to take out.
+
+- **The control plane says more about a slow push.** Push latency, distinct
+  from convergence; the pushes that never landed at all because a proxy was too
+  slow to receive them; and how much configuration churn the control plane is
+  absorbing.
+
+## And the configuration itself
+
+A new **`mesh-config`** module reads your cluster's Istio and Gateway API
+objects and judges them. It is **off by default and separate from the mesh
+module**, which is the design decision rather than an accident of packaging: the
+mesh screens need no cluster permissions at all, and folding a ClusterRole into
+them would have handed a cluster-wide read to every install already running
+them, on their next upgrade. The permission is `get`, `list` and `watch` and
+nothing else, on its own service account — and the chart refuses to render if a
+write verb is ever added to it.
+
+- **Your namespaces now include the ones traffic cannot show you.** A namespace
+  enrolled in the mesh with nothing behind it emits nothing, so it had no row
+  anywhere here — and *enrolled and silent* is the most common way a
+  sidecar-less mesh is misconfigured. It is listed now, with its data-plane
+  mode, its waypoint, its mTLS mode and its problems.
+
+- **Six checks, aimed at breakage that emits no telemetry.** A route pointing at
+  a Service or a port that does not exist. A route naming a gateway that does
+  not. A gateway nothing attaches to. A host matching no service. A rule
+  disabling TLS underneath a strict one. A workload sent to a waypoint that is
+  not there. Each finding names what is wrong, what to do about it and which
+  object to open, and they roll up per namespace so the list stays scannable.
+
+- **Two more checks were deliberately held back.** One needs pod labels we
+  cannot see for workloads created outside a Deployment, and would report *this
+  policy protects nothing* about a policy that protects something. A false
+  finding is worse than a missing one on a screen whose whole job is to be
+  believed.
+
+Every way this can fail reads differently and names its own fix: the module off,
+the permission not granted, the mesh CRDs absent, the hub running outside a
+cluster, or a cluster large enough that the snapshot was capped — which says so
+rather than quietly returning a short list.
