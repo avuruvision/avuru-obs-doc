@@ -468,8 +468,11 @@ waypoint lines that name its Service, as one stream under one cursor.
 The composition is the hub's — only it knows the pods behind a workload and
 the waypoint it is bound to — and it is one query with a branch per source, so
 paging never repeats or skips a line. The toolbar is the tab's own: a search
-box, a minimum severity, and a toggle per source, all kept in the URL. A line
-under it says what was actually asked: which service names, how many pods were
+box, a minimum severity, and a checkbox per source, all kept in the URL. The
+first box carries the workload's name and is the only one checked by default —
+the proxies' lines are about the workload, not by it, so ztunnel's and the
+waypoint's are a click away, and one source always stays on. A line under the
+toolbar says what was actually asked: which service names, how many pods were
 matched, which waypoint.
 
 | The line says | What happened | What to do |

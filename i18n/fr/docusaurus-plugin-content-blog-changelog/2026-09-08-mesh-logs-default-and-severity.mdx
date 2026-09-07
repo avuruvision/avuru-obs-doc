@@ -1,0 +1,37 @@
+---
+slug: mesh-logs-default-and-severity
+title: "Les journaux de conteneurs portent un niveau, et l'onglet Journaux d'une charge s'ouvre sur ses propres lignes"
+description: "L'agent de nœud lit désormais le niveau sur chaque ligne qu'il suit — un champ JSON, une paire level=warn, ou le jeton en majuscules habituel — si bien que les filtres de sévérité et les problèmes d'erreur fonctionnent pour les applications qui écrivent sur stdout. Sur l'écran du maillage, l'onglet Journaux d'une charge montre par défaut ses propres lignes ; celles des proxys sont à une case à cocher."
+authors: [avuru]
+tags: [logs, ui, platform]
+date: 2026-09-08
+---
+
+Deux changements côté journaux, tous deux sur `main` pour la prochaine
+version : une ligne suivie sur le stdout d'un pod porte désormais une
+sévérité, et l'onglet Journaux d'une charge de travail sur l'écran du maillage
+part des lignes de la charge elle-même.
+
+{/* truncate */}
+
+- **Les journaux de conteneurs portent un niveau.** Une ligne lue sur le stdout
+  d'un pod arrive sans sévérité OTLP : l'écran Journaux affichait « — », le
+  plancher « INFO+ » la cachait, et une ligne `ERROR` d'une application qui
+  écrit sur stdout ne devenait jamais un
+  [problème d'erreur](/docs/signals/errors). L'agent de nœud lit maintenant le
+  niveau sur la ligne — un champ JSON `level` / `severity` / `lvl`, nommé ou
+  numérique à la manière de pino (`30`/`50`) ; une paire `level=warn` ; ou le
+  jeton en majuscules habituel (`… DEBUG [main] …`, `[INFO]`, `ERROR:`) — et
+  renseigne le numéro et le texte de sévérité OTel. Les enregistrements qui
+  portent déjà un niveau ne sont pas touchés. Actif par défaut, désactivable
+  avec `sensor.agent.logs.parseSeverity=false`. Les lignes ingérées avant la
+  mise à jour gardent leur niveau vide jusqu'à leur expiration.
+
+- **L'onglet Journaux d'une charge s'ouvre sur ses propres lignes.** Sur
+  [l'écran du maillage](/docs/signals/mesh#ses-journaux-depuis-trois-sources),
+  les trois sources des journaux d'une charge étaient des boutons, tous actifs
+  à la fois, et le premier s'appelait `app`. Ce sont désormais des cases à
+  cocher : la première porte le nom de la charge et est la seule cochée par
+  défaut ; les lignes de ztunnel et du waypoint parlent de la charge sans être
+  les siennes, et sont à un clic. Une source reste toujours active, et le choix
+  voyage dans l'URL comme avant.

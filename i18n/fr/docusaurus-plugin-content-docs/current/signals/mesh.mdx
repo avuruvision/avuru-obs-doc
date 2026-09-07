@@ -506,9 +506,12 @@ La composition est celle du hub — lui seul connaît les pods derrière une cha
 et le waypoint auquel elle est liée — et c'est une seule requête avec une
 branche par source, de sorte que la pagination ne répète ni ne saute aucune
 ligne. La barre d'outils appartient à l'onglet : une recherche, une sévérité
-minimale et un interrupteur par source, tous conservés dans l'URL. Une ligne en
-dessous dit ce qui a réellement été demandé : quels noms de service, combien de
-pods ont été reconnus, quel waypoint.
+minimale et une case à cocher par source, toutes conservées dans l'URL. La
+première case porte le nom de la charge et est la seule cochée par défaut — les
+lignes des proxys parlent de la charge sans être les siennes, celles de ztunnel
+et du waypoint sont donc à un clic, et une source reste toujours active. Une
+ligne sous la barre d'outils dit ce qui a réellement été demandé : quels noms
+de service, combien de pods ont été reconnus, quel waypoint.
 
 | La ligne dit | Ce qui s'est passé | Que faire |
 |---|---|---|

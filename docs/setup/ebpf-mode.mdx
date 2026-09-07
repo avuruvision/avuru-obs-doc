@@ -45,6 +45,7 @@ OBI's built-in **`network` feature**, enabled by config on the same sensor.
 | `sensor.obi.enabled` | `true` | Zero-code traces + RED on/off |
 | `sensor.obi.privileged` | `true` | Privileged vs capability-set security context |
 | `sensor.agent.logs.enabled` | `true` | stdout/stderr log collection on/off |
+| `sensor.agent.logs.parseSeverity` | `true` | Read a level off each tailed line (JSON field, `level=` pair, upper-case token) into the OTel severity; records that already carry one are left alone |
 | `sensor.nodeSelector` / `sensor.tolerations` | — | Node placement |
 
 The platform's own namespace is always excluded from collection, and HTTP route
