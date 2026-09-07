@@ -1,0 +1,131 @@
+---
+slug: mesh-declared-vs-observed
+title: "Know whether your mesh traffic is really encrypted"
+description: "The sensor reads the proxies themselves, the configuration module reads pods, and the Mesh screen puts what the cluster declared beside what its data plane observed — per workload and per edge, with a verdict and the fix."
+authors: [avuru]
+tags: [security, service-map, ui, platform]
+date: 2026-09-07
+---
+
+A namespace row that says `STRICT` is reporting a claim. A strict policy that
+is enforced and one that is not — a workload that never enrolled, a selector
+that matches nothing, a rule disabling TLS underneath — look identical from
+configuration and from traces. Only the proxy that terminated the connection
+knows, and until now nothing asked it.
+
+{/* truncate */}
+
+## What the proxies observed
+
+- **The sensor reads the data plane itself.** Sidecars, waypoints, gateways and
+  ztunnel: each node's sensor scrapes the proxies on that node, discovered
+  through the annotations the mesh already writes on them — so there is no
+  endpoint to type, and a cluster of any size reaches every proxy exactly once.
+  The keep-list is eight series: whether each request and connection travelled
+  under mutual TLS or in the clear, and who sent the clear part; the response
+  flag a failure carried; the version it landed on; and ztunnel's own count of
+  the workloads it carries. The scrape's own `up` is kept per proxy, so the
+  screen can tell *nobody is scraping* from *the proxies are not answering*.
+
+- **On by default under the mesh module.** Turning the module on is the
+  consent, and this is what the module is for — it starts collecting at
+  upgrade. Budget roughly 20–100 series per proxy per 30-second scrape, in the
+  infra-metrics tables. `mesh.dataPlane.enabled=false` keeps the mesh screen
+  without the scrape; installs without the mesh module are untouched.
+
+## What the cluster declared
+
+- **`mesh-config` reads pods.** Enrolment is a fact about a pod: the sidecar
+  is a container in it, and ambient capture is an annotation the node agent
+  writes on it. A namespace label says what was asked for; only the pod says
+  what happened. The grant stays `get`, `list` and `watch`. The hub keeps a
+  dozen fields of each pod and drops the rest before it is stored, and pods
+  are capped on their own so a large cluster stays bounded — and the snapshot
+  says which list it cut.
+
+- **Every workload the cluster runs has a row, in the mesh or not.** A
+  **Workloads** tab lists what runs whether or not it ever sent a span — the
+  row every traffic-derived screen was missing, because a workload asked into
+  the mesh and never enrolled produces no traffic of its own. Each row says
+  whether the mesh actually has it — *captured* by the node agent, a *sidecar*
+  injected, *declared, not enrolled*, or *out of mesh* — beside the waypoint
+  that binds it and where that binding came from, the policies that cover it,
+  and the mTLS mode that applies with the PeerAuthentication that decided it,
+  selector-scoped policies included. *Declared, not enrolled* is a filter of
+  its own, and it travels in the URL. A workload opens onto a page of its own;
+  a waypoint's page lists what it serves, and says when nothing runs it.
+
+## The join: a posture per workload
+
+- **A Security tab puts the two side by side.** One row per workload: the
+  PeerAuthentication mode in force, the share of accepted traffic that came
+  over mutual TLS as a bar and a number, and the verdict as a badge.
+
+| Verdict | What it means |
+|---|---|
+| **Strict, all mutual TLS** | Declared strict, and nothing arrived in the clear |
+| **Not enforced** | Declared strict, and plaintext reached the workload — the policy is not applied to it. A finding, with the three things to check first: the pod is not enrolled, the selector misses it, or a DestinationRule disables TLS for its host |
+| **Safe to tighten** | No strict policy, and every caller is already on mutual TLS: `STRICT` would refuse nothing that is currently talking |
+| **Plaintext callers** | No strict policy, and these callers send in the clear — named, so you know who to migrate before tightening |
+
+  A workload the traces saw, in a namespace labelled for ambient, that no proxy
+  reported carrying at all, is its own verdict — **not carried** — because its
+  traffic is crossing the cluster unmeshed while the namespace reads as
+  covered. The findings behind the verdicts sit under the table with their fix,
+  filterable by namespace and by posture from the URL.
+
+- **The same fold, everywhere.** The Workloads tab, the Security tab and the
+  namespace counts read one join, run once, so two screens cannot disagree
+  about one workload.
+
+- **The map marks every edge that was measured.** On the service map and the
+  mesh graph, every edge the destination's proxy reported carries a marker at
+  the caller end: a tee when all of it crossed under mutual TLS, a hollow
+  circle when mixed, a filled one when none did — with the share and the
+  plaintext count on hover. An edge nobody measured carries no marker, and the
+  legend explains the marker only when one is on the map.
+
+## The proxy explains its failures
+
+- **Requests by outcome.** Opening a proxy shows its requests the way its proxy
+  counted them: by response flag, with the proxy's reason in words — a circuit
+  breaker open, retries exhausted, an upstream that would not connect, no
+  route — by the destination version each landed on, and by caller with its
+  5xx count, so a failing workload is failing for everyone or for one client.
+  The per-upstream counters a reader looks for next — pending overflow, outlier
+  ejections — are stated as **not collected**: a default mesh does not expose
+  them, and the page names the proxy setting that does rather than rendering a
+  zero that means *not looking*.
+
+- **Ztunnel says what it carries.** Workloads carried, workloads told about and
+  not yet wired, control-plane streams cut. And the control-plane card reads
+  two more of istiod's series when the scrape carries them: listener conflicts,
+  and how long a push waited in the queue before it was sent.
+
+## Six checks became seventeen
+
+v0.14 judged the configuration for the breakage that emits nothing. Eleven more
+checks now cover the configuration that looks finished and is not: a workload
+labelled for ambient the node agent never captured; a policy whose selector
+matches no pod, or whose target names nothing; a binding to a waypoint nobody
+deployed; an HTTP-level rule or route in an ambient namespace with no waypoint
+to evaluate it; a sidecar in an ambient namespace; a route to a subset no rule
+defines; two rules claiming one host; a gateway no running pod serves;
+listeners that cannot coexist; an authorization rule naming a service account
+nobody runs as. The mTLS conflict is now judged workload by workload against
+the policy that actually applies, in both directions.
+
+The five checks that need pods go **silent** when the pod list could not be
+read or was cut — and the snapshot says so, in one sentence naming them and
+why. An empty issues column must never read as a clean bill.
+
+## Every absence reads differently
+
+The Security tab leads with whether the data plane was read at all, in the
+control-plane card's own words — *not observed*, *not answering* (with the pod
+names), or *not recognised* — and shows no percentage until it was, because a
+data plane nobody scrapes reports no plaintext, which would read as a fully
+encrypted mesh. When the configuration module is off, the Declared column is
+missing rather than full of "default", and a caption says so. A share nobody
+measured is a dash, never 0 %. The whole surface is described on the
+[Service mesh](/docs/signals/mesh) page.

@@ -1,0 +1,94 @@
+---
+slug: v0-15-0
+title: "v0.15.0 : ce que le maillage a reçu comme consigne, et ce qu'il a fait"
+description: "La sonde lit les proxys, le module de configuration lit les pods, et chaque charge de travail que le cluster exécute obtient une ligne avec le déclaré à côté de l'observé — une posture par charge, dix-sept vérifications de configuration, un proxy qui explique ses échecs, et un graphe qui se lit par rôle."
+authors: [avuru]
+tags: [security, service-map, platform, ui]
+date: 2026-09-07
+---
+
+La **v0.15.0** met sur une même ligne ce que la configuration de votre maillage
+dit d'une charge de travail et ce que son proxy a réellement fait — et donne
+une ligne à chaque charge que le cluster exécute, qu'elle ait ou non jamais
+émis un span.
+
+{/* truncate */}
+
+- **[Le déclaré à côté de l'observé](/changelog/mesh-declared-vs-observed).**
+  L'élément qui définit la version. La sonde collecte désormais les proxys de
+  son propre nœud — sidecars, waypoints, passerelles et ztunnel — découverts
+  grâce aux annotations que le maillage écrit déjà : aucun point d'entrée à
+  saisir, et chaque proxy atteint exactement une fois. Le hub joint ce qu'ils
+  rapportent — TLS mutuel ou clair, par requête et par connexion, et qui a
+  envoyé la part en clair — à la PeerAuthentication qui gouverne réellement
+  chaque charge, y compris celles à sélecteur que le lecteur de la v0.14
+  ignorait. Un nouvel onglet **Sécurité** tire un verdict parmi quatre par
+  charge : strict et tout en TLS mutuel ; déclaré strict, observé en clair — une
+  politique non appliquée, et un constat au lieu d'un silence ; permissif mais
+  prêt à être resserré ; permissif avec des appelants en clair, nommés. Le
+  trafic d'un espace de noms ambiant qu'aucun proxy n'a transporté est un
+  constat à part entière. Sur la carte des services et le graphe du maillage,
+  chaque arête mesurée par un proxy porte côté appelant un marqueur
+  tout-chiffré, mixte ou en clair — et une arête que personne n'a mesurée n'en
+  porte aucun. **Activé par défaut sous le module de maillage**, et la collecte
+  démarre à la mise à jour : le module est le consentement.
+  `mesh.dataPlane.enabled=false` conserve l'écran sans la collecte.
+
+- **Chaque charge de travail, dedans ou dehors.** `mesh-config` lit désormais
+  les pods — toujours `get`, `list` et `watch`, une douzaine de champs
+  conservés par pod, plafonnés à part — pour qu'une charge existe sous l'espace
+  de noms. Un onglet **Charges de travail** liste ce que le cluster exécute,
+  trafic ou non : capturée par l'agent de nœud, sidecar injecté, *déclarée, non
+  inscrite*, ou hors maillage, avec le waypoint qui la lie et l'origine de ce
+  lien, les politiques qui la couvrent, et le mode mTLS déclaré avec la
+  politique qui l'a décidé. Une charge s'ouvre sur sa propre page avec ses pods
+  et ses constats ; la page d'un waypoint liste ce qu'il sert et dit quand rien
+  ne l'exécute. Les lignes d'espace de noms disent d'où vient leur mode et
+  combien de leurs charges sont inscrites.
+
+- **Six contrôles sont devenus dix-sept.** Onze de plus couvrent la
+  configuration qui a l'air finie et ne l'est pas : une charge étiquetée
+  ambiante jamais capturée par l'agent de nœud, une politique ne correspondant
+  à aucun pod ou ne nommant rien, un lien vers un waypoint que personne n'a
+  déployé, des règles de niveau HTTP dans un espace de noms ambiant sans
+  waypoint, un sidecar là où l'espace de noms est ambiant, une route vers un
+  sous-ensemble non défini, deux règles revendiquant un même hôte, une
+  passerelle qu'aucun pod ne sert, des écouteurs en conflit, une règle
+  d'autorisation nommant un compte de service sous lequel rien ne tourne ; le
+  conflit mTLS est jugé par charge, dans les deux sens. Les cinq qui ont besoin
+  des pods se taisent quand la liste des pods a été refusée ou coupée, et
+  l'instantané le dit en une phrase — une colonne de problèmes vide n'est jamais
+  un quitus.
+
+- **Le proxy explique ses échecs.** La page d'un proxy montre ses requêtes
+  telles que son proxy les a comptées : par indicateur de réponse avec la raison
+  en toutes lettres — disjoncteur ouvert, relances épuisées, amont injoignable,
+  aucune route — par version de destination, et par appelant avec son nombre de
+  5xx. Les compteurs par amont qu'un maillage par défaut n'expose pas sont
+  nommés comme non collectés, avec le réglage qui les expose, plutôt
+  qu'affichés à zéro. Les lignes ztunnel portent les charges transportées et
+  celles encore en attente ; la carte du plan de contrôle lit les conflits
+  d'écouteurs et le p95 de file d'attente quand la collecte les porte.
+
+- **Le graphe se lit par rôle.** Le graphe du maillage dessinait chaque saut
+  avec le même losange. Chaque rôle a désormais sa forme — une étoile pour le
+  plan de contrôle, une étiquette pour une passerelle tournée vers l'intérieur
+  et son miroir pour une tournée vers l'extérieur, un chevron pour ztunnel, un
+  double anneau pour un waypoint — et une légende ne nomme que les formes
+  réellement présentes. La carte des services ne change pas : elle n'a aucun
+  rôle à dessiner.
+
+Pour les intégrations, cinq routes rejoignent l'API : `GET /api/v1/mesh/security`,
+`/mesh/workloads`, `/mesh/workloads/{namespace}/{name}`,
+`/mesh/workloads/{namespace}/{name}/requests` et
+`/mesh/waypoints/{namespace}/{name}` — voir la
+[référence de l'API](/reference/api).
+
+Mettez à jour avec le [chart Helm](/docs/setup/kubernetes) comme d'habitude.
+**Cette version change la collecte sur les installations qui exécutent le
+module de maillage** : la collecte du plan de données y est activée par défaut
+et démarre à la mise à jour — comptez environ 20 à 100 séries par proxy et par
+collecte de 30 secondes, dans les tables d'infra-metrics, ou réglez
+`mesh.dataPlane.enabled=false`. Le ClusterRole de `mesh-config` gagne `pods`,
+en lecture seule. Les installations sans module de maillage ne sont pas
+touchées.
