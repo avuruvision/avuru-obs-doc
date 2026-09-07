@@ -11,7 +11,7 @@ import {StatusBadge} from '@site/src/components';
 # Feature status
 
 A snapshot of what's live today versus what's coming. avuru obs
-[**v0.15.0** is released](/docs/releases) and the trunk moves fast — for the
+[**v0.16.0** is released](/docs/releases) and the trunk moves fast — for the
 plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 [Changelog](/changelog).
 
@@ -109,6 +109,8 @@ plan see the [Roadmap](/docs/roadmap), and for shipped changes the
 | Seventeen configuration checks — v0.14's six plus the ones aimed at configuration that looks finished and is not: a workload labelled for ambient never captured, a policy matching no pod or naming nothing, a binding to a waypoint nobody deployed, HTTP-level rules in an ambient namespace with no waypoint, a sidecar in an ambient namespace, a route to an undefined subset, two rules claiming one host, a gateway no pod serves, listeners that conflict, an authorization rule naming a service account nobody runs as; the mTLS conflict judged per workload, in both directions. The five that need pods go silent and say so when the pod list was refused or cut | <StatusBadge status="shipped" /> | v0.15 |
 | A proxy's requests by outcome — by response flag with the proxy's reason in words (circuit breaker open, retries exhausted, upstream would not connect, no route), by destination version, and by caller with its 5xx count. Per-upstream counters a default mesh does not expose are named as not collected, with the setting that exposes them, never rendered as zero. Ztunnel rows carry workloads carried and still waiting; the control-plane card adds listener conflicts and queue p95 | <StatusBadge status="shipped" /> | v0.15 |
 | The mesh graph tells its proxies apart — a star for the control plane, a tag for a gateway pointing in and its mirror for one pointing out, a chevron for ztunnel, a double ring for a waypoint, with a legend naming only the shapes on it — and every edge a destination proxy measured carries a marker at the caller end, on the service map and the mesh graph alike: a tee for all mutual TLS, a hollow circle for mixed, a filled one for plaintext. An edge nobody measured carries none | <StatusBadge status="shipped" /> | v0.15 |
+| A workload's page reads like the cluster's record of it — created when and by which controller (or by its oldest pod, and it says which), type, `app` and `version`, every label, the controller's annotations within stated bounds, each pod with the rollout it belongs to, and a one-word health verdict with the reason that decided it. Beside the policies that select the workload by label, the routes and rules that **reach** it through its Services — HTTPRoute, GRPCRoute, VirtualService, DestinationRule — each with its own findings, so a routed workload is never called unconfigured. Nothing new is read: the objects were already watched | <StatusBadge status="shipped" /> | v0.16 |
+| A workload's logs from all three sources, in one table — its own lines, the ztunnel lines naming one of its pods and the waypoint lines naming its Service, as one ordered stream under one cursor, composed by the hub that knows the pods. Search, minimum severity and a toggle per source in the URL; a line saying what was actually asked; and when the pods cannot be known, matching by name and namespace together with the reason stated rather than an empty column. Needs the logs module; `mesh-config` only makes it precise | <StatusBadge status="shipped" /> | v0.16 |
 
 ## Coming
 

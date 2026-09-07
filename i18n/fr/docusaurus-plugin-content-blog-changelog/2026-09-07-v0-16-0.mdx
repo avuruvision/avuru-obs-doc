@@ -1,0 +1,62 @@
+---
+slug: v0-16-0
+title: "v0.16.0 : la page d'une charge de travail — la fiche du cluster, et les journaux qu'aucun autre écran ne relie"
+description: "Une charge de travail sur l'écran du maillage s'ouvre sur ce que le cluster en sait — créée quand, par quel contrôleur, quels pods sur quel déploiement, chaque étiquette, un verdict de santé, et les routes qui l'atteignent à côté des politiques qui la sélectionnent — puis sur ses journaux : les siens, et ce que ztunnel et son waypoint ont écrit à son sujet, dans une seule table."
+authors: [avuru]
+tags: [logs, service-map, ui, platform]
+date: 2026-09-07
+---
+
+La **v0.16.0** fait de la page d'une charge de travail, sur l'écran du
+maillage, la fiche que le cluster en tient lui-même — et y met ses journaux :
+ses propres lignes, et celles que le proxy de nœud et son waypoint ont écrites
+à son sujet, reliées par le hub qui connaît ses pods.
+
+{/* truncate */}
+
+- **La fiche.** L'élément qui définit la version. La page d'une charge
+  connaissait son mode, le nombre de ses pods et les politiques qui la
+  sélectionnent. Elle dit désormais quand la charge a été créée et par quel
+  contrôleur (ou par son pod le plus ancien, et elle le précise), son type, ses
+  étiquettes `app` et `version`, chaque étiquette et les annotations du
+  contrôleur dans des bornes explicites, et chaque pod avec le déploiement
+  auquel il appartient. Un verdict de **santé** en un mot dans l'en-tête — le
+  vocabulaire du tableau de santé — porte la raison qui l'a décidé : aucun pod
+  en marche, un pod manquant, une requête sur dix en échec, ou simplement rien
+  qui appelle. À côté des politiques qui sélectionnent la charge par étiquette,
+  la page liste les **routes et règles qui l'atteignent par ses Services** —
+  HTTPRoute, GRPCRoute, VirtualService, DestinationRule — résolues par le même
+  index d'hôtes que les vérifications de configuration, chacune avec ses
+  propres constats : une charge routée n'est plus dite sans configuration. Rien
+  de nouveau n'est lu dans le cluster : les objets étaient déjà observés.
+
+- **Trois sources, un seul flux.** L'application journalise un côté de chaque
+  requête ; ztunnel journalise la connexion et le waypoint l'échange HTTP,
+  chacun sous son propre nom de service, et aucun écran ne les rattachait à la
+  charge qu'ils concernent. Un onglet **Journaux** sur la page de la charge lit
+  désormais les trois comme un seul flux ordonné sous un seul curseur : les
+  lignes de la charge elle-même, les lignes de ztunnel nommant l'un de ses
+  pods, les lignes du waypoint nommant son Service. La composition est celle du
+  hub, parce que seul le hub connaît les pods derrière une charge et le
+  waypoint auquel elle est liée — et c'est une seule requête, avec une branche
+  par source, si bien que la pagination ne répète ni ne saute aucune ligne.
+  Une recherche, une sévérité minimale et un interrupteur par source vivent
+  dans l'URL, et une ligne sous la barre d'outils dit ce qui a réellement été
+  demandé : quels noms de service, combien de pods ont été reconnus. Quand les
+  pods ne peuvent pas être connus — module `mesh-config` éteint, cluster non
+  lu, liste de pods tronquée — les lignes des proxys sont reconnues par nom
+  *et* espace de noms ensemble, et la page le dit plutôt que d'afficher une
+  colonne vide. L'onglet n'existe que là où le module de journaux est actif.
+
+Pour les intégrations, une route rejoint l'API :
+`GET /api/v1/mesh/workloads/{namespace}/{name}/logs`, avec les paramètres `q`,
+`severity`, `limit` et `cursor` de l'écran des journaux plus
+`source=app,ztunnel,waypoint` ; la route de la page de la charge gagne
+`labels`, `annotations`, `health`, `routes`, et par pod `revision` et
+`createdAt` — voir la [référence API](/reference/api).
+
+Mettez à jour avec le [chart Helm](/docs/setup/kubernetes) comme d'habitude.
+**Aucune permission nouvelle et aucune collecte nouvelle** : la fiche vient
+d'objets que `mesh-config` observait déjà, les journaux de tables que le module
+de journaux remplit déjà. Les installations sans le module de maillage ne sont
+pas touchées.

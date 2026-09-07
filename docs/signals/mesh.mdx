@@ -429,6 +429,58 @@ ReplicaSets — one fact the hash already encodes, at the cost of no extra grant
 A Deployment that cannot be confirmed is reported as its ReplicaSet, which is
 honest.
 
+### The workload's page
+
+A workload opens on the cluster's own record of it. The header carries a
+**health** verdict in the health board's vocabulary — healthy, degraded, down,
+idle — with the reason that decided it a hover away: none of the pods running,
+a pod short, one request in ten failing, or simply nothing calling. Below it:
+
+- **Overview** — created when, and from where: the controller's own date, or
+  the oldest pod's when the controller was not read, and the page says which.
+  Type, `version`, `app`, mode.
+- **Related** — every Service whose selector picks the workload, each linking
+  to its own screen, and the L7 waypoint it is bound to, linking to the proxy
+  page.
+- **Labels** as chips, without the ReplicaSet's template hash; the
+  controller's **annotations** behind a fold, within stated bounds (64 keys,
+  2 KB per value, and the page says when the hub cut the list).
+- **Pods** — name, revision (the rollout it belongs to), phase, enrolment,
+  node, age. Two pods on two revisions during a bad deploy is the shape of
+  most incidents, and "2 of 2 running" hides it.
+- **Istio config** — one section, two lists: the policies that select the
+  workload by label, with the scope they reached it at, and the routes and
+  rules that **reach** it through its Services — HTTPRoute, GRPCRoute,
+  VirtualService, DestinationRule — with the Service and host they came
+  through. Every reference links into the configuration browser and carries
+  its own findings, so "this route is broken" is said beside the route. A
+  page that listed only the policies called a routed workload unconfigured.
+
+#### Its logs, from three sources
+
+The application logs one side of every request. The node proxy logs the
+connection — source, destination, bytes, duration, identity — and the waypoint
+logs the HTTP exchange, each under its own service name, so no other screen
+joins them back to the workload they are about. The **Logs** tab does: the
+workload's own lines, the ztunnel lines that name one of its pods, and the
+waypoint lines that name its Service, as one stream under one cursor.
+
+The composition is the hub's — only it knows the pods behind a workload and
+the waypoint it is bound to — and it is one query with a branch per source, so
+paging never repeats or skips a line. The toolbar is the tab's own: a search
+box, a minimum severity, and a toggle per source, all kept in the URL. A line
+under it says what was actually asked: which service names, how many pods were
+matched, which waypoint.
+
+| The line says | What happened | What to do |
+|---|---|---|
+| **N pods matched** | The pods came from the `mesh-config` snapshot; the proxies' lines are matched by pod name and by `name.namespace.svc` | — |
+| **matched by name**, with a reason | The pods could not be known — `mesh-config` off, the cluster unread, pods unreadable, the pod list cut, or the workload not in the snapshot — so the proxies' lines are matched by name *and* namespace together, which keeps a workload apart from its namesake in another namespace | the reason names the fix; the column is never silently empty |
+| **waypoint: none bound** | No waypoint binds this workload, so there are no L7 lines to read | — |
+
+The tab exists only where the logs module is on. It reads the tables the logs
+module already fills: no new collection, no new permission.
+
 ### What a waypoint serves
 
 A waypoint's own traffic cannot say what it is for: a waypoint nothing is bound

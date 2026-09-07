@@ -21,9 +21,32 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.16.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.17.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.16.0" date="2026-09-07" status="shipped">
+
+**The workload's page.** v0.15 put, on one row, what the mesh was told and what
+it did; this release answers the questions that row did not. A workload on the
+[mesh screen](/docs/signals/mesh) opens on the cluster's own record of it —
+created when and by which controller, type, `app` and `version`, every label,
+the controller's annotations, each pod with the rollout it belongs to, a health
+verdict with the reason that decided it — and lists, beside the policies that
+select it, the routes and rules that reach it through its Services, each with
+its own findings. Then a **Logs** tab reads the workload's own lines together
+with the ztunnel lines naming its pods and the waypoint lines naming its
+Service, as one stream under one cursor, composed by the hub that knows the
+pods — and says so when it could only match them by name.
+
+**No new permission and no new collection**: the record comes from objects
+`mesh-config` already watched, the logs from tables the logs module already
+fills. Installs without the mesh module are untouched.
+
+See the [changelog entry](/changelog/v0-16-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.16.0).
 
 </ReleaseEntry>
 
