@@ -1,0 +1,145 @@
+---
+slug: mesh-declared-vs-observed
+title: "Savoir si le trafic de votre maillage est vraiment chiffré"
+description: "La sonde lit les proxys eux-mêmes, le module de configuration lit les pods, et l'écran Maillage met ce que le cluster a déclaré à côté de ce que son plan de données a observé — par charge de travail et par arête, avec un verdict et le correctif."
+authors: [avuru]
+tags: [security, service-map, ui, platform]
+date: 2026-09-07
+---
+
+Une ligne d'espace de noms qui affiche `STRICT` rapporte une affirmation. Une
+politique stricte appliquée et une qui ne l'est pas — une charge jamais
+inscrite, un sélecteur qui ne correspond à rien, une règle qui désactive TLS
+en dessous — sont identiques vues de la configuration comme des traces. Seul le
+proxy qui a terminé la connexion le sait, et jusqu'ici personne ne le lui
+demandait.
+
+{/* truncate */}
+
+## Ce que les proxys ont observé
+
+- **La sonde lit le plan de données lui-même.** Sidecars, waypoints,
+  passerelles et ztunnel : la sonde de chaque nœud collecte les proxys de ce
+  nœud, découverts grâce aux annotations que le maillage écrit déjà sur eux —
+  il n'y a donc aucun point d'entrée à saisir, et un cluster de n'importe
+  quelle taille atteint chaque proxy exactement une fois. La liste conservée
+  tient en huit séries : si chaque requête et chaque connexion a circulé en TLS
+  mutuel ou en clair, et qui a envoyé la part en clair ; l'indicateur de réponse
+  porté par un échec ; la version sur laquelle il a atterri ; et le compte que
+  ztunnel tient lui-même des charges qu'il transporte. Le `up` de la collecte
+  est conservé par proxy, pour que l'écran distingue « personne ne collecte »
+  de « les proxys ne répondent pas ».
+
+- **Activé par défaut sous le module de maillage.** Activer le module est le
+  consentement, et c'est à cela que le module sert : la collecte démarre à la
+  mise à jour. Comptez environ 20 à 100 séries par proxy et par collecte de
+  30 secondes, dans les tables d'infra-metrics. `mesh.dataPlane.enabled=false`
+  conserve l'écran Maillage sans la collecte ; les installations sans module de
+  maillage ne sont pas touchées.
+
+## Ce que le cluster a déclaré
+
+- **`mesh-config` lit les pods.** L'inscription est un fait qui concerne un
+  pod : le sidecar est un conteneur dedans, et la capture ambiante est une
+  annotation que l'agent de nœud y écrit. Un label d'espace de noms dit ce qui
+  a été demandé ; seul le pod dit ce qui s'est passé. L'autorisation reste
+  `get`, `list` et `watch`. Le hub conserve une douzaine de champs par pod et
+  écarte le reste avant stockage, et les pods sont plafonnés à part pour qu'un
+  grand cluster reste borné — l'instantané dit quelle liste il a coupée.
+
+- **Chaque charge de travail que le cluster exécute a une ligne, dans le
+  maillage ou non.** Un onglet **Charges de travail** liste ce qui tourne, span
+  émis ou non — la ligne qui manquait à tout écran dérivé du trafic, car une
+  charge invitée dans le maillage et jamais inscrite ne produit aucun trafic à
+  elle. Chaque ligne dit si le maillage l'a réellement — *capturée* par l'agent
+  de nœud, *sidecar* injecté, *déclarée, non inscrite*, ou *hors maillage* — à
+  côté du waypoint qui la lie et de l'origine de ce lien, des politiques qui la
+  couvrent, et du mode mTLS qui s'applique avec la PeerAuthentication qui l'a
+  décidé, politiques à sélecteur comprises. *Déclarée, non inscrite* est un
+  filtre à part entière, et il voyage dans l'URL. Une charge s'ouvre sur sa
+  propre page ; la page d'un waypoint liste ce qu'il sert, et dit quand rien ne
+  l'exécute.
+
+## La jointure : une posture par charge de travail
+
+- **Un onglet Sécurité met les deux côte à côte.** Une ligne par charge de
+  travail : le mode PeerAuthentication en vigueur, la part du trafic accepté
+  arrivée en TLS mutuel sous forme de barre et de nombre, et le verdict en
+  badge.
+
+| Verdict | Ce qu'il signifie |
+|---|---|
+| **Strict, tout en TLS mutuel** | Déclaré strict, et rien n'est arrivé en clair |
+| **Non appliqué** | Déclaré strict, et du clair a atteint la charge : la politique ne s'applique pas à elle. Un constat, avec les trois choses à vérifier d'abord — le pod n'est pas inscrit, le sélecteur le manque, ou une DestinationRule désactive TLS pour son hôte |
+| **Peut être resserré** | Aucune politique stricte, et chaque appelant est déjà en TLS mutuel : `STRICT` ne refuserait rien de ce qui parle aujourd'hui |
+| **Appelants en clair** | Aucune politique stricte, et ces appelants envoient en clair — nommés, pour savoir qui migrer avant de resserrer |
+
+  Une charge que les traces ont vue, dans un espace de noms étiqueté ambiant,
+  et qu'aucun proxy n'a déclaré transporter, a son propre verdict — **non
+  transportée** — parce que son trafic traverse le cluster hors maillage
+  pendant que l'espace de noms se lit comme couvert. Les constats derrière les
+  verdicts se trouvent sous le tableau avec leur correctif, filtrables par
+  espace de noms et par posture depuis l'URL.
+
+- **La même jointure, partout.** L'onglet Charges de travail, l'onglet Sécurité
+  et les compteurs d'espace de noms lisent une seule jointure, exécutée une
+  fois : deux écrans ne peuvent pas se contredire sur une charge.
+
+- **La carte marque chaque arête mesurée.** Sur la carte des services et sur le
+  graphe du maillage, chaque arête rapportée par le proxy de destination porte
+  un marqueur côté appelant : un té quand tout a traversé en TLS mutuel, un
+  cercle creux quand c'est mixte, un cercle plein quand rien ne l'a été — avec
+  la part et le nombre d'appels en clair au survol. Une arête que personne n'a
+  mesurée ne porte aucun marqueur, et la légende n'explique le marqueur que
+  lorsqu'il y en a un sur la carte.
+
+## Le proxy explique ses échecs
+
+- **Les requêtes par issue.** Ouvrir un proxy montre ses requêtes telles que
+  son proxy les a comptées : par indicateur de réponse, avec la raison du proxy
+  en toutes lettres — disjoncteur ouvert, relances épuisées, amont injoignable,
+  aucune route — par version de destination sur laquelle chacune a atterri, et
+  par appelant avec son nombre de 5xx, pour qu'une charge en échec le soit pour
+  tout le monde ou pour un seul client. Les compteurs par amont qu'un lecteur
+  cherche ensuite — débordement en attente, éjections d'instances — sont
+  annoncés comme **non collectés** : un maillage par défaut ne les expose pas,
+  et la page nomme le réglage du proxy qui le fait plutôt que d'afficher un zéro
+  signifiant « on ne regarde pas ».
+
+- **Ztunnel dit ce qu'il transporte.** Charges transportées, charges annoncées
+  et pas encore câblées, flux du plan de contrôle coupés. Et la carte du plan de
+  contrôle lit deux séries d'istiod de plus quand la collecte les porte : les
+  conflits d'écouteurs, et le temps qu'une poussée a attendu dans la file avant
+  d'être envoyée.
+
+## Six contrôles sont devenus dix-sept
+
+La v0.14 jugeait la configuration pour les pannes qui n'émettent rien. Onze
+contrôles de plus couvrent la configuration qui a l'air finie et ne l'est pas :
+une charge étiquetée ambiante que l'agent de nœud n'a jamais capturée ; une
+politique dont le sélecteur ne correspond à aucun pod, ou dont la cible ne
+nomme rien ; un lien vers un waypoint que personne n'a déployé ; une règle ou
+une route de niveau HTTP dans un espace de noms ambiant sans waypoint pour
+l'évaluer ; un sidecar dans un espace de noms ambiant ; une route vers un
+sous-ensemble qu'aucune règle ne définit ; deux règles revendiquant un même
+hôte ; une passerelle qu'aucun pod en cours d'exécution ne sert ; des écouteurs
+qui ne peuvent coexister ; une règle d'autorisation nommant un compte de service
+sous lequel rien ne tourne. Le conflit mTLS est désormais jugé charge par charge
+contre la politique qui s'applique réellement, dans les deux sens.
+
+Les cinq contrôles qui ont besoin des pods deviennent **silencieux** quand la
+liste des pods n'a pu être lue ou a été coupée — et l'instantané le dit, en une
+phrase qui les nomme et dit pourquoi. Une colonne de problèmes vide ne doit
+jamais se lire comme un quitus.
+
+## Chaque absence se lit différemment
+
+L'onglet Sécurité commence par dire si le plan de données a seulement été lu,
+avec les mots de la carte du plan de contrôle — *non observé*, *sans réponse*
+(avec les noms des pods), ou *non reconnu* — et n'affiche aucun pourcentage
+tant qu'il ne l'a pas été, car un plan de données que personne ne collecte ne
+rapporte aucun clair, ce qui se lirait comme un maillage entièrement chiffré.
+Quand le module de configuration est désactivé, la colonne Déclaré est absente
+plutôt que remplie de « default », et une légende le dit. Une part que personne
+n'a mesurée est un tiret, jamais 0 %. Toute la surface est décrite sur la page
+[Maillage de services](/docs/signals/mesh).

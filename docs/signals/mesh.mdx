@@ -3,7 +3,7 @@ id: mesh
 title: Service mesh
 sidebar_label: Service mesh
 sidebar_position: 10
-description: The fabric your services run on — every proxy by role with what it carries, whether the control plane is still programming the mesh, and what your mesh configuration gets wrong without emitting a single span.
+description: The fabric your services run on — every proxy by role with what it carries and what it counted, whether the control plane is still programming the mesh, every workload the cluster runs with what was declared for it beside what its proxy observed, and what your mesh configuration gets wrong without emitting a single span.
 ---
 
 # Service mesh
@@ -22,7 +22,9 @@ screen is where the fabric itself gets to be the subject.
 :::info Off by default
 The mesh module is born off (`modules.mesh.enabled`). Most installs run no mesh,
 and a screen for infrastructure you do not have is noise. Turn it on and the
-proxy half works immediately — it reads telemetry you are already sending.
+proxy half works immediately — it reads telemetry you are already sending — and,
+with the infra-metrics module, the sensor also starts reading
+[the proxies themselves](#the-data-plane-from-the-proxies-themselves).
 :::
 
 ## The proxies
@@ -37,12 +39,12 @@ to do, and its own error rate can look perfectly healthy while that happens: it
 is answering requests, just not forwarding them. Seeing the two side by side is
 what makes that visible.
 
-There is **no new collection** behind this. Proxies emit spans exactly like
-applications do; the only reason they are absent from the rest of the product is
-a rendering decision. If a workload here looks wrong — a real application
-misread as a proxy, or a proxy the built-in patterns miss — the classification
-is correctable per install through the hub's `topology` configuration, without
-waiting for a release. See
+There is **no new collection** behind this table. Proxies emit spans exactly
+like applications do; the only reason they are absent from the rest of the
+product is a rendering decision. If a workload here looks wrong — a real
+application misread as a proxy, or a proxy the built-in patterns miss — the
+classification is correctable per install through the hub's `topology`
+configuration, without waiting for a release. See
 [mesh hops on the service map](/docs/signals/service-map#mesh-hops-are-not-dependencies).
 
 ### Every proxy has a role
@@ -69,6 +71,13 @@ label establishes that a workload **is** a gateway and not which direction it
 faces — and in a mesh without sidecars a waypoint is itself a Gateway resource
 wearing that label. Filing every one of them as an ingress gateway would be
 confidently wrong, so names decide the role and labels refine it.
+
+On the **Graph** tab each role also has its own shape — a star for the control
+plane, a tag for a gateway pointing in and its mirror for one pointing out, a
+chevron for ztunnel, a double ring for a waypoint — and a legend under the graph
+names only the shapes actually on it. A waypoint, a ztunnel and the ingress
+gateway next to it are three different jobs, and they no longer look like three
+copies of one thing.
 
 ### What it moved, and over what
 
@@ -100,6 +109,96 @@ waypoint to ztunnel, as the traffic really goes. That is precisely what the
 service map exists to take out, which is why it is a separate view rather than a
 toggle on the map.
 
+### What its proxy counted
+
+A span records one status code. The proxy that produced the 503 knows *why*: a
+circuit breaker open, a retry budget exhausted, a route to nowhere and an
+upstream timeout are four different failures with four different fixes. With
+the [data-plane scrape](#the-data-plane-from-the-proxies-themselves) on, a proxy's page shows its requests the
+way its proxy counted them:
+
+- **By response flag**, with the proxy's reason in words — a circuit breaker
+  open is drawn in amber. A flag this product does not know passes through
+  verbatim rather than being dropped: the proxy said it, and you can look it up.
+
+| Flag | What the proxy is saying |
+|---|---|
+| `UO` | Upstream overflow — a circuit breaker is open |
+| `URX` | Retries exhausted |
+| `UF` | The upstream would not connect |
+| `UT` | The upstream request timed out |
+| `NR` | No route configured |
+| `DC` | The downstream connection was terminated |
+| `RL` | Rate limited |
+
+- **By destination version**, so a canary that is failing is visibly the canary.
+- **By caller, with its 5xx count**, so a failing workload is failing for
+  everyone or for one client.
+
+Its figures gain the workload's **mutual-TLS share**. A ztunnel's gain what the
+node proxy itself counts: the workloads it carries, any still waiting to be
+wired, and the times its control-plane stream was cut. The proxy table gets an
+mTLS column only where the scrape reported one.
+
+The per-upstream counters a reader looks for next — pending overflow, outlier
+ejections — are stated as **not collected**. A default mesh does not expose
+them, and the page names the proxy setting that does
+(`meshConfig.defaultConfig.proxyStatsMatcher.inclusionPrefixes`) rather than
+rendering a zero that means *not looking*. A workload no proxy reported in the
+window reads *not measured* — a different thing from *the data plane is not
+read*, which is the [Security tab's](#security-what-was-declared-and-what-was-observed) to say.
+
+## The data plane, from the proxies themselves
+
+Everything above comes from spans and kernel flows, which answer how fast and
+how often — and cannot answer what every proxy knows about itself: whether a
+request travelled under mutual TLS or in the clear, whether a response flag
+names a circuit breaker or an exhausted retry budget, whether ztunnel is
+carrying the workloads it was told to carry. None of that is in a span.
+
+So the **sensor** scrapes the proxies on its own node — sidecars, waypoints,
+gateways and ztunnel — discovered through the `prometheus.io/*` annotations the
+mesh already writes on them. There is no endpoint to type. Each node scrapes
+only its own proxies, so a cluster of any size reaches every proxy exactly once.
+That is the inverse of the reason the control plane is scraped from the
+gateway: istiod is one Deployment, and proxies are one per pod.
+
+**What it keeps** is eight series: the request counter — carrying the security
+policy, the response flag, the destination version and the caller — the four
+TCP connection and byte counters, which carry the security policy too, and
+three ztunnel readings: workloads carried, workloads pending, control-plane
+streams cut. Request series from the *calling* side duplicate the ones the
+called side reports, so they are kept only from gateways, which have no called
+side to report for them; where both ends reported an edge, the destination's
+account wins. Namespaces excluded from collection are excluded at both ends of a
+series, not only where the reporting proxy happens to live.
+
+The scrape's own `up` is kept **per proxy**, so the screen can tell *nobody is
+scraping* from *the proxies are not answering* — and name the pods that are not.
+
+Counters are read as per-series deltas, never re-summed: a share computed from
+re-summed cumulative counters is wrong in a way that looks plausible.
+
+:::caution On by default under the mesh module
+Unlike the control-plane scrape, this needs no value at all, so it is **on**
+wherever the mesh module, the infra-metrics module and the sensor agent are on —
+and it starts collecting at upgrade. The module is the consent, and this is what
+the module is for.
+
+Budget roughly **20–100 series per proxy per 30-second scrape**, stored in the
+infra-metrics tables under your usual retention. To keep the mesh screen without
+it:
+
+```yaml
+mesh:
+  dataPlane:
+    enabled: false
+```
+
+Installs without the mesh module are untouched. The mesh module on with
+infra-metrics off still renders, without the receiver, and the hub says so.
+:::
+
 ## The control plane
 
 A mesh keeps serving its last accepted configuration long after the control
@@ -118,15 +217,17 @@ The control-plane card answers it directly:
 | **Push p95** | How long a push itself takes, which convergence alone conflates with how long proxies take to apply it |
 | **Write timeouts** | Pushes that never landed, because a proxy was too slow to receive them |
 | **Config events** | How much configuration churn the control plane is absorbing |
+| **Listener conflicts** | Configuration the control plane could not program because two pieces claim one listener — resolved by dropping one, and said only here |
+| **Queue p95** | How long a push waited in the control plane's queue before it was even sent — backpressure that shows up ahead of convergence, not inside it |
 
-The last three are omitted, not zeroed, when their series are not in your
+The last five are omitted, not zeroed, when their series are not in your
 scrape's keep-list or not in the window — an older scrape configuration reports
 fewer readings rather than reassuring ones.
 
-The last one is the reading nothing else can produce. A rejected push means the
-control plane and the data plane disagree about what the mesh should be doing —
-and the fleet carries on serving what it last accepted, looking fine everywhere
-else.
+**Rejected configs** is the reading nothing else can produce. A rejected push
+means the control plane and the data plane disagree about what the mesh should
+be doing — and the fleet carries on serving what it last accepted, looking fine
+everywhere else.
 
 ### When it is silent, the card says why
 
@@ -185,17 +286,79 @@ Deployment, and the sensor is a DaemonSet: scraping from there would produce one
 copy of every control-plane series per node, and any total over them would be
 wrong by the size of your cluster.
 
+## Security: what was declared, and what was observed
+
+The namespace list says `STRICT`. A mode is a claim: a `STRICT` policy that is
+not applied to a workload — the pod never enrolled, the selector misses it, a
+DestinationRule disables TLS for its host — looks, from configuration alone and
+from traces alone, exactly like one that is. Only the proxy that terminated the
+connection knows.
+
+The **Security** tab puts the two side by side, one row per workload: the
+PeerAuthentication mode in force with the scope that decided it, the share of
+accepted traffic that came over mutual TLS as a bar and a number, and a verdict
+as a badge. The join is one fold, run once, and every screen reads it — the
+[Workloads tab](#every-workload-the-cluster-runs-in-the-mesh-or-not), the namespace counts — so two screens cannot
+disagree about one workload.
+
+### The posture vocabulary
+
+| Posture | When | Finding |
+|---|---|---|
+| **Strict and all mTLS** | Declared `STRICT`, no plaintext observed | — |
+| **Not enforced** | Declared `STRICT`, plaintext observed | `MESH_MTLS_NOT_ENFORCED` — the policy is not applied to this workload; the hint says which of the three causes to check first |
+| **Safe to tighten** | No strict policy, no plaintext observed | `MESH_MTLS_READY_TO_TIGHTEN` — `STRICT` would refuse nothing that is currently talking |
+| **Plaintext callers** | No strict policy, plaintext observed | `MESH_PLAINTEXT_CALLERS` — the callers to migrate before tightening, named when the row is opened |
+| **Not carried** | An ambient namespace, traffic in the traces, and no proxy reported carrying any of it | `MESH_TRAFFIC_UNCARRIED` — the traffic is crossing the cluster unmeshed while the namespace reads as covered |
+| **Observed only** / **idle** / **unknown** | Configuration not read; nothing in the window; a proxy that declined to classify | — |
+
+Both misses keep their meaning. Configuration with no observation is *observed
+nothing in this window*; observation with no configuration is *not found in
+this cluster*. Neither is dropped, and a proxy that declined to classify traffic
+is counted as unknown, not as either side. *Not carried* is drawn only when the
+data plane was actually read: nobody looking is not the same as nothing there.
+
+The findings behind the verdicts sit under the table with their fix, filterable
+by namespace and by posture from the URL.
+
+### It leads with whether anything was read
+
+A data plane nobody scrapes reports no plaintext — which would read as a fully
+encrypted mesh, the exact lie this tab exists to prevent. So the tab leads with
+whether the data plane was read at all, in the control-plane card's own words,
+and shows no percentage until it was:
+
+| Tab | What happened | What to do |
+|---|---|---|
+| **Data plane not observed** | Nothing is scraping it | `mesh.dataPlane.enabled=true`, with the infra-metrics module on |
+| **Data plane not answering** | The scrape is running and some proxies are not responding — the pods are named | check the pods it names |
+| **Data plane not recognised** | Proxies answered, and none of the series this product reads came back | see [Limitations](#limitations) |
+
+When the `mesh-config` module is off, the Declared column is **missing** rather
+than full of "default", and a caption says so. A share nobody measured is a
+dash, never 0 %.
+
+### The map marks every edge that was measured
+
+On the [service map](/docs/signals/service-map) and on the mesh graph, every
+edge the destination's proxy reported carries a marker at the caller end: a
+**tee** when all of it crossed under mutual TLS, a **hollow circle** when mixed,
+a **filled circle** when none did — with the share and the plaintext count on
+hover. The target end stays the direction arrow, an errored edge stays red, and
+an edge nobody measured carries no marker at all. The legend explains the
+marker only when one is on the map.
+
 ## Your namespaces, and what the configuration gets wrong
 
-Everything above is derived from traffic. That is its strength and its ceiling:
-**a mesh misconfiguration that stops traffic produces no traffic to look at.**
-A namespace enrolled in the mesh with nothing behind it, a route pointing at a
-service that does not exist, a gateway nothing attaches to — each is silent, and
-silence is what every telemetry-derived screen renders as an absence rather than
-a problem.
+Everything above is derived from traffic and from what proxies counted. That is
+its strength and its ceiling: **a mesh misconfiguration that stops traffic
+produces no traffic to look at.** A namespace enrolled in the mesh with nothing
+behind it, a route pointing at a service that does not exist, a gateway nothing
+attaches to — each is silent, and silence is what every telemetry-derived
+screen renders as an absence rather than a problem.
 
 A second module, **`mesh-config`**, reads your cluster's own Istio and Gateway
-API objects and judges them.
+API objects — and its pods — and judges them.
 
 :::caution A separate module, and a separate permission
 `mesh-config` is off by default and **separate from the mesh module**, which is
@@ -205,9 +368,17 @@ would have handed a cluster-wide read to every install already running the mesh
 screens, on their next upgrade — so the grant is its own explicit choice.
 
 The permission is `get`, `list` and `watch`, on its own service account, over
-namespaces, workloads and mesh resources. There is no write verb, and the chart
-refuses to render if one is ever added.
+namespaces, workloads, **pods** and mesh resources. There is no write verb, and
+the chart refuses to render if one is ever added.
 :::
+
+Pods are the largest and most numerous object a cluster has, so the hub keeps a
+dozen fields of each — name, labels, the four annotations the mesh writes,
+owner, service account, node, container names, phase — and drops the rest
+before it is stored. They are capped on their own, apart from configuration, so
+a large cluster stays bounded and the snapshot says which list it cut. Every
+kind also reports when its cache last warmed and last changed, and a cache that
+never warms is named as missing rather than served half-full.
 
 ### Namespaces the traffic cannot show you
 
@@ -215,32 +386,114 @@ The namespace list comes from the cluster's **labels**, not from telemetry, so
 a namespace that is enrolled and completely silent finally has a row — and in a
 mesh without sidecars, *enrolled and silent* is the most common way the thing is
 misconfigured. Each row carries its data-plane mode, the waypoint serving it,
-its mTLS mode, the services and workloads that did send telemetry in the window,
+its mTLS mode drawn as a lock — marked *inherited* when a mesh-wide policy
+decided it rather than the namespace's own — how many of its workloads the mesh
+actually has, the services and workloads that did send telemetry in the window,
 and its finding counts.
 
 Telemetry is joined onto that list by namespace, using the same resolution the
 service map uses, so the two screens can never disagree about where a workload
 lives.
 
-### Six checks, aimed at what emits nothing
+### Every workload the cluster runs, in the mesh or not
+
+Enrolment is a fact about a pod: the sidecar is a container in it, and ambient
+capture is an annotation the node agent writes on it. A namespace label says
+what was asked for; only the pod says what happened. The **Workloads** tab lists
+what the cluster runs whether or not it ever sent a span — the row every
+traffic-derived screen was missing, because a workload asked into the mesh and
+never enrolled produces no traffic of its own.
+
+| Column | What it says |
+|---|---|
+| **Enrolment** | *Captured* by the node agent, a *sidecar* injected, *declared, not enrolled* — asked for by its labels, running, and neither — or *out of mesh*. Read from pods, never from templates: a template says a sidecar should be injected; only the pod says it was |
+| **Waypoint** | The waypoint that binds it, and where the binding came from — the workload's own label, its Service, or its namespace |
+| **Declared mTLS** | The mode that applies, drawn as a lock, with the PeerAuthentication that decided it and its scope — selector-scoped first, then namespace, then mesh-wide. A `PERMISSIVE` row inside a `STRICT` namespace reads as a selector policy, not as a bug |
+| **Observed mTLS** | The share the data plane measured for its own traffic — a dash where nothing did |
+| **Posture** | The same verdict, from the same fold, as the [Security tab](#security-what-was-declared-and-what-was-observed) |
+| **Traffic** | Its rate and error rate when telemetry saw it in the window; no number at all when it did not |
+| **Policies** | The PeerAuthentication, AuthorizationPolicy and RequestAuthentication objects that cover it, and at what scope each reached it |
+| **Issues** | Its error and warning counts |
+
+*Declared, not enrolled* is a filter of its own — the enrolment gap by itself —
+and it travels in the URL, as do the namespace and the mode.
+
+A workload opens onto its own page: identity and binding, declared beside
+observed, the policies that cover it with their own findings and a link into
+each, its findings with the fix beside the fault, and its pods — bounded to
+fifty with the total stated, so a DaemonSet on a thousand nodes is one row and
+a number.
+
+Deployments are confirmed from the pod template hash without watching
+ReplicaSets — one fact the hash already encodes, at the cost of no extra grant.
+A Deployment that cannot be confirmed is reported as its ReplicaSet, which is
+honest.
+
+### What a waypoint serves
+
+A waypoint's own traffic cannot say what it is for: a waypoint nothing is bound
+to and one whose clients are idle look the same on the wire. A waypoint's page
+lists what it **serves** — the namespaces, Services and workloads bound to it —
+and whether a running pod serves it, saying plainly when nothing runs it, or
+nothing is bound to it.
+
+### Seventeen checks, aimed at what emits nothing or looks safe
+
+v0.14's six checks were aimed at breakage that emits nothing. Eleven more now
+cover the configuration that looks finished and is not. Fifteen codes, some
+covering more than one check:
+
+**Routes and hosts**
 
 | Finding | Fires when |
 |---|---|
-| `MESH_ROUTE_BACKEND_MISSING` | A route sends traffic to a Service, or a port, that does not exist |
-| `MESH_ROUTE_PARENT_MISSING` | A route names a gateway that is not there |
+| `MESH_ROUTE_BACKEND_MISSING` | A route sends traffic to a Service, or a port, that does not exist — it attaches, matches, and drops every request |
+| `MESH_ROUTE_PARENT_MISSING` | A route names a gateway that is not there; nothing serves it |
+| `MESH_HOST_UNRESOLVED` | A rule's host matches no service in the cluster — usually a typo or a deleted service |
+| `MESH_SUBSET_MISSING` | A route sends traffic to a subset no DestinationRule for that host defines — it matches and has no upstream |
+| `MESH_HOST_CONFLICT` | Two mesh-bound VirtualServices for one host, or two DestinationRules claiming one — only one is applied; the other looks configured and does nothing |
+
+**Gateways and waypoints**
+
+| Finding | Fires when |
+|---|---|
 | `MESH_GATEWAY_NO_ROUTES` | A gateway listener nothing attaches to |
-| `MESH_HOST_UNRESOLVED` | A rule's host matches no service in the cluster |
-| `MESH_MTLS_CONFLICT` | A rule disables TLS underneath a strict policy |
-| `MESH_WAYPOINT_MISSING` | A workload is sent to a waypoint that does not exist |
+| `MESH_GATEWAY_NO_WORKLOAD` | A Gateway, waypoints included, that no running pod serves — its listeners exist and nothing answers on them |
+| `MESH_LISTENER_CONFLICT` | Listeners on one gateway that share a port and hostname with different protocols, or share a name — the gateway is not programmed while they conflict |
+| `MESH_WAYPOINT_MISSING` | A namespace, Service or workload bound to a waypoint that is not deployed — every policy and route meant for it is silently skipped |
+| `MESH_L7_WITHOUT_WAYPOINT` | An HTTP-level authorization or routing rule, a request authentication, or an HTTP connection pool in an ambient namespace with no waypoint to evaluate it — allow rules fail closed, routes are simply not applied |
 
-Each finding says what is wrong, what to do about it and which object to open,
-and they roll up per namespace so the namespace list stays scannable rather than
-becoming a wall of individual problems.
+**Workloads and policies**
 
-The checks are deliberately **conservative**. A host that is a wildcard, or an
-external domain the cluster cannot be expected to define, is skipped rather than
-reported — a screen that cries wolf about working configuration gets ignored,
-and then it is worth nothing when it is right.
+| Finding | Fires when |
+|---|---|
+| `MESH_AMBIENT_NOT_ENROLLED` | A workload labelled for ambient, running, and neither captured by the node agent nor injected — the most common ambient misconfiguration, invisible to traffic alone |
+| `MESH_DATAPLANE_CONFLICT` | A workload asked to be two things at once: a sidecar in an ambient namespace, a pod labelled for both modes, or a waypoint binding on a workload that is not ambient |
+| `MESH_POLICY_NO_MATCH` | A policy whose selector matches no pod, or whose targetRef names an object that does not exist — protection that protects nothing |
+| `MESH_PRINCIPAL_UNKNOWN` | An authorization rule naming a service account no running workload uses — an ALLOW for it allows nobody, a DENY denies nobody |
+| `MESH_MTLS_CONFLICT` | A DestinationRule disabling TLS toward a workload whose *effective* policy is `STRICT`, or demanding mutual TLS of one that disables it — judged per workload, selector-scoped policies included, in both directions |
+
+Every finding says what breaks silently and what to change, and names the
+object it is about — with its kind, so a Service and a Workload spelled the same
+way open on the right tab. They roll up per namespace so the list stays
+scannable rather than becoming a wall of individual problems.
+
+**Five of these need pods** — `MESH_POLICY_NO_MATCH`, `MESH_AMBIENT_NOT_ENROLLED`,
+`MESH_DATAPLANE_CONFLICT`, `MESH_GATEWAY_NO_WORKLOAD` and
+`MESH_PRINCIPAL_UNKNOWN` — and run only when every pod was read. When pods were
+refused or the list was cut they go **silent** rather than wrong, and the
+snapshot says so in one sentence naming them and why, on every tab that shows
+findings. A check that cannot see every pod would call a policy unmatched when
+its pods are simply past the cap; an empty issues column must never read as a
+clean bill.
+
+Deliberately not a finding: *no policy covers this workload*. That is the
+workload's own policy list being empty — a fact on the row — because on most
+clusters it is the state of most workloads. The checks stay **conservative**
+elsewhere too: a host that is a wildcard, or an external domain the cluster
+cannot be expected to define, is skipped rather than reported. A screen that
+cries wolf about working configuration gets ignored, and then it is worth
+nothing when it is right.
 
 ### When it cannot read the cluster
 
@@ -252,6 +505,7 @@ As everywhere else here, each failure reads differently and names its own fix:
 | **Forbidden** | The `ClusterRole` was not granted | the reason names the role and the chart value |
 | **No CRDs** | Your mesh's custom resources are not installed | install them, or turn the module off |
 | **Truncated** | The cluster is larger than the snapshot cap | stated explicitly — never a silently short list |
+| **Pods not readable**, or **cut** | The `ClusterRole` predates v0.15, or the cluster has more pods than the pod cap | the five pod-gated checks are skipped and the response names them; grant `pods` `get`/`list`/`watch` by applying the upgraded chart |
 
 Configuration lives in memory, rebuilt from the cluster on startup. There is no
 table, no migration and no retention interplay: it is small, it changes rarely,
@@ -268,24 +522,35 @@ modules:
 ```
 
 It requires the mesh module — the deploy fails loudly rather than quietly
-rendering a screen with nothing above it.
+rendering a screen with nothing above it. Upgrading from v0.14, the chart's
+read-only `ClusterRole` gains `pods`; apply the upgraded chart so the Workloads
+and Security tabs fill.
 
 ## Limitations
 
-- **The control-plane half is Istio-shaped.** It reads istiod's metrics by name.
-  The per-proxy half is protocol-agnostic — it is RED on classified workloads —
-  so it works for any mesh whose proxies emit spans.
-- **Two checks are deliberately not implemented.** *This policy's selector
-  matches no workload* needs pod labels the hub cannot see for workloads created
-  outside a Deployment, and would announce that a policy protects nothing about
-  a policy that protects something. *Enrolled but never actually behind the L4
-  proxy* needs the telemetry join rather than the configuration alone. A false
-  finding is worse than a missing one on a screen whose entire job is to be
-  believed, so both are named here instead of guessed at.
-- **Findings are about configuration, not about live proxy state.** What routes
-  a given proxy has *loaded* is still a question for your mesh's own tooling.
-  What this reads is what the cluster was told to do, and where that instruction
-  does not add up.
+- **Per-proxy effective configuration is still out.** What routes a given proxy
+  has *loaded* — its config dump — is a debugger's job and needs the proxy admin
+  API. What this reads is what the cluster was told to do, what its proxies
+  counted, and where the two do not add up.
+- **The proxies' per-upstream counters are not collected.** Pending overflow
+  and outlier ejections are not exposed by a default mesh; collecting them
+  means opting every proxy into
+  `proxyStatsMatcher.inclusionPrefixes: [cluster.outbound]`, which multiplies
+  each proxy's series by its upstreams. The proxy page names the setting rather
+  than rendering their absence as zero.
+- **No posture history, and no alerting on posture.** A posture is computed
+  over the window you are looking at. Trending it and alerting on it wait until
+  the verdicts have been trusted on real clusters.
+- **Both scrapes are Istio-shaped.** The control-plane card reads istiod's
+  metrics by name, and the data-plane series — the request counter with its
+  security policy, the TCP counters, ztunnel's workload counts — are Istio's.
+  Another mesh's proxies read *not recognised* rather than being mapped onto
+  labels that would be right and answers that would be wrong. The per-proxy RED
+  half and the workload inventory are mesh-agnostic.
+- **Findings are about configuration and about what proxies counted, not about
+  live proxy state.** A posture says plaintext reached a workload; it does not
+  say which listener accepted it. That is still a question for your mesh's own
+  tooling.
 
 ## See also
 

@@ -1,0 +1,83 @@
+---
+slug: v0-15-0
+title: "v0.15.0: what the mesh was told, and what it did"
+description: "The sensor reads the proxies, the configuration module reads pods, and every workload the cluster runs gets a row with what was declared beside what was observed — a posture per workload, seventeen configuration checks, a proxy that explains its failures, and a graph that reads by role."
+authors: [avuru]
+tags: [security, service-map, platform, ui]
+date: 2026-09-07
+---
+
+**v0.15.0** puts, on one row, what your mesh's configuration says about a
+workload and what its proxy actually did — and gives every workload the cluster
+runs a row, whether or not it ever sent a span.
+
+{/* truncate */}
+
+- **[Declared beside observed](/changelog/mesh-declared-vs-observed).** The
+  release-defining item. The sensor now scrapes the proxies on its own node —
+  sidecars, waypoints, gateways and ztunnel — discovered through the
+  annotations the mesh already writes, so there is no endpoint to type and
+  every proxy is reached exactly once. The hub joins what they report — mutual
+  TLS or plaintext, per request and per connection, and who sent the clear
+  part — to the PeerAuthentication that actually governs each workload,
+  including the selector-scoped ones the v0.14 reader skipped. A new
+  **Security** tab draws one of four verdicts per workload: strict and all
+  mutual TLS; declared strict, observed plaintext — a policy that is not
+  applied, and a finding instead of a silence; permissive but safe to tighten;
+  permissive with plaintext callers, named. Traffic in an ambient namespace
+  that no proxy carried is a finding of its own. On the service map and the
+  mesh graph, every edge a proxy measured carries a marker at the caller end
+  for all-encrypted, mixed or plaintext — and an edge nobody measured carries
+  none. **On by default under the mesh module**, and it starts collecting at
+  upgrade: the module is the consent. `mesh.dataPlane.enabled=false` keeps the
+  screen without the scrape.
+
+- **Every workload, in or out.** `mesh-config` now reads pods — still `get`,
+  `list` and `watch`, a dozen fields kept per pod and capped on their own — so
+  a workload exists below the namespace. A **Workloads** tab lists what the
+  cluster runs whether or not it sent traffic: captured by the node agent, a
+  sidecar injected, *declared, not enrolled*, or out of mesh, with the waypoint
+  that binds it and where that binding came from, the policies that cover it,
+  and the declared mTLS mode with the policy that decided it. A workload opens
+  onto its own page with its pods and findings; a waypoint's page lists what it
+  serves and says when nothing runs it. Namespace rows say where their mode
+  came from and how many of their workloads are enrolled.
+
+- **Six checks became seventeen.** Eleven more cover the configuration that
+  looks finished and is not: a workload labelled for ambient the node agent
+  never captured, a policy matching no pod or naming nothing, a binding to a
+  waypoint nobody deployed, HTTP-level rules in an ambient namespace with no
+  waypoint, a sidecar where the namespace is ambient, a route to an undefined
+  subset, two rules claiming one host, a gateway no pod serves, listeners that
+  conflict, an authorization rule naming a service account nobody runs as; the
+  mTLS conflict is judged per workload, in both directions. The five that need
+  pods go silent when the pod list was refused or cut, and the snapshot says
+  so in one sentence — an empty issues column is never a clean bill.
+
+- **The proxy explains its failures.** A proxy's page shows its requests as its
+  proxy counted them: by response flag with the reason in words — circuit
+  breaker open, retries exhausted, upstream would not connect, no route — by
+  destination version, and by caller with its 5xx count. The per-upstream
+  counters a default mesh does not expose are named as not collected, with the
+  setting that exposes them, rather than rendered as zero. Ztunnel rows carry
+  the workloads they carry and the ones still waiting; the control-plane card
+  reads listener conflicts and the queue p95 when the scrape carries them.
+
+- **The graph reads by role.** The mesh graph drew every hop as the same
+  diamond. Each role now has its own shape — a star for the control plane, a
+  tag for a gateway pointing in and its mirror for one pointing out, a chevron
+  for ztunnel, a double ring for a waypoint — and a legend names only the
+  shapes actually on it. The service map is unchanged: it has no roles to draw.
+
+For integrations, five routes join the API: `GET /api/v1/mesh/security`,
+`/mesh/workloads`, `/mesh/workloads/{namespace}/{name}`,
+`/mesh/workloads/{namespace}/{name}/requests` and
+`/mesh/waypoints/{namespace}/{name}` — see the
+[API reference](/reference/api).
+
+Upgrade with the [Helm chart](/docs/setup/kubernetes) as usual. **This release
+changes collection on installs running the mesh module**: the data-plane scrape
+is on by default there, and it starts at upgrade — budget roughly 20–100 series
+per proxy per 30-second scrape, in the infra-metrics tables, or set
+`mesh.dataPlane.enabled=false`. The `mesh-config` ClusterRole gains `pods`,
+read-only. Installs without the mesh module are untouched.
