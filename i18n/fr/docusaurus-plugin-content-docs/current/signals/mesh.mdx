@@ -3,7 +3,7 @@ id: mesh
 title: Maillage de services
 sidebar_label: Maillage de services
 sidebar_position: 10
-description: Le tissu sur lequel tournent vos services — chaque proxy par rôle avec ce qu'il transporte, le plan de contrôle programme-t-il encore le maillage, et ce que votre configuration de maillage a de faux sans émettre le moindre span.
+description: Le tissu sur lequel tournent vos services — chaque proxy par rôle avec ce qu'il transporte et ce qu'il a compté, le plan de contrôle programme-t-il encore le maillage, chaque charge de travail que le cluster exécute avec ce qui a été déclaré pour elle à côté de ce que son proxy a observé, et ce que votre configuration de maillage a de faux sans émettre le moindre span.
 ---
 
 # Maillage de services
@@ -23,7 +23,9 @@ panne. Cet écran est l'endroit où le tissu lui-même devient le sujet.
 Le module maillage naît désactivé (`modules.mesh.enabled`). La plupart des
 installations n'ont pas de maillage, et un écran pour une infrastructure que vous
 n'avez pas n'est que du bruit. Activez-le et la moitié « proxys » fonctionne
-immédiatement : elle lit une télémétrie que vous envoyez déjà.
+immédiatement — elle lit une télémétrie que vous envoyez déjà — et, avec le
+module infra-metrics, la sonde se met aussi à lire
+[les proxys eux-mêmes](#le-plan-de-données-lu-depuis-les-proxys-eux-mêmes).
 :::
 
 ## Les proxys
@@ -38,7 +40,7 @@ laquelle il existe, et son propre taux d'erreur peut paraître parfaitement sain
 pendant ce temps : il répond aux requêtes, il ne les relaie simplement plus. Les
 voir côte à côte est ce qui rend cela visible.
 
-Il n'y a **aucune collecte supplémentaire** derrière cet écran. Les proxys
+Il n'y a **aucune collecte supplémentaire** derrière ce tableau. Les proxys
 émettent des spans exactement comme les applications ; la seule raison de leur
 absence ailleurs dans le produit est une décision d'affichage. Si une charge de
 travail semble mal classée ici — une vraie application prise pour un proxy, ou un
@@ -74,6 +76,14 @@ ressource Gateway portant ce label. Les classer tous comme passerelles d'entrée
 serait une erreur pleine d'assurance : le nom décide donc du rôle, et les labels
 l'affinent.
 
+Sur l'onglet **Graphe**, chaque rôle a aussi sa propre forme — une étoile pour
+le plan de contrôle, une étiquette pour une passerelle tournée vers l'intérieur
+et son miroir pour une tournée vers l'extérieur, un chevron pour ztunnel, un
+double anneau pour un waypoint — et une légende sous le graphe ne nomme que les
+formes réellement présentes. Un waypoint, un ztunnel et la passerelle d'entrée
+à côté sont trois métiers différents, et ils ne ressemblent plus à trois copies
+d'une même chose.
+
 ### Ce qu'il a déplacé, et sur quoi
 
 Les appels entrants et sortants sont des comptes. Avec le module infra-metrics
@@ -105,6 +115,108 @@ vers waypoint vers ztunnel, tel que le trafic circule vraiment. C'est exactement
 ce que la carte des services existe pour retirer, d'où une vue distincte plutôt
 qu'une bascule sur la carte.
 
+### Ce que son proxy a compté
+
+Un span enregistre un code de statut. Le proxy qui a produit le 503 sait
+*pourquoi* : un disjoncteur ouvert, un budget de relances épuisé, une route vers
+nulle part et une expiration côté amont sont quatre pannes différentes avec
+quatre correctifs différents. Avec la [collecte du plan de données](#le-plan-de-données-lu-depuis-les-proxys-eux-mêmes)
+active, la page d'un proxy montre ses requêtes telles que son proxy les a
+comptées :
+
+- **Par indicateur de réponse**, avec la raison du proxy en toutes lettres — un
+  disjoncteur ouvert est dessiné en ambre. Un indicateur que ce produit ne
+  connaît pas est transmis tel quel plutôt qu'écarté : le proxy l'a dit, et vous
+  pouvez le chercher.
+
+| Indicateur | Ce que dit le proxy |
+|---|---|
+| `UO` | Débordement en amont — un disjoncteur est ouvert |
+| `URX` | Relances épuisées |
+| `UF` | L'amont n'a pas accepté la connexion |
+| `UT` | La requête vers l'amont a expiré |
+| `NR` | Aucune route configurée |
+| `DC` | La connexion en aval a été interrompue |
+| `RL` | Limité en débit |
+
+- **Par version de destination**, pour qu'un canari en échec soit visiblement
+  le canari.
+- **Par appelant, avec son nombre de 5xx**, pour qu'une charge en échec le soit
+  pour tout le monde ou pour un seul client.
+
+Ses chiffres gagnent la **part de TLS mutuel** de la charge. Ceux d'un ztunnel
+gagnent ce que le proxy de nœud compte lui-même : les charges qu'il transporte,
+celles encore en attente de câblage, et le nombre de fois où son flux vers le
+plan de contrôle a été coupé. Le tableau des proxys n'obtient une colonne mTLS
+que là où la collecte en a rapporté une.
+
+Les compteurs par amont qu'un lecteur cherche ensuite — débordement en attente,
+éjections d'instances — sont annoncés comme **non collectés**. Un maillage par
+défaut ne les expose pas, et la page nomme le réglage du proxy qui le fait
+(`meshConfig.defaultConfig.proxyStatsMatcher.inclusionPrefixes`) plutôt que
+d'afficher un zéro signifiant « on ne regarde pas ». Une charge qu'aucun proxy
+n'a rapportée dans la fenêtre se lit *non mesurée* — autre chose que « le plan
+de données n'est pas lu », ce que seul [l'onglet Sécurité](#sécurité-le-déclaré-et-lobservé) a
+qualité pour dire.
+
+## Le plan de données, lu depuis les proxys eux-mêmes
+
+Tout ce qui précède vient des spans et des flux noyau, qui répondent à « à
+quelle vitesse » et « combien de fois » — et ne savent pas répondre à ce que
+chaque proxy sait de lui-même : si une requête a circulé en TLS mutuel ou en
+clair, si un indicateur de réponse nomme un disjoncteur ou un budget de relances
+épuisé, si ztunnel transporte les charges qu'on lui a demandé de transporter.
+Rien de cela n'est dans un span.
+
+La **sonde** collecte donc les proxys de son propre nœud — sidecars, waypoints,
+passerelles et ztunnel — découverts grâce aux annotations `prometheus.io/*` que
+le maillage écrit déjà sur eux. Il n'y a aucun point d'entrée à saisir. Chaque
+nœud ne collecte que ses propres proxys, si bien qu'un cluster de n'importe
+quelle taille atteint chaque proxy exactement une fois. C'est l'inverse de la
+raison pour laquelle le plan de contrôle est collecté depuis la passerelle :
+istiod est un seul Deployment, et les proxys sont un par pod.
+
+**Ce qu'elle conserve** tient en huit séries : le compteur de requêtes — qui
+porte la politique de sécurité, l'indicateur de réponse, la version de
+destination et l'appelant — les quatre compteurs de connexions et d'octets TCP,
+qui portent aussi la politique de sécurité, et trois relevés de ztunnel : les
+charges transportées, les charges en attente, les flux vers le plan de contrôle
+coupés. Les séries de requêtes émises côté *appelant* dupliquent celles que
+rapporte le côté appelé : elles ne sont conservées que depuis les passerelles,
+qui n'ont pas de côté appelé pour les rapporter ; quand les deux bouts ont
+rapporté une arête, le compte de la destination l'emporte. Les espaces de noms
+exclus de la collecte le sont aux deux bouts d'une série, et pas seulement là où
+vit le proxy qui rapporte.
+
+Le `up` de la collecte est conservé **par proxy**, pour que l'écran distingue
+« personne ne collecte » de « les proxys ne répondent pas » — et nomme les pods
+qui ne répondent pas.
+
+Les compteurs sont lus en deltas par série, jamais re-sommés : une part calculée
+à partir de compteurs cumulatifs re-sommés est fausse d'une façon qui paraît
+plausible.
+
+:::caution Activé par défaut sous le module de maillage
+Contrairement à la collecte du plan de contrôle, celle-ci n'a besoin d'aucune
+valeur : elle est donc **active** partout où le module de maillage, le module
+infra-metrics et l'agent de la sonde le sont — et elle démarre à la mise à jour.
+Le module est le consentement, et c'est à cela que le module sert.
+
+Comptez environ **20 à 100 séries par proxy et par collecte de 30 secondes**,
+stockées dans les tables d'infra-metrics sous votre rétention habituelle. Pour
+conserver l'écran Maillage sans elle :
+
+```yaml
+mesh:
+  dataPlane:
+    enabled: false
+```
+
+Les installations sans module de maillage ne sont pas touchées. Le module de
+maillage actif avec infra-metrics désactivé se rend toujours, sans le récepteur,
+et le hub le dit.
+:::
+
 ## Le plan de contrôle
 
 Un maillage continue de servir sa dernière configuration acceptée longtemps après
@@ -123,16 +235,19 @@ La carte du plan de contrôle y répond directement :
 | **p95 de poussée** | Le temps que prend la poussée elle-même, que la convergence seule confond avec le temps que les proxys mettent à l'appliquer |
 | **Expirations d'écriture** | Les poussées qui ne sont jamais arrivées, parce qu'un proxy était trop lent pour les recevoir |
 | **Événements de configuration** | La quantité de changements de configuration que le plan de contrôle absorbe |
+| **Conflits d'écouteurs** | La configuration que le plan de contrôle n'a pas pu programmer parce que deux éléments revendiquent un même écouteur — résolue en en abandonnant un, et dite seulement ici |
+| **p95 de file d'attente** | Le temps qu'une poussée a attendu dans la file du plan de contrôle avant même d'être envoyée — une contre-pression qui apparaît avant la convergence, pas dedans |
 
-Les trois derniers sont omis, et non mis à zéro, lorsque leurs séries ne sont pas
+Les cinq derniers sont omis, et non mis à zéro, lorsque leurs séries ne sont pas
 dans la liste de conservation de votre collecte ou pas dans la fenêtre : une
 configuration de collecte plus ancienne rapporte moins d'indicateurs plutôt que
 des indicateurs rassurants.
 
-Le dernier est celui que rien d'autre ne peut produire. Une poussée refusée
-signifie que le plan de contrôle et le plan de données divergent sur ce que le
-maillage devrait faire — pendant que la flotte continue de servir sa dernière
-configuration acceptée, en paraissant saine partout ailleurs.
+**Configurations refusées** est l'indicateur que rien d'autre ne peut produire.
+Une poussée refusée signifie que le plan de contrôle et le plan de données
+divergent sur ce que le maillage devrait faire — pendant que la flotte continue
+de servir sa dernière configuration acceptée, en paraissant saine partout
+ailleurs.
 
 ### Quand il se tait, la carte dit pourquoi
 
@@ -194,17 +309,84 @@ unique Deployment et la sonde est un DaemonSet : collecter depuis celle-ci
 produirait une copie de chaque série du plan de contrôle par nœud, et tout total
 sur ces séries serait faux d'un facteur égal à la taille de votre cluster.
 
+## Sécurité, le déclaré et l'observé
+
+La liste des espaces de noms dit `STRICT`. Un mode est une affirmation : une
+politique `STRICT` qui ne s'applique pas à une charge — le pod jamais inscrit,
+le sélecteur qui le manque, une DestinationRule qui désactive TLS pour son hôte
+— ressemble, vue de la seule configuration comme des seules traces, exactement à
+une politique appliquée. Seul le proxy qui a terminé la connexion le sait.
+
+L'onglet **Sécurité** met les deux côte à côte, une ligne par charge de
+travail : le mode PeerAuthentication en vigueur avec la portée qui l'a décidé,
+la part du trafic accepté arrivée en TLS mutuel sous forme de barre et de
+nombre, et un verdict en badge. La jointure est une seule opération, exécutée
+une fois, et chaque écran la lit — l'[onglet Charges de travail](#chaque-charge-de-travail-que-le-cluster-exécute-dans-le-maillage-ou-non),
+les compteurs d'espace de noms — pour que deux écrans ne puissent pas se
+contredire sur une charge.
+
+### Le vocabulaire des postures
+
+| Posture | Quand | Constat |
+|---|---|---|
+| **Strict et tout en mTLS** | Déclaré `STRICT`, aucun clair observé | — |
+| **Non appliqué** | Déclaré `STRICT`, du clair observé | `MESH_MTLS_NOT_ENFORCED` — la politique ne s'applique pas à cette charge ; l'indice dit laquelle des trois causes vérifier d'abord |
+| **Peut être resserré** | Aucune politique stricte, aucun clair observé | `MESH_MTLS_READY_TO_TIGHTEN` — `STRICT` ne refuserait rien de ce qui parle aujourd'hui |
+| **Appelants en clair** | Aucune politique stricte, du clair observé | `MESH_PLAINTEXT_CALLERS` — les appelants à migrer avant de resserrer, nommés quand la ligne est ouverte |
+| **Non transportée** | Un espace de noms ambiant, du trafic dans les traces, et aucun proxy n'a déclaré en transporter | `MESH_TRAFFIC_UNCARRIED` — le trafic traverse le cluster hors maillage pendant que l'espace de noms se lit comme couvert |
+| **Observé seulement** / **inactive** / **inconnue** | Configuration non lue ; rien dans la fenêtre ; un proxy qui a refusé de classer | — |
+
+Les deux absences gardent leur sens. Une configuration sans observation se lit
+*rien observé dans cette fenêtre* ; une observation sans configuration se lit
+*introuvable dans ce cluster*. Aucune n'est écartée, et un proxy qui a refusé de
+classer son trafic est compté comme inconnu, pas d'un côté ni de l'autre. *Non
+transportée* n'est dessiné que lorsque le plan de données a réellement été lu :
+personne qui regarde n'est pas la même chose que rien à voir.
+
+Les constats derrière les verdicts se trouvent sous le tableau avec leur
+correctif, filtrables par espace de noms et par posture depuis l'URL.
+
+### Il commence par dire si quelque chose a été lu
+
+Un plan de données que personne ne collecte ne rapporte aucun clair — ce qui se
+lirait comme un maillage entièrement chiffré, exactement le mensonge que cet
+onglet existe pour empêcher. L'onglet commence donc par dire si le plan de
+données a seulement été lu, avec les mots de la carte du plan de contrôle, et
+n'affiche aucun pourcentage tant qu'il ne l'a pas été :
+
+| Onglet | Ce qui s'est passé | Que faire |
+|---|---|---|
+| **Plan de données non observé** | Rien ne le collecte | `mesh.dataPlane.enabled=true`, avec le module infra-metrics actif |
+| **Plan de données sans réponse** | La collecte tourne et certains proxys ne répondent pas — les pods sont nommés | vérifiez les pods qu'il nomme |
+| **Plan de données non reconnu** | Les proxys ont répondu, et aucune des séries que lit ce produit n'est revenue | voir [Limites](#limites) |
+
+Quand le module `mesh-config` est désactivé, la colonne Déclaré est **absente**
+plutôt que remplie de « default », et une légende le dit. Une part que personne
+n'a mesurée est un tiret, jamais 0 %.
+
+### La carte marque chaque arête mesurée
+
+Sur la [carte des services](/docs/signals/service-map) et sur le graphe du
+maillage, chaque arête rapportée par le proxy de destination porte un marqueur
+côté appelant : un **té** quand tout a traversé en TLS mutuel, un **cercle
+creux** quand c'est mixte, un **cercle plein** quand rien ne l'a été — avec la
+part et le nombre d'appels en clair au survol. Le bout cible reste la flèche de
+direction, une arête en erreur reste rouge, et une arête que personne n'a
+mesurée ne porte aucun marqueur. La légende n'explique le marqueur que
+lorsqu'il y en a un sur la carte.
+
 ## Vos espaces de noms, et ce que la configuration a de faux
 
-Tout ce qui précède est dérivé du trafic. C'est sa force et son plafond : **une
-erreur de configuration du maillage qui arrête le trafic ne produit aucun trafic
-à observer.** Un espace de noms inscrit au maillage sans rien derrière, une route
-pointant vers un service inexistant, une passerelle à laquelle rien ne se
-rattache — chacun est silencieux, et le silence est ce que tout écran dérivé de
-la télémétrie affiche comme une absence plutôt que comme un problème.
+Tout ce qui précède est dérivé du trafic et de ce que les proxys ont compté.
+C'est sa force et son plafond : **une erreur de configuration du maillage qui
+arrête le trafic ne produit aucun trafic à observer.** Un espace de noms inscrit
+au maillage sans rien derrière, une route pointant vers un service inexistant,
+une passerelle à laquelle rien ne se rattache — chacun est silencieux, et le
+silence est ce que tout écran dérivé de la télémétrie affiche comme une absence
+plutôt que comme un problème.
 
 Un second module, **`mesh-config`**, lit les objets Istio et Gateway API de votre
-cluster et les juge.
+cluster — et ses pods — et les juge.
 
 :::caution Un module distinct, et une permission distincte
 `mesh-config` est désactivé par défaut et **séparé du module de maillage**, ce
@@ -215,10 +397,19 @@ cluster à toute installation utilisant déjà ces écrans, dès sa prochaine mi
 jour — l'autorisation est donc un choix explicite à part entière.
 
 La permission se limite à `get`, `list` et `watch`, sur son propre compte de
-service, sur les espaces de noms, les charges de travail et les ressources de
-maillage. Il n'y a aucun verbe d'écriture, et le chart refuse de se rendre si
-l'on en ajoute un.
+service, sur les espaces de noms, les charges de travail, les **pods** et les
+ressources de maillage. Il n'y a aucun verbe d'écriture, et le chart refuse de
+se rendre si l'on en ajoute un.
 :::
+
+Les pods sont l'objet le plus gros et le plus nombreux d'un cluster : le hub n'en
+conserve donc qu'une douzaine de champs — nom, labels, les quatre annotations
+que le maillage écrit, propriétaire, compte de service, nœud, noms des
+conteneurs, phase — et écarte le reste avant stockage. Ils sont plafonnés à part,
+indépendamment de la configuration, pour qu'un grand cluster reste borné et que
+l'instantané dise quelle liste il a coupée. Chaque type rapporte aussi la date
+de son dernier réchauffement de cache et de son dernier changement, et un cache
+qui ne se réchauffe jamais est nommé comme manquant plutôt que servi à moitié.
 
 ### Les espaces de noms que le trafic ne peut pas montrer
 
@@ -226,32 +417,119 @@ La liste des espaces de noms provient des **labels** du cluster, pas de la
 télémétrie : un espace de noms inscrit et totalement silencieux a donc enfin une
 ligne — et dans un maillage sans sidecars, « inscrit et silencieux » est la façon
 la plus courante de mal le configurer. Chaque ligne porte son mode de plan de
-données, le waypoint qui le sert, son mode mTLS, les services et charges qui ont
-bel et bien émis de la télémétrie dans la fenêtre, et ses nombres de constats.
+données, le waypoint qui le sert, son mode mTLS dessiné comme un cadenas — marqué
+*hérité* quand une politique à l'échelle du maillage l'a décidé plutôt que la
+sienne — le nombre de ses charges que le maillage a réellement, les services et
+charges qui ont bel et bien émis de la télémétrie dans la fenêtre, et ses nombres
+de constats.
 
 La télémétrie est jointe à cette liste par espace de noms, avec la même
 résolution que celle qu'emploie la carte des services : les deux écrans ne
 peuvent donc jamais se contredire sur l'endroit où vit une charge de travail.
 
-### Six contrôles, visant ce qui n'émet rien
+### Chaque charge de travail que le cluster exécute, dans le maillage ou non
+
+L'inscription est un fait qui concerne un pod : le sidecar est un conteneur
+dedans, et la capture ambiante est une annotation que l'agent de nœud y écrit.
+Un label d'espace de noms dit ce qui a été demandé ; seul le pod dit ce qui s'est
+passé. L'onglet **Charges de travail** liste ce que le cluster exécute, qu'il ait
+ou non jamais émis un span — la ligne qui manquait à tout écran dérivé du trafic,
+parce qu'une charge invitée dans le maillage et jamais inscrite ne produit aucun
+trafic à elle.
+
+| Colonne | Ce qu'elle dit |
+|---|---|
+| **Inscription** | *Capturée* par l'agent de nœud, *sidecar* injecté, *déclarée, non inscrite* — demandée par ses labels, en cours d'exécution, et ni l'un ni l'autre — ou *hors maillage*. Lu dans les pods, jamais dans les modèles : un modèle dit qu'un sidecar devrait être injecté ; seul le pod dit qu'il l'a été |
+| **Waypoint** | Le waypoint qui la lie, et l'origine du lien — le label de la charge elle-même, son Service, ou son espace de noms |
+| **mTLS déclaré** | Le mode qui s'applique, dessiné comme un cadenas, avec la PeerAuthentication qui l'a décidé et sa portée — sélecteur d'abord, puis espace de noms, puis maillage entier. Une ligne `PERMISSIVE` dans un espace de noms `STRICT` se lit comme une politique à sélecteur, pas comme un bug |
+| **mTLS observé** | La part que le plan de données a mesurée pour son propre trafic — un tiret là où rien ne l'a fait |
+| **Posture** | Le même verdict, issu de la même jointure, que l'[onglet Sécurité](#sécurité-le-déclaré-et-lobservé) |
+| **Trafic** | Son débit et son taux d'erreur quand la télémétrie l'a vue dans la fenêtre ; aucun nombre sinon |
+| **Politiques** | Les objets PeerAuthentication, AuthorizationPolicy et RequestAuthentication qui la couvrent, et à quelle portée chacun l'a atteinte |
+| **Problèmes** | Ses nombres d'erreurs et d'avertissements |
+
+*Déclarée, non inscrite* est un filtre à part entière — l'écart d'inscription à
+lui seul — et il voyage dans l'URL, comme l'espace de noms et le mode.
+
+Une charge s'ouvre sur sa propre page : identité et lien, le déclaré à côté de
+l'observé, les politiques qui la couvrent avec leurs propres constats et un lien
+vers chacune, ses constats avec le correctif à côté du défaut, et ses pods —
+bornés à cinquante avec le total annoncé, pour qu'un DaemonSet sur mille nœuds
+soit une ligne et un nombre.
+
+Les Deployments sont confirmés à partir du hash de modèle de pod sans surveiller
+les ReplicaSets — un fait que le hash encode déjà, sans autorisation
+supplémentaire. Un Deployment qui ne peut pas être confirmé est rapporté comme
+son ReplicaSet, ce qui est honnête.
+
+### Ce qu'un waypoint sert
+
+Le trafic d'un waypoint ne sait pas dire à quoi il sert : un waypoint auquel rien
+n'est lié et un waypoint dont les clients sont inactifs se ressemblent sur le
+fil. La page d'un waypoint liste ce qu'il **sert** — les espaces de noms, les
+Services et les charges qui lui sont liés — et si un pod en cours d'exécution le
+sert, en disant clairement quand rien ne l'exécute, ou quand rien ne lui est
+lié.
+
+### Dix-sept contrôles, visant ce qui n'émet rien ou a l'air sûr
+
+Les six contrôles de la v0.14 visaient les pannes qui n'émettent rien. Onze de
+plus couvrent désormais la configuration qui a l'air finie et ne l'est pas.
+Quinze codes, dont certains couvrent plus d'un contrôle :
+
+**Routes et hôtes**
 
 | Constat | Se déclenche quand |
 |---|---|
-| `MESH_ROUTE_BACKEND_MISSING` | Une route envoie le trafic vers un Service, ou un port, qui n'existe pas |
-| `MESH_ROUTE_PARENT_MISSING` | Une route nomme une passerelle absente |
+| `MESH_ROUTE_BACKEND_MISSING` | Une route envoie le trafic vers un Service, ou un port, qui n'existe pas — elle se rattache, correspond, et perd chaque requête |
+| `MESH_ROUTE_PARENT_MISSING` | Une route nomme une passerelle absente ; rien ne la sert |
+| `MESH_HOST_UNRESOLVED` | L'hôte d'une règle ne correspond à aucun service du cluster — le plus souvent une faute de frappe ou un service supprimé |
+| `MESH_SUBSET_MISSING` | Une route envoie le trafic vers un sous-ensemble qu'aucune DestinationRule de cet hôte ne définit — elle correspond et n'a pas d'amont |
+| `MESH_HOST_CONFLICT` | Deux VirtualServices liés au maillage pour un même hôte, ou deux DestinationRules revendiquant un même hôte — une seule est appliquée ; l'autre a l'air configurée et ne fait rien |
+
+**Passerelles et waypoints**
+
+| Constat | Se déclenche quand |
+|---|---|
 | `MESH_GATEWAY_NO_ROUTES` | Un écouteur de passerelle auquel rien ne se rattache |
-| `MESH_HOST_UNRESOLVED` | L'hôte d'une règle ne correspond à aucun service du cluster |
-| `MESH_MTLS_CONFLICT` | Une règle désactive TLS sous une politique stricte |
-| `MESH_WAYPOINT_MISSING` | Une charge est dirigée vers un waypoint qui n'existe pas |
+| `MESH_GATEWAY_NO_WORKLOAD` | Une Gateway, waypoints compris, qu'aucun pod en cours d'exécution ne sert — ses écouteurs existent et rien n'y répond |
+| `MESH_LISTENER_CONFLICT` | Des écouteurs d'une même passerelle qui partagent un port et un nom d'hôte avec des protocoles différents, ou partagent un nom — la passerelle n'est pas programmée tant qu'ils sont en conflit |
+| `MESH_WAYPOINT_MISSING` | Un espace de noms, un Service ou une charge lié à un waypoint qui n'est pas déployé — chaque politique et chaque route qui lui étaient destinées sont ignorées en silence |
+| `MESH_L7_WITHOUT_WAYPOINT` | Une règle d'autorisation ou de routage de niveau HTTP, une authentification de requête, ou un pool de connexions HTTP dans un espace de noms ambiant sans waypoint pour l'évaluer — les règles d'autorisation échouent en fermant, les routes ne sont simplement pas appliquées |
 
-Chaque constat dit ce qui ne va pas, ce qu'il faut faire et quel objet ouvrir, et
-ils sont agrégés par espace de noms pour que la liste reste lisible d'un coup
-d'œil au lieu de devenir un mur de problèmes individuels.
+**Charges de travail et politiques**
 
-Les contrôles sont volontairement **prudents**. Un hôte qui est un joker, ou un
-domaine externe que le cluster ne saurait définir, est ignoré plutôt que signalé
-— un écran qui crie au loup à propos d'une configuration qui marche finit ignoré,
-et ne vaut alors plus rien le jour où il a raison.
+| Constat | Se déclenche quand |
+|---|---|
+| `MESH_AMBIENT_NOT_ENROLLED` | Une charge étiquetée ambiante, en cours d'exécution, et ni capturée par l'agent de nœud ni injectée — l'erreur de configuration ambiante la plus courante, invisible au trafic seul |
+| `MESH_DATAPLANE_CONFLICT` | Une charge à qui l'on demande d'être deux choses à la fois : un sidecar dans un espace de noms ambiant, un pod étiqueté pour les deux modes, ou un lien de waypoint sur une charge qui n'est pas ambiante |
+| `MESH_POLICY_NO_MATCH` | Une politique dont le sélecteur ne correspond à aucun pod, ou dont le targetRef nomme un objet inexistant — une protection qui ne protège rien |
+| `MESH_PRINCIPAL_UNKNOWN` | Une règle d'autorisation nommant un compte de service qu'aucune charge en cours d'exécution n'utilise — un ALLOW pour lui n'autorise personne, un DENY ne refuse personne |
+| `MESH_MTLS_CONFLICT` | Une DestinationRule qui désactive TLS vers une charge dont la politique *effective* est `STRICT`, ou qui exige le TLS mutuel d'une charge qui le désactive — jugé par charge, politiques à sélecteur comprises, dans les deux sens |
+
+Chaque constat dit ce qui casse en silence et quoi changer, et nomme l'objet
+concerné — avec son type, pour qu'un Service et une charge de travail au même
+nom s'ouvrent sur le bon onglet. Ils sont agrégés par espace de noms pour que la
+liste reste lisible d'un coup d'œil au lieu de devenir un mur de problèmes
+individuels.
+
+**Cinq d'entre eux ont besoin des pods** — `MESH_POLICY_NO_MATCH`,
+`MESH_AMBIENT_NOT_ENROLLED`, `MESH_DATAPLANE_CONFLICT`,
+`MESH_GATEWAY_NO_WORKLOAD` et `MESH_PRINCIPAL_UNKNOWN` — et ne s'exécutent que
+lorsque chaque pod a été lu. Quand les pods ont été refusés ou que la liste a été
+coupée, ils deviennent **silencieux** plutôt que faux, et l'instantané le dit en
+une phrase qui les nomme et dit pourquoi, sur chaque onglet qui affiche des
+constats. Un contrôle qui ne voit pas tous les pods dirait qu'une politique ne
+correspond à rien alors que ses pods sont simplement au-delà du plafond ; une
+colonne de problèmes vide ne doit jamais se lire comme un quitus.
+
+Volontairement pas un constat : « aucune politique ne couvre cette charge ».
+C'est la liste de politiques de la charge qui est vide — un fait sur la ligne —
+parce que sur la plupart des clusters, c'est l'état de la plupart des charges.
+Les contrôles restent **prudents** ailleurs aussi : un hôte qui est un joker, ou
+un domaine externe que le cluster ne saurait définir, est ignoré plutôt que
+signalé. Un écran qui crie au loup à propos d'une configuration qui marche finit
+ignoré, et ne vaut alors plus rien le jour où il a raison.
 
 ### Quand il ne peut pas lire le cluster
 
@@ -264,6 +542,7 @@ correctif :
 | **Interdit** | Le `ClusterRole` n'a pas été accordé | le motif nomme le rôle et la valeur du chart |
 | **Pas de CRD** | Les ressources personnalisées de votre maillage ne sont pas installées | installez-les, ou désactivez le module |
 | **Tronqué** | Le cluster dépasse le plafond de l'instantané | annoncé explicitement — jamais une liste discrètement tronquée |
+| **Pods illisibles**, ou **coupés** | Le `ClusterRole` date d'avant la v0.15, ou le cluster a plus de pods que le plafond des pods | les cinq contrôles dépendant des pods sont ignorés et la réponse les nomme ; accordez `get`/`list`/`watch` sur `pods` en appliquant le chart mis à jour |
 
 La configuration vit en mémoire, reconstruite depuis le cluster au démarrage. Il
 n'y a ni table, ni migration, ni interaction avec la rétention : elle est petite,
@@ -281,27 +560,38 @@ modules:
 ```
 
 Il requiert le module maillage — le déploiement échoue bruyamment plutôt que de
-rendre discrètement un écran sans rien au-dessus.
+rendre discrètement un écran sans rien au-dessus. En mise à jour depuis la
+v0.14, le `ClusterRole` en lecture seule du chart gagne `pods` : appliquez le
+chart mis à jour pour que les onglets Charges de travail et Sécurité se
+remplissent.
 
 ## Limites
 
-- **La moitié « plan de contrôle » est façonnée pour Istio.** Elle lit les
-  métriques d'istiod par leur nom. La moitié « par proxy » est agnostique — c'est
-  du RED sur des charges classées — et fonctionne donc pour tout maillage dont
-  les proxys émettent des spans.
-- **Deux contrôles ne sont volontairement pas implémentés.** « Le sélecteur de
-  cette règle ne correspond à aucune charge » exige des labels de pods que le hub
-  ne voit pas pour les charges créées hors d'un Deployment, et annoncerait qu'une
-  règle ne protège rien à propos d'une règle qui protège quelque chose.
-  « Inscrit mais jamais réellement derrière le proxy L4 » exige la jointure avec
-  la télémétrie et non la seule configuration. Un constat faux est pire qu'un
-  constat manquant sur un écran dont tout le travail est d'être cru : les deux
-  sont donc nommés ici plutôt que devinés.
-- **Les constats portent sur la configuration, pas sur l'état vivant des
-  proxys.** Les routes qu'un proxy donné a effectivement *chargées* restent une
-  question pour l'outillage de votre maillage. Ce qui est lu ici, c'est ce qu'on
-  a demandé au cluster de faire, et l'endroit où cette instruction ne tient pas
-  debout.
+- **La configuration effective par proxy reste hors périmètre.** Les routes
+  qu'un proxy donné a effectivement *chargées* — son vidage de configuration —
+  sont un travail de débogueur et exigent l'API d'administration du proxy. Ce
+  qui est lu ici, c'est ce qu'on a demandé au cluster de faire, ce que ses
+  proxys ont compté, et l'endroit où les deux ne concordent pas.
+- **Les compteurs par amont des proxys ne sont pas collectés.** Le débordement
+  en attente et les éjections d'instances ne sont pas exposés par un maillage
+  par défaut ; les collecter revient à inscrire chaque proxy dans
+  `proxyStatsMatcher.inclusionPrefixes: [cluster.outbound]`, ce qui multiplie
+  les séries de chaque proxy par son nombre d'amonts. La page du proxy nomme le
+  réglage plutôt que d'afficher leur absence comme un zéro.
+- **Pas d'historique de posture, ni d'alerte sur la posture.** Une posture est
+  calculée sur la fenêtre que vous regardez. La suivre dans le temps et alerter
+  dessus attendent que les verdicts aient été éprouvés sur de vrais clusters.
+- **Les deux collectes ont la forme d'Istio.** La carte du plan de contrôle lit
+  les métriques d'istiod par leur nom, et les séries du plan de données — le
+  compteur de requêtes avec sa politique de sécurité, les compteurs TCP, les
+  comptes de charges de ztunnel — sont celles d'Istio. Les proxys d'un autre
+  maillage se lisent *non reconnus* plutôt que plaqués sur des libellés justes
+  aux réponses fausses. La moitié RED par proxy et l'inventaire des charges sont
+  agnostiques.
+- **Les constats portent sur la configuration et sur ce que les proxys ont
+  compté, pas sur l'état vivant des proxys.** Une posture dit que du clair a
+  atteint une charge ; elle ne dit pas quel écouteur l'a accepté. Cela reste
+  une question pour l'outillage de votre maillage.
 
 ## Voir aussi
 
