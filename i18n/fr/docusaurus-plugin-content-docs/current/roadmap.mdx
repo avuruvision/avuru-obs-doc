@@ -492,7 +492,51 @@ posture, qui attendent que les verdicts aient été éprouvés sur de vrais
 clusters ; et un second plan de contrôle, qui attend toujours un opérateur qui
 en exploite un.
 
-## Au-delà de la v0.15 (indicatif)
+## v0.16 — la page d'une charge de travail (publiée le 07/09/2026)
+
+La v0.15 mettait sur une même ligne ce que le maillage avait reçu comme
+consigne et ce qu'il avait fait. Sur un vrai cluster ambiant, avec une console
+de maillage à côté, les questions suivantes du lecteur étaient celles auxquelles
+cette ligne ne répondait pas : qu'est-ce que cette charge, depuis quand, quels
+pods sur quel déploiement, quelle configuration la nomme — et qu'ont écrit les
+proxys à son sujet. La fiche se trouvait déjà dans des objets que le lecteur
+observait ; les lignes des proxys étaient déjà dans le magasin, classées sous
+les noms des proxys eux-mêmes. Rien de nouveau n'a été lu dans le cluster.
+
+**La fiche** est l'élément qui définit la version. La page d'une charge porte
+la date de création du contrôleur (ou celle du pod le plus ancien, et elle le
+précise), son type, ses étiquettes `app` et `version`, chaque étiquette et les
+annotations du contrôleur dans des bornes explicites, chaque pod avec le
+déploiement auquel il appartient, et un verdict de santé avec la raison qui l'a
+décidé. À côté des politiques qui la sélectionnent par étiquette, les routes et
+règles qui l'*atteignent* par ses Services — HTTPRoute, GRPCRoute,
+VirtualService, DestinationRule — résolues par le même index d'hôtes que les
+vérifications, chacune avec ses propres constats. Une charge routée n'est plus
+dite sans configuration.
+
+**Trois sources, un seul flux.** L'application journalise un côté de chaque
+requête ; ztunnel journalise la connexion et le waypoint l'échange HTTP, sous
+leurs propres noms de service. Une seule route lit les trois pour une charge
+comme un seul flux ordonné sous un seul curseur — composé dans le hub, qui
+connaît les pods derrière la charge et le waypoint auquel elle est liée. Quand
+les pods ne peuvent pas être connus, les lignes des proxys sont reconnues par
+nom et espace de noms ensemble, et la réponse dit à quel échelon elle est
+redescendue.
+
+Livrée comme [version v0.16.0](/changelog/v0-16-0). Délibérément hors de cette
+ligne : la disponibilité, les redémarrages et l'état des conteneurs des pods —
+le lecteur ne projette qu'une douzaine de champs par pod, à dessein ; et une
+ligne ztunnel dans l'onglet Proxys alimentée par la collecte plutôt que par
+les spans, qui attend la ligne suivante avec les compteurs d'octets TCP que la
+collecte conserve déjà.
+
+## Au-delà de la v0.16 (indicatif)
+
+- **Les proxys depuis la collecte, non depuis les spans.** Sur un cluster
+  ambiant, ztunnel n'émet aucun span, si bien que l'onglet Proxys n'a pas de
+  ligne pour lui alors même que ses métriques sont lues ; le `up` et les jauges
+  de la collecte devraient alimenter la ligne, et les compteurs d'octets TCP
+  déjà collectés devraient être lus.
 
 - **Lire un deuxième plan de contrôle**, dès que quelqu'un qui en exploite un
   pourra dire lesquels de ses signaux répondent aux questions auxquelles répond

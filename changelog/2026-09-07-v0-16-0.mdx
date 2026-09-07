@@ -1,0 +1,57 @@
+---
+slug: v0-16-0
+title: "v0.16.0: the workload's page — the cluster's record, and the logs no other screen joins"
+description: "A workload on the mesh screen opens on what the cluster records about it — created when, by which controller, which pods on which rollout, every label, a health verdict, and the routes that reach it beside the policies that select it — then on its logs: its own, and what ztunnel and its waypoint wrote about it, in one table."
+authors: [avuru]
+tags: [logs, service-map, ui, platform]
+date: 2026-09-07
+---
+
+**v0.16.0** makes a workload's page on the mesh screen read like the cluster's
+own record of it, and puts its logs on it — its own lines, and the lines the
+node proxy and its waypoint wrote about it, joined by the hub that knows its
+pods.
+
+{/* truncate */}
+
+- **The record.** The release-defining item. A workload's page knew its mode,
+  its pod count and the policies that select it. It now says when the workload
+  was created and by which controller (or by its oldest pod, and it says
+  which), its type, `app` and `version`, every label and the controller's
+  annotations within stated bounds, and each pod with the rollout it belongs
+  to. A one-word **health** verdict in the header — the health board's own
+  vocabulary — carries the reason that decided it: none of the pods running, a
+  pod short, one request in ten failing, or simply nothing calling. Beside the
+  policies that select the workload by label, the page lists the **routes and
+  rules that reach it through its Services** — HTTPRoute, GRPCRoute,
+  VirtualService, DestinationRule — resolved through the same host index the
+  configuration checks use, each with its own findings, so a routed workload is
+  no longer called unconfigured. Nothing new is read from the cluster: the
+  objects were already watched.
+
+- **Three sources, one stream.** The application logs one side of every
+  request; ztunnel logs the connection and the waypoint logs the HTTP exchange,
+  each under its own service name, and no screen joined them back to the
+  workload they were about. A **Logs** tab on the workload page now reads all
+  three as one ordered stream under one cursor: the workload's own lines, the
+  ztunnel lines naming one of its pods, the waypoint lines naming its Service.
+  The composition is the hub's, because only the hub knows the pods behind a
+  workload and the waypoint it is bound to — and it is one query, with a branch
+  per source, so paging never repeats or skips a line. A search box, a minimum
+  severity and a toggle per source live in the URL, and a line under the
+  toolbar says what was actually asked: which service names, how many pods
+  were matched. When the pods cannot be known — the `mesh-config` module off,
+  the cluster unread, the pod list cut — the proxies' lines are matched by name
+  *and* namespace together, and the page says so rather than showing an empty
+  column. The tab exists only where the logs module is on.
+
+For integrations, one route joins the API:
+`GET /api/v1/mesh/workloads/{namespace}/{name}/logs`, with the logs screen's
+`q`, `severity`, `limit` and `cursor` plus `source=app,ztunnel,waypoint`; the
+workload page's route gains `labels`, `annotations`, `health`, `routes`, and
+per-pod `revision` and `createdAt` — see the [API reference](/reference/api).
+
+Upgrade with the [Helm chart](/docs/setup/kubernetes) as usual. **No new
+permission and no new collection**: the record comes from objects
+`mesh-config` already watched, the logs from tables the logs module already
+fills. Installs without the mesh module are untouched.

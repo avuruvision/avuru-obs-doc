@@ -435,7 +435,46 @@ job; posture history and alerting on posture, which wait until the
 verdicts have been trusted on real clusters; and a second control plane, which
 still waits on an operator running one.
 
-## Beyond v0.15 (directional)
+## v0.16 — the workload's page (released 2026-09-07)
+
+v0.15 put, on one row, what the mesh was told and what it did. On a real
+ambient cluster with a mesh console beside it, the reader's next questions were
+the ones that row did not answer: what is this workload, since when, which pods
+on which rollout, what configuration names it — and what did the proxies write
+about it. The record was already in objects the reader watched; the proxies'
+lines were already in the store, filed under the proxies' own names. Nothing
+new was read from the cluster.
+
+**The record** is the release-defining item. A workload's page carries the
+controller's creation time (or the oldest pod's, and it says which), its type,
+`app` and `version`, every label and the controller's annotations within stated
+bounds, each pod with the rollout it belongs to, and a health verdict with the
+reason that decided it. Beside the policies that select it by label, the routes
+and rules that *reach* it through its Services — HTTPRoute, GRPCRoute,
+VirtualService, DestinationRule — resolved through the same host index the
+checks use, each with its own findings. A routed workload is no longer called
+unconfigured.
+
+**Three sources, one stream.** The application logs one side of every request;
+ztunnel logs the connection and the waypoint logs the HTTP exchange, under their
+own service names. One route reads all three for a workload as one ordered
+stream under one keyset cursor — composed in the hub, which knows the pods
+behind the workload and the waypoint it is bound to. When the pods cannot be
+known, the proxies' lines are matched by name and namespace together, and the
+response says which rung it fell to.
+
+Shipped as the [v0.16.0 release](/changelog/v0-16-0). Deliberately not in this
+line: pod readiness, restarts and container states — the reader projects a
+dozen fields per pod on purpose; and a ztunnel row on the Proxies tab seeded
+from the scrape rather than from spans, which waits for the next line with the
+TCP byte counters the scrape already keeps.
+
+## Beyond v0.16 (directional)
+
+- **The proxies from the scrape, not from spans.** On an ambient cluster
+  ztunnel emits no span, so the Proxies tab has no row for it even while its
+  metrics are read; the scrape's `up` and gauges should seed the row, and the
+  TCP byte counters already scraped should be read.
 
 - **Read a second control plane**, once someone running one can say which of its
   signals answer the questions the Istio card answers — and which simply have no

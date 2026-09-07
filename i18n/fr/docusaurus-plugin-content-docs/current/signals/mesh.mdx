@@ -462,6 +462,64 @@ les ReplicaSets — un fait que le hash encode déjà, sans autorisation
 supplémentaire. Un Deployment qui ne peut pas être confirmé est rapporté comme
 son ReplicaSet, ce qui est honnête.
 
+### La page d'une charge de travail
+
+Une charge de travail s'ouvre sur la fiche que le cluster en tient lui-même.
+L'en-tête porte un verdict de **santé** dans le vocabulaire du tableau de santé
+— saine, dégradée, en panne, inactive — avec la raison qui l'a décidé au
+survol : aucun pod en marche, un pod manquant, une requête sur dix en échec,
+ou simplement rien qui appelle. En dessous :
+
+- **Aperçu** — créée quand, et d'après quoi : la date du contrôleur lui-même,
+  ou celle du pod le plus ancien quand le contrôleur n'a pas été lu, et la page
+  précise lequel. Type, `version`, `app`, mode.
+- **Liés** — chaque Service dont le sélecteur retient la charge, avec un lien
+  vers son propre écran, et le waypoint L7 auquel elle est liée, avec un lien
+  vers la page du proxy.
+- Les **étiquettes** en puces, sans le hachage de modèle du ReplicaSet ; les
+  **annotations** du contrôleur derrière un repli, dans des bornes explicites
+  (64 clés, 2 Ko par valeur, et la page le dit quand le hub a coupé la liste).
+- **Pods** — nom, révision (le déploiement auquel il appartient), phase,
+  inscription, nœud, âge. Deux pods sur deux révisions pendant un mauvais
+  déploiement, c'est la forme de la plupart des incidents, et « 2 sur 2 en
+  marche » la cache.
+- **Configuration Istio** — une section, deux listes : les politiques qui
+  sélectionnent la charge par étiquette, avec la portée à laquelle elles
+  l'atteignent, et les routes et règles qui l'**atteignent** par ses Services —
+  HTTPRoute, GRPCRoute, VirtualService, DestinationRule — avec le Service et
+  l'hôte par lesquels elles passent. Chaque référence renvoie au navigateur de
+  configuration et porte ses propres constats, si bien que « cette route est
+  cassée » se dit à côté de la route. Une page qui ne listait que les
+  politiques disait qu'une charge routée était sans configuration.
+
+#### Ses journaux, depuis trois sources
+
+L'application journalise un côté de chaque requête. Le proxy de nœud journalise
+la connexion — source, destination, octets, durée, identité — et le waypoint
+l'échange HTTP, chacun sous son propre nom de service, si bien qu'aucun autre
+écran ne les rattache à la charge qu'ils concernent. L'onglet **Journaux** le
+fait : les lignes de la charge elle-même, les lignes de ztunnel nommant l'un de
+ses pods, et les lignes du waypoint nommant son Service, en un seul flux sous
+un seul curseur.
+
+La composition est celle du hub — lui seul connaît les pods derrière une charge
+et le waypoint auquel elle est liée — et c'est une seule requête avec une
+branche par source, de sorte que la pagination ne répète ni ne saute aucune
+ligne. La barre d'outils appartient à l'onglet : une recherche, une sévérité
+minimale et un interrupteur par source, tous conservés dans l'URL. Une ligne en
+dessous dit ce qui a réellement été demandé : quels noms de service, combien de
+pods ont été reconnus, quel waypoint.
+
+| La ligne dit | Ce qui s'est passé | Que faire |
+|---|---|---|
+| **N pods reconnus** | Les pods viennent de l'instantané `mesh-config` ; les lignes des proxys sont reconnues par nom de pod et par `nom.espace.svc` | — |
+| **reconnus par nom**, avec une raison | Les pods n'ont pas pu être connus — `mesh-config` éteint, cluster non lu, pods illisibles, liste de pods tronquée, ou charge absente de l'instantané — les lignes des proxys sont donc reconnues par nom *et* espace de noms ensemble, ce qui garde une charge distincte de son homonyme dans un autre espace | la raison nomme le remède ; la colonne n'est jamais vide en silence |
+| **waypoint : aucun lié** | Aucun waypoint ne lie cette charge, il n'y a donc pas de lignes L7 à lire | — |
+
+L'onglet n'existe que là où le module de journaux est actif. Il lit les tables
+que le module de journaux remplit déjà : aucune collecte nouvelle, aucune
+permission nouvelle.
+
 ### Ce qu'un waypoint sert
 
 Le trafic d'un waypoint ne sait pas dire à quoi il sert : un waypoint auquel rien
