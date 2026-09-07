@@ -30,11 +30,17 @@ line** carrying these three things:
 Anything else in the object becomes a queryable log attribute, and the raw line
 stays searchable in full text.
 
-Without a `level`, a log record's severity is **unset** — and severity is a
-floor comparison, so such a record matches *no* severity filter at all and is
-never promoted to an [error issue](/docs/signals/errors) (which keys on `ERROR`
-and above). Lines that are not JSON — startup banners, stack traces — are
-ingested unchanged rather than rejected.
+Lines that are not JSON are ingested unchanged rather than rejected, and the
+node agent still reads a level off them where one is written: a `level=warn` /
+`lvl=` / `severity=` pair (logfmt, zap console), or the usual upper-case token
+bounded on both sides — `… DEBUG [main] …`, `[INFO]`, `ERROR:` — as Spring,
+logback and log4j write it. Without any of those, a record's severity stays
+**unset** — and severity is a floor comparison, so such a record matches *no*
+severity filter at all and is never promoted to an
+[error issue](/docs/signals/errors) (which keys on `ERROR` and above). A record
+that already carries a level, such as one exported over OTLP by an SDK, is left
+alone. The parsing is on by default and off with
+`sensor.agent.logs.parseSeverity=false`.
 
 Getting `trace_id` onto the line is the language runtime's job:
 
