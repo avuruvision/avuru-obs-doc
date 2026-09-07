@@ -22,10 +22,44 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.14.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.15.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.14.0" date="2026-09-06" status="shipped" statusLabel="Livré">
+
+**Le parc qu'un agent peut atteindre.** La v0.12 affirmait qu'un agent pouvait
+lire le parc, et c'était vrai — au moyen d'un jeton qu'une personne devait créer
+et coller à la main, depuis un serveur que rien n'acheminait, et en décrivant un
+cluster maillé autrement que les écrans ne le décrivent. Cette version referme
+chacun de ces écarts. Le serveur MCP parle [OAuth 2.1](/changelog/mcp-oauth) :
+un assistant hébergé s'authentifie comme tous les autres clients, sur un écran
+de consentement qui dit ce qui quitte votre installation et se révoque depuis
+Réglages → Accès ; les jetons sont opaques et liés à `/mcp`, donc refusés sur le
+reste de l'API. `service_context` rapporte la dépendance située derrière un
+proxy de maillage plutôt que le proxy, par le même code que la
+[carte des services](/docs/signals/service-map), et le temps propre par service
+n'est calculé qu'une fois, pour un agent comme pour la vue Chemin des traces —
+ce qui a révélé que l'outil présentait comme sain un service renvoyant des 5xx.
+
+L'[écran Maillage est devenu une console](/changelog/mesh-console) : chaque proxy
+gagne un rôle et un espace de noms, de vrais octets et la santé des liens à côté
+de ses appels, et une page à lui montrant ce qu'il transporte. Un module
+`mesh-config`, accordé séparément et en lecture seule, lit les objets Istio et
+Gateway API de votre cluster, liste les espaces de noms inscrits et silencieux,
+et exécute six vérifications visant les pannes qui n'émettent aucune télémétrie.
+
+Trois réparations : `/mcp` est désormais joignable sur une installation Helm, un
+service maillé n'affiche plus son proxy comme appelant dans le schéma de
+voisinage, et les images de publication sont compilées de façon croisée plutôt
+qu'émulées — la construction arm64 d'une heure qui séparait un tag d'une version
+publiée a disparu.
+
+Voir l'[entrée du changelog](/changelog/v0-14-0) et les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.14.0).
 
 </ReleaseEntry>
 

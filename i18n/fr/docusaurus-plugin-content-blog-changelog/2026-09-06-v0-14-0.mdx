@@ -1,0 +1,91 @@
+---
+slug: v0-14-0
+title: "v0.14.0 : le parc qu'un agent peut atteindre"
+description: "Un assistant hébergé s'authentifie comme tous les autres clients, un agent reçoit les mêmes dépendances et le même temps que vos écrans, et le maillage devient une console — avec un module accordé séparément qui lit sa configuration et dit ce qui ne va pas."
+authors: [avuru]
+tags: [ai, service-map, platform, security]
+date: 2026-09-06
+---
+
+La **v0.14.0** comble les écarts entre ce que la v0.12 promettait à un agent et
+ce qu'un opérateur obtenait réellement — et fait de l'écran Maillage une console
+pour la trame qui court sous vos services.
+
+{/* truncate */}
+
+- **[Un assistant hébergé peut s'authentifier](/changelog/mcp-oauth).** Le
+  serveur MCP n'acceptait qu'un identifiant : un jeton d'API personnel que vous
+  créiez et colliez à la main, qui convient à un client que vous exécutez
+  vous-même et ne peut pas servir un client hébergé. Le hub peut désormais agir
+  en **serveur d'autorisation OAuth 2.1** — découverte, enregistrement
+  dynamique, code d'autorisation avec PKCE, jetons d'accès de courte durée et
+  jetons de rafraîchissement à rotation — avec un écran de consentement adossé
+  à la session que vous avez déjà. Il dit, en toutes lettres, qu'approuver
+  permet à cette application de tirer des traces et des **corps de journaux**
+  hors de votre cluster, que le nom de l'application est auto-déclaré, et quel
+  projet, unique, est partagé. Les jetons sont opaques et liés à `/mcp`, et ce
+  que l'un d'eux peut atteindre est relu à chaque appel : déconnecter une
+  application dans Réglages → Accès l'arrête dès sa requête suivante, et un
+  identifiant MCP est refusé sur le reste de l'API plutôt que simplement
+  déconseillé. **Désactivé par défaut**, derrière son propre interrupteur, car
+  l'activer ouvre un point d'enregistrement et n'a de sens qu'avec une URL
+  publique et TLS.
+
+- **Un agent voit la dépendance derrière un proxy, pas le proxy.** La
+  [carte des services](/docs/signals/service-map) reconstitue les dépendances
+  `app → app` à travers les sauts du maillage depuis la v0.9. `service_context`
+  ne le faisait pas : sur une installation maillée, un agent demandant qui
+  appelle un service se voyait répondre la passerelle d'entrée, quand une
+  personne lisant la carte se voyait répondre l'application derrière elle. Il
+  applique désormais la même fusion, par le même code — une arête reconstituée
+  porte `viaTransport` et `collapsedCalls`, et ne se lit donc jamais comme une
+  arête observée directement. Les installations sans maillage ne paient rien.
+
+- **[Le maillage est devenu une console](/changelog/mesh-console).** Chaque
+  proxy a un **rôle** — plan de contrôle, passerelle d'entrée ou de sortie,
+  waypoint, ztunnel, sidecar — et un espace de noms, filtrables, lus dans des
+  labels que votre maillage écrit déjà. Deux colonnes qui annonçaient des octets
+  et affichaient des nombres d'appels disent maintenant **appels**, et les vrais
+  octets, le temps d'aller-retour, les connexions échouées et les
+  retransmissions ont leurs propres colonnes. Un proxy s'ouvre sur son propre
+  débit, ses erreurs et sa latence, et sur ce qu'il **transporte** : les
+  dépendances applicatives reconstituées à travers lui. Un nouveau module
+  **`mesh-config`** — séparé, désactivé à la naissance, doté de
+  `get`/`list`/`watch` et de rien d'autre sur son propre compte de service — lit
+  les objets Istio et Gateway API de votre cluster, liste les espaces de noms
+  inscrits et **silencieux**, et exécute six vérifications visant les pannes
+  qui n'émettent aucune télémétrie, chacune nommant ce qui ne va pas, quoi
+  faire et quel objet ouvrir.
+
+- **Une seule réponse à « où est passé le temps ».** Le hub calculait le temps
+  propre par service pour `get_trace` ; la vue Chemin des traces le recalculait
+  dans le navigateur, et les deux avaient déjà divergé. Il n'y a plus qu'un seul
+  cumul, lu par les deux — et le corriger a révélé un vrai défaut : l'outil MCP
+  ne comptait qu'un statut d'erreur brut, si bien qu'un service renvoyant des
+  5xx depuis un client auto-instrumenté était présenté à un agent comme sain.
+  Il partage désormais la classification que l'interface et le SQL du hub
+  utilisaient déjà, et rapporte `refusedCount` à côté de `errorCount`.
+
+Trois réparations accompagnent la version. **`/mcp` est joignable sur une
+installation Helm** — l'Ingress et le nginx de l'interface acheminaient `/api`
+et `/healthz` vers le hub et tout le reste vers l'export statique, si bien que
+le point d'entrée annoncé en v0.12 a répondu par une page 404 pendant toute sa
+vie ; les deux couches l'acheminent désormais, ainsi que les documents de
+découverte OAuth qui vivent à la racine de l'origine, et la suite navigateur
+vérifie ce que sert la porte d'entrée plutôt que ce que sert le hub. **Un
+service maillé n'affiche plus son proxy comme appelant** dans le schéma de
+voisinage de la v0.13, qui prenait les arêtes brutes de la carte sans la règle
+d'affichage de la carte elle-même. Et **les images de publication sont
+compilées de façon croisée plutôt qu'émulées** — construire une distribution de
+collecteur pour arm64 sous QEMU prenait plus d'une heure, et cette seule
+construction était tout ce qui séparait un tag poussé d'une version publiée.
+
+Également dans cette version : Réglages → Accès regroupe sa matrice de
+permissions comme la barre latérale, créer un jeton tient en un nom et un clic
+avec la date d'expiration annoncée avant sa création, et les listes déroulantes
+au bas d'une carte de réglages redeviennent sélectionnables.
+
+Mettez à jour avec le [chart Helm](/docs/setup/kubernetes) comme d'habitude.
+Rien ici ne change la collecte ni le stockage ; `mesh-config` et
+l'authentification OAuth restent tous deux désactivés tant que vous ne les
+activez pas, et chacun dit ce que son activation accorde.

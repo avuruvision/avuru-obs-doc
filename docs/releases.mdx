@@ -21,9 +21,41 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.14.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.15.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.14.0" date="2026-09-06" status="shipped">
+
+**The estate an agent can reach.** v0.12 said an agent could read the estate,
+and it could — over a token a person had to mint and paste by hand, from a
+server nothing routed, describing a meshed cluster differently from the way the
+screens describe it. This release closes each of those gaps. The MCP server
+speaks [OAuth 2.1](/changelog/mcp-oauth), so a hosted assistant signs in the way
+every other client does, on a consent screen that says what leaves your
+installation and can be taken back from Settings → Access; tokens are opaque and
+bound to `/mcp`, so one is refused on the rest of the API. `service_context`
+reports the dependency behind a mesh proxy rather than the proxy, through the
+same code the [service map](/docs/signals/service-map) uses, and per-service
+self time is computed once for both an agent and the trace Path view — which
+surfaced that the tool had been reporting a service returning 5xx as healthy.
+
+The [Mesh screen became a console](/changelog/mesh-console): every proxy gains a
+role and a namespace, real bytes and link health beside its calls, and a page of
+its own showing what it carries. A separately granted, read-only `mesh-config`
+module reads your cluster's Istio and Gateway API objects, lists the namespaces
+that are enrolled and silent, and runs six checks for breakage that emits no
+telemetry.
+
+Three repairs: `/mcp` is now reachable on a Helm install, a meshed service no
+longer shows its proxy as a caller in the neighbourhood diagram, and release
+images are cross-compiled rather than emulated — the hour-long arm64 build that
+stood between a tag and a published release is gone.
+
+See the [changelog entry](/changelog/v0-14-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.14.0).
 
 </ReleaseEntry>
 
