@@ -1,0 +1,81 @@
+---
+slug: v0-14-0
+title: "v0.14.0: the estate an agent can reach"
+description: "A hosted assistant signs in the way every other client does, an agent is told the same dependencies and the same time your screens show, and the mesh becomes a console — with a separately granted module that reads its configuration and says what is wrong."
+authors: [avuru]
+tags: [ai, service-map, platform, security]
+date: 2026-09-06
+---
+
+**v0.14.0** closes the gaps between what v0.12 claimed for an agent and what an
+operator actually got — and turns the Mesh screen into a console for the fabric
+underneath your services.
+
+{/* truncate */}
+
+- **[A hosted assistant can sign in](/changelog/mcp-oauth).** The MCP server
+  accepted one credential: a personal API token you minted and pasted by hand,
+  which serves a client you run yourself and cannot serve a hosted one. The hub
+  can now act as an **OAuth 2.1 authorization server** — discovery, dynamic
+  registration, authorization code with PKCE, short-lived access tokens and
+  rotating refresh tokens — with a consent screen backed by the session you
+  already have. It says, in plain words, that approving lets that application
+  pull traces and **log bodies** out of your cluster, that the application's
+  name is self-declared, and which one project is being shared. Tokens are
+  opaque and bound to `/mcp`, and what one may reach is re-read on every call:
+  disconnecting an application in Settings → Access stops it on its next
+  request, and an MCP credential is refused on the rest of the API rather than
+  merely discouraged. **Off by default**, behind its own switch, because turning
+  it on opens a registration endpoint and needs a public URL and TLS to mean
+  anything.
+
+- **An agent sees the dependency behind a proxy, not the proxy.** The
+  [service map](/docs/signals/service-map) has recovered `app → app`
+  dependencies across mesh hops since v0.9. `service_context` had not: on a
+  meshed install an agent asking what calls a service was told the ingress
+  gateway, while a person reading the map was told the application behind it.
+  It now applies the same collapse, through the same code — a recovered edge
+  carries `viaTransport` and `collapsedCalls`, so it never reads as a directly
+  observed one. Unmeshed installs pay nothing.
+
+- **[The mesh became a console](/changelog/mesh-console).** Every proxy has a
+  **role** — control plane, ingress and egress gateway, waypoint, ztunnel,
+  sidecar — and a namespace, filterable, read from labels your mesh already
+  writes. Two columns that said bytes and showed call counts now say **calls**,
+  and real bytes, round-trip time, failed connections and retransmits have
+  columns of their own. A proxy opens on its own rate, errors and latency, and
+  on what it **carries**: the application dependencies recovered through it. A
+  new **`mesh-config`** module — separate, born off, granted `get`/`list`/`watch`
+  and nothing else on its own service account — reads your cluster's Istio and
+  Gateway API objects, lists the namespaces that are enrolled and **silent**,
+  and runs six checks aimed at breakage that emits no telemetry, each naming
+  what is wrong, what to do and which object to open.
+
+- **One answer to "where did the time go".** The hub computed per-service self
+  time for `get_trace`; the trace Path view computed it again in the browser,
+  and the two had already drifted. There is now one rollup, read by both — and
+  fixing it surfaced a real defect: the MCP tool counted only a raw error
+  status, so a service returning 5xx from an auto-instrumented client was
+  reported to an agent as healthy. It now shares the classification the UI and
+  the hub's SQL already use, and reports `refusedCount` beside `errorCount`.
+
+Three repairs ride along. **`/mcp` is reachable on a Helm install** — the
+Ingress and the UI's nginx routed `/api` and `/healthz` to the hub and
+everything else to the static export, so the endpoint v0.12 announced answered
+with a 404 page for its whole life; both layers now route it, along with the
+OAuth discovery documents that live at the origin root, and the browser suite
+asserts what the front door serves rather than what the hub serves. **A meshed
+service no longer shows its proxy as a caller** in the v0.13 neighbourhood
+diagram, which took the map's raw edge set without the map's own view rule.
+And **release images are cross-compiled instead of emulated** — building a
+collector distro for arm64 under QEMU took over an hour, and that one build was
+all that stood between a pushed tag and a published release.
+
+Also in this release: Settings → Access groups its permission matrix the way
+the sidebar is, creating a token is a name and one click with the expiry date
+stated before it exists, and dropdowns near the foot of a settings card can be
+chosen from again.
+
+Upgrade with the [Helm chart](/docs/setup/kubernetes) as usual. Nothing here
+changes collection or storage; `mesh-config` and OAuth sign-in are both off
+until you turn them on, and each says what turning it on grants.

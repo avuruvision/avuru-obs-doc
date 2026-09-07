@@ -349,7 +349,7 @@ registry. That matters because such a policy surfaces as a rollout that times
 out, not as a scan report. Full detail on the [feature status](/docs/status)
 page and in the [changelog](/changelog/v0-13-0).
 
-## v0.14 — the estate an agent can reach (in progress)
+## v0.14 — the estate an agent can reach (released 2026-09-06)
 
 v0.12 said an agent can read the estate, and it could — over a token a person
 had to mint and paste by hand, from a server nothing routed, describing a meshed
@@ -375,13 +375,65 @@ per-service self time instead of computing its own, which surfaced a real defect
 along the way: the MCP tool counted only a raw error status, so a service
 returning 5xx from an auto-instrumented client was reported as healthy.
 
+**A mesh you can actually read.** The [Mesh screen](/docs/signals/mesh) answered
+two questions and, on a cluster running without sidecars, rendered two rows. It
+[became a console](/changelog/mesh-console): every proxy gains a **role** —
+control plane, gateway, waypoint, ztunnel, sidecar — and a namespace, read from
+labels storage was already keeping; two columns that said bytes and showed call
+counts are renamed, and real bytes and link health take columns of their own; a
+proxy opens on what it *carries*, the collapsed dependencies recovered through
+it, read from the other end. Then a second, separately granted **`mesh-config`**
+module reads the cluster's own Istio and Gateway API objects, read-only, so a
+namespace that is enrolled and **silent** finally has a row, and six checks name
+the misconfigurations that emit no telemetry at all. It is its own module, born
+off, because the mesh screen needs no cluster permission and a cluster-wide read
+should be a decision an operator makes rather than one an upgrade makes for them.
+
 The line also carries three repairs. `/mcp` reached nothing on a Helm install —
 the endpoint v0.12 announced answered with the UI's 404 page for its whole life.
 The v0.13 neighbourhood diagram drew a proxy as a caller on a meshed cluster.
 And release images are cross-compiled rather than emulated, which is what stood
-between a pushed tag and a published release.
+between a pushed tag and a published release. Full detail on the
+[feature status](/docs/status) page and in the [changelog](/changelog/v0-14-0).
 
-## Beyond v0.14 (directional)
+## v0.15 — what the mesh was told, and what it did (in progress)
+
+v0.14 gave the mesh a console and a reader for its configuration, and left one
+question standing: the mesh's *configuration* says a namespace is strict, and a
+mode is a claim. Whether the traffic was actually encrypted, why a proxy refused
+a request, and which workloads are really in the mesh are the questions an
+operator asks first — and every one of them needs a source the product has not
+read: the proxies themselves, and the pods.
+
+**Declared vs observed** is the release-defining item. The sensor reads what
+the data plane reports about itself — per request and per connection, mutual
+TLS or plaintext — from the proxies on each node, discovered through the
+annotations the mesh already writes. The hub joins that to the policy that
+actually governs each workload, including the selector-scoped ones the v0.14
+reader skipped. Every namespace, workload and map edge gets a lock; "permissive
+with plaintext callers" names the callers; and "declared strict, observed
+plaintext" — a policy that is not applied — becomes a finding instead of a
+silence. Under the mesh module, on by default: the module is the consent.
+
+Around it: **every workload, in or out** — the configuration reader adds pods,
+read-only and capped, so a Workloads tab lists what the cluster runs whether or
+not it sent traffic, with whether a sidecar is in the pod, whether the node
+agent captured it, which waypoint binds it and which policies decide its mTLS
+mode. **Six checks become seventeen**, including the two v0.14 held back for
+lack of pods and the ones a security posture needs, and every pod-dependent
+check says so when the pod list was cut, so an empty issues column is never a
+clean bill. **The proxy explains its failures** — requests by response flag and
+by destination version, with counters a default mesh does not expose named as
+not collected rather than rendered as zero. And **the graph reads by role**,
+with a marker at the caller end of every measured edge for all-encrypted, mixed
+and plaintext, on the map and the mesh graph alike.
+
+Deliberately not in this line: per-proxy effective configuration, which stays a
+debugger's job; posture history and alerting on posture, which wait until the
+verdicts have been trusted on real clusters; and a second control plane, which
+still waits on an operator running one.
+
+## Beyond v0.15 (directional)
 
 - **Read a second control plane**, once someone running one can say which of its
   signals answer the questions the Istio card answers — and which simply have no

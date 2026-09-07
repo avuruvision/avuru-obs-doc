@@ -393,7 +393,7 @@ qui expire, pas par un rapport d'analyse. Détail complet sur la page
 [état des fonctionnalités](/docs/status) et dans le
 [journal des modifications](/changelog/v0-13-0).
 
-## v0.14 — le parc qu'un agent peut atteindre (en cours)
+## v0.14 — le parc qu'un agent peut atteindre (publiée le 06/09/2026)
 
 La v0.12 affirmait qu'un agent peut lire le parc, et c'était vrai — au moyen d'un
 jeton qu'une personne devait créer et coller à la main, depuis un serveur que
@@ -422,14 +422,75 @@ recalculer, ce qui a mis au jour un vrai défaut au passage : l'outil MCP ne
 comptait qu'un statut d'erreur brut, si bien qu'un service renvoyant des 5xx
 depuis un client auto-instrumenté était rapporté comme sain.
 
+**Un maillage que l'on peut vraiment lire.** L'[écran Maillage](/docs/signals/mesh)
+répondait à deux questions et, sur un cluster fonctionnant sans sidecars,
+affichait deux lignes. Il est [devenu une console](/changelog/mesh-console) :
+chaque proxy gagne un **rôle** — plan de contrôle, passerelle, waypoint,
+ztunnel, sidecar — et un espace de noms, lus dans des labels que le stockage
+conservait déjà ; deux colonnes qui annonçaient des octets et affichaient des
+nombres d'appels sont renommées, et les vrais octets et la santé des liens ont
+leurs propres colonnes ; un proxy s'ouvre sur ce qu'il *transporte*, les
+dépendances fusionnées reconstituées à travers lui, lues depuis l'autre bout.
+Puis un second module, **`mesh-config`**, accordé séparément, lit en lecture
+seule les objets Istio et Gateway API du cluster lui-même : un espace de noms
+inscrit et **silencieux** a enfin une ligne, et six vérifications nomment les
+erreurs de configuration qui n'émettent aucune télémétrie. C'est un module à
+part, désactivé à la naissance, parce que l'écran du maillage n'a besoin
+d'aucune permission sur le cluster et qu'une lecture à l'échelle du cluster doit
+être une décision prise par un opérateur, pas par une mise à jour à sa place.
+
 La version porte aussi trois réparations. `/mcp` n'était acheminé nulle part sur
 une installation Helm — le point d'entrée annoncé en v0.12 a répondu par la page
 404 de l'interface pendant toute sa vie. Le schéma de voisinage de la v0.13
 dessinait un proxy comme appelant sur un cluster maillé. Enfin, les images de
 publication sont compilées de façon croisée plutôt qu'émulées, ce qui était le
-seul obstacle entre un tag poussé et une version publiée.
+seul obstacle entre un tag poussé et une version publiée. Détail complet sur
+la page [état des fonctionnalités](/docs/status) et dans le
+[journal des modifications](/changelog/v0-14-0).
 
-## Au-delà de la v0.14 (indicatif)
+## v0.15 — ce que le maillage a reçu comme consigne, et ce qu'il a fait (en cours)
+
+La v0.14 a donné au maillage une console et un lecteur de sa configuration, et a
+laissé une question en suspens : la *configuration* du maillage dit qu'un espace
+de noms est strict, et un mode est une affirmation. Le trafic était-il vraiment
+chiffré, pourquoi un proxy a-t-il refusé une requête, quelles charges de travail
+sont réellement dans le maillage — ce sont les questions qu'un opérateur pose
+en premier, et chacune exige une source que le produit ne lisait pas : les
+proxys eux-mêmes, et les pods.
+
+**Déclaré contre observé** est l'élément qui définit la version. La sonde lit
+ce que le plan de données rapporte sur lui-même — par requête et par connexion,
+TLS mutuel ou clair — depuis les proxys de chaque nœud, découverts grâce aux
+annotations que le maillage écrit déjà. Le hub le joint à la politique qui
+gouverne réellement chaque charge de travail, y compris celles à sélecteur que
+le lecteur de la v0.14 ignorait. Chaque espace de noms, charge de travail et
+arête de la carte reçoit un cadenas ; « permissif avec des appelants en clair »
+nomme les appelants ; et « déclaré strict, observé en clair » — une politique
+qui n'est pas appliquée — devient un constat au lieu d'un silence. Sous le
+module de maillage, activé par défaut : le module est le consentement.
+
+Autour : **chaque charge de travail, dedans ou dehors** — le lecteur de
+configuration ajoute les pods, en lecture seule et plafonnés, pour qu'un onglet
+Charges de travail liste ce que le cluster exécute, trafic ou non, avec la
+présence d'un sidecar dans le pod, la capture par l'agent de nœud, le waypoint
+qui le lie et les politiques qui décident de son mode mTLS. **Six vérifications
+deviennent dix-sept**, dont les deux que la v0.14 avait retenues faute de pods
+et celles qu'exige une posture de sécurité, et chaque vérification dépendant des
+pods le dit quand la liste a été tronquée, pour qu'une colonne de problèmes
+vide ne soit jamais un quitus. **Le proxy explique ses échecs** — requêtes par
+indicateur de réponse et par version de destination, les compteurs qu'un
+maillage par défaut n'expose pas étant nommés comme non collectés plutôt
+qu'affichés à zéro. Et **le graphe se lit par rôle**, avec, au bout appelant de
+chaque arête mesurée, un marqueur tout-chiffré, mixte ou en clair, sur la carte
+comme sur le graphe du maillage.
+
+Délibérément hors de cette ligne : la configuration effective par proxy, qui
+reste un travail de débogueur ; l'historique de posture et les alertes de
+posture, qui attendent que les verdicts aient été éprouvés sur de vrais
+clusters ; et un second plan de contrôle, qui attend toujours un opérateur qui
+en exploite un.
+
+## Au-delà de la v0.15 (indicatif)
 
 - **Lire un deuxième plan de contrôle**, dès que quelqu'un qui en exploite un
   pourra dire lesquels de ses signaux répondent aux questions auxquelles répond
