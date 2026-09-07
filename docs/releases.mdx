@@ -21,9 +21,36 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.15.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.16.0" date="in development" status="in-progress">
 
 The `main` trunk. Planned direction (see the [Roadmap](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.15.0" date="2026-09-07" status="shipped">
+
+**What the mesh was told, and what it did.** The namespace list said `STRICT`,
+and a mode is a claim: a strict policy that is not applied to a workload looks,
+from configuration alone, exactly like one that is. This release reads the two
+sources the product had not read — the proxies themselves, and the pods — and
+puts them on one row. Each node's sensor scrapes the sidecars, waypoints,
+gateways and ztunnel on that node, discovered from annotations the mesh already
+writes; the `mesh-config` module reads pods, still read-only, so every
+workload the cluster runs has a row whether or not it ever sent a span. A
+[**Security** tab](/changelog/mesh-declared-vs-observed) draws a posture per
+workload — strict and all mutual TLS; declared strict, observed plaintext, which
+is a finding; safe to tighten; plaintext callers, named — and the
+[service map](/docs/signals/service-map) marks every edge a proxy measured. A
+**Workloads** tab lists enrolment as the pods report it, six configuration
+checks become seventeen, a proxy's page explains its failures by response flag
+and destination version, and the mesh graph draws each role as its own shape.
+
+The data-plane scrape is **on by default under the mesh module** and starts at
+upgrade; `mesh.dataPlane.enabled=false` keeps the screen without it. Installs
+without the mesh module are untouched.
+
+See the [changelog entry](/changelog/v0-15-0) and the
+[release notes](https://github.com/avuruvision/avuru-obs/releases/tag/v0.15.0).
 
 </ReleaseEntry>
 

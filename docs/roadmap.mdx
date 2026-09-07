@@ -396,7 +396,7 @@ And release images are cross-compiled rather than emulated, which is what stood
 between a pushed tag and a published release. Full detail on the
 [feature status](/docs/status) page and in the [changelog](/changelog/v0-14-0).
 
-## v0.15 — what the mesh was told, and what it did (in progress)
+## v0.15 — what the mesh was told, and what it did (released 2026-09-07)
 
 v0.14 gave the mesh a console and a reader for its configuration, and left one
 question standing: the mesh's *configuration* says a namespace is strict, and a
@@ -428,8 +428,10 @@ not collected rather than rendered as zero. And **the graph reads by role**,
 with a marker at the caller end of every measured edge for all-encrypted, mixed
 and plaintext, on the map and the mesh graph alike.
 
-Deliberately not in this line: per-proxy effective configuration, which stays a
-debugger's job; posture history and alerting on posture, which wait until the
+Shipped as the [v0.15.0 release](/changelog/v0-15-0); the release-defining
+item has [its own post](/changelog/mesh-declared-vs-observed). Deliberately
+not in this line: per-proxy effective configuration, which stays a debugger's
+job; posture history and alerting on posture, which wait until the
 verdicts have been trusted on real clusters; and a second control plane, which
 still waits on an operator running one.
 

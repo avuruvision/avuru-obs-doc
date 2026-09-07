@@ -22,10 +22,41 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.15.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.16.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Direction prévue (voir la
 [Feuille de route](/docs/roadmap)).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.15.0" date="2026-09-07" status="shipped" statusLabel="Livré">
+
+**Ce que le maillage a reçu comme consigne, et ce qu'il a fait.** La liste des
+espaces de noms disait `STRICT`, et un mode est une affirmation : une
+politique stricte qui ne s'applique pas à une charge ressemble, vue de la seule
+configuration, exactement à une politique appliquée. Cette version lit les deux
+sources que le produit ne lisait pas — les proxys eux-mêmes, et les pods — et
+les met sur une même ligne. La sonde de chaque nœud collecte les sidecars,
+waypoints, passerelles et ztunnel de ce nœud, découverts par les annotations que
+le maillage écrit déjà ; le module `mesh-config` lit les pods, toujours en
+lecture seule, pour que chaque charge que le cluster exécute ait une ligne,
+qu'elle ait ou non jamais émis un span. Un
+[onglet **Sécurité**](/changelog/mesh-declared-vs-observed) tire une posture par
+charge — strict et tout en TLS mutuel ; déclaré strict, observé en clair, qui
+est un constat ; prêt à être resserré ; appelants en clair, nommés — et la
+[carte des services](/docs/signals/service-map) marque chaque arête mesurée par
+un proxy. Un onglet **Charges de travail** liste l'inscription telle que les
+pods la rapportent, six vérifications de configuration deviennent dix-sept, la
+page d'un proxy explique ses échecs par indicateur de réponse et par version de
+destination, et le graphe du maillage dessine chaque rôle avec sa propre forme.
+
+La collecte du plan de données est **activée par défaut sous le module de
+maillage** et démarre à la mise à jour ; `mesh.dataPlane.enabled=false`
+conserve l'écran sans elle. Les installations sans module de maillage ne sont
+pas touchées.
+
+Voir l'[entrée du changelog](/changelog/v0-15-0) et les
+[notes de version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.15.0).
 
 </ReleaseEntry>
 
