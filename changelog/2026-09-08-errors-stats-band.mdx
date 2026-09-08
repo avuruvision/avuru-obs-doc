@@ -1,0 +1,39 @@
+---
+slug: errors-stats-band
+title: "What the issue list adds up to — and a list you can reach the end of"
+description: "The Errors screen now carries a stats band: issues matching, how many are new in the window, how many regressed, the occurrences they produced with a histogram, and the busiest services as one-click filters. It reads the same issue set the rows below it query. And the list finally scrolls."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-09-08
+---
+
+The [Errors screen](/docs/signals/errors) showed a page of fingerprints and
+nothing about the shape of them — and on a busy install, most of those
+fingerprints could not be reached at all.
+
+{/* truncate */}
+
+- **A stats band above the list.** Whether the issues in front of you are new
+  or long-standing, whether any came back after being resolved, how much
+  traffic they actually represent and which service is producing them: all of
+  it had to be counted by hand, row by row. The band answers it in four
+  numbers — **issues** matching, **new in the window** (first seen inside it,
+  not merely seen again — the number that catches a bad deploy), **regressed**,
+  and total **events** — with a histogram of when those occurrences happened
+  and the busiest services beneath it. Click a service to filter the list to
+  it; click again to clear.
+
+  It reads a new `GET /api/v1/errors/stats`, which aggregates the **same**
+  issue set the list queries, through the same SQL. The tiles and the rows
+  cannot state different totals: resolve an issue and it leaves both at once, a
+  recurrence brings it back to both flagged as a regression.
+
+- **The list scrolls.** Every other screen lets its content scroll; Errors did
+  not, and the application shell deliberately owns no scrollbar of its own. So
+  the page fetched up to 200 issues and then clipped all but the first
+  screenful, with no way to reach the rest — the twenty rows that happened to
+  fit were the whole product. The list now scrolls in place with a sticky
+  header, the tabs, filters and band staying put above it, and the issue detail
+  panel keeping its own independent scroll. When a filter does match more than
+  the 200 loaded, the list says so and names the real total instead of quietly
+  ending.

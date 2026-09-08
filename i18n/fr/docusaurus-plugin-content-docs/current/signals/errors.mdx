@@ -54,6 +54,32 @@ Les évènements Sentry sont stockés sous forme d'enregistrements de log OTel :
 en dérive aussi depuis les évènements Sentry — et ceux-ci apparaissent également
 dans l'[explorateur de logs](/docs/signals/logs).
 
+## Lire la liste
+
+Au-dessus de la liste, un **bandeau de statistiques** dit ce que représente
+l'ensemble filtré, sur la même fenêtre et les mêmes filtres que les lignes qui
+le suivent :
+
+- **Problèmes** — combien correspondent en ce moment.
+- **Nouveaux dans la fenêtre** — parmi eux, combien ont été *vus pour la
+  première fois* dans la fenêtre, et non simplement revus. C'est le chiffre qui
+  attrape un déploiement raté.
+- **Régressés** — combien avaient été résolus et ont enregistré une occurrence
+  depuis.
+- **Événements** — le total des occurrences produites dans la fenêtre, avec un
+  **histogramme** montrant quand elles ont eu lieu.
+- **Services principaux** — les services les plus bruyants. Cliquez sur l'un
+  d'eux pour y filtrer la liste ; recliquez pour retirer le filtre.
+
+Le bandeau et la liste lisent le **même** ensemble via la même requête : ils ne
+peuvent donc pas se contredire. Résolvez un problème, il quitte les deux d'un
+coup ; une récurrence le ramène dans les deux, signalé comme régression.
+
+La liste charge jusqu'à **200 problèmes** et défile sur place, les onglets, les
+filtres et le bandeau restant fixes au-dessus. Si un filtre en trouve plus de
+200, la liste le dit et nomme le total réel — affinez par service, statut ou
+recherche pour voir le reste.
+
 ## Cycle de triage
 
 Chaque problème a un statut :

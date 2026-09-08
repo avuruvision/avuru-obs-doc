@@ -1,0 +1,41 @@
+---
+slug: errors-stats-band
+title: "Ce que la liste des problèmes représente — et une liste dont on atteint la fin"
+description: "L'écran Erreurs porte désormais un bandeau de statistiques : problèmes correspondants, combien sont nouveaux dans la fenêtre, combien ont régressé, les occurrences produites avec un histogramme, et les services les plus bruyants en filtres d'un clic. Il lit le même ensemble que les lignes en dessous. Et la liste défile enfin."
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-09-08
+---
+
+L'[écran Erreurs](/docs/signals/errors) affichait une page d'empreintes et rien
+sur ce qu'elles représentaient — et sur une installation chargée, la plupart de
+ces empreintes étaient tout simplement inatteignables.
+
+{/* truncate */}
+
+- **Un bandeau de statistiques au-dessus de la liste.** Les problèmes devant
+  vous sont-ils nouveaux ou anciens ? L'un d'eux est-il revenu après avoir été
+  résolu ? Quel trafic représentent-ils vraiment, et quel service les produit ?
+  Tout cela se comptait à la main, ligne par ligne. Le bandeau répond en quatre
+  chiffres — **problèmes** correspondants, **nouveaux dans la fenêtre** (vus
+  pour la première fois dedans, et non simplement revus : le chiffre qui attrape
+  un mauvais déploiement), **régressés**, et total des **événements** — avec un
+  histogramme du moment où ces occurrences ont eu lieu et les services les plus
+  bruyants en dessous. Cliquez sur un service pour y filtrer la liste ;
+  recliquez pour retirer le filtre.
+
+  Il lit un nouveau `GET /api/v1/errors/stats`, qui agrège le **même** ensemble
+  de problèmes que la liste interroge, via la même requête SQL. Les tuiles et
+  les lignes ne peuvent pas annoncer des totaux différents : résolvez un
+  problème, il quitte les deux d'un coup ; une récurrence le ramène dans les
+  deux, signalé comme régression.
+
+- **La liste défile.** Tous les autres écrans laissent leur contenu défiler ;
+  Erreurs, non — et la coque de l'application ne porte volontairement aucune
+  barre de défilement. La page chargeait donc jusqu'à 200 problèmes puis
+  rognait tout sauf le premier écran, sans aucun moyen d'atteindre le reste :
+  les vingt lignes qui tenaient à l'écran étaient tout le produit. La liste
+  défile désormais sur place avec un en-tête fixe, les onglets, les filtres et
+  le bandeau restant en haut, et le panneau de détail conservant son propre
+  défilement. Et quand un filtre dépasse les 200 problèmes chargés, la liste le
+  dit et nomme le total réel au lieu de s'arrêter en silence.

@@ -50,6 +50,29 @@ Sentry events are stored as OTel log records, so the **same** logs materialized
 view that derives issues from your `ERROR` logs derives them from Sentry events
 too — and they also show up in the [Logs explorer](/docs/signals/logs).
 
+## Reading the list
+
+Above the list sits a **stats band** that answers what the filtered set amounts
+to, over the same window and filters as the rows beneath it:
+
+- **Issues** — how many match right now.
+- **New in window** — of those, how many were *first seen* inside the window
+  rather than merely seen again. This is the number that catches a bad deploy.
+- **Regressed** — how many were resolved and have recorded an occurrence since.
+- **Events** — total occurrences those issues produced in the window, with a
+  **histogram** showing when they happened.
+- **Top services** — the busiest services by occurrences. Click one to filter
+  the list to it; click it again to clear the filter.
+
+The band and the list read the **same** issue set through the same query, so
+they cannot disagree: resolve an issue and it leaves both at once; a recurrence
+brings it back to both, flagged as a regression.
+
+The list loads up to **200 issues** and scrolls in place, with the tabs, filters
+and band staying put above it. If a filter matches more than 200, the list says
+so and names the real total — narrow by service, status or search text to see
+the rest.
+
 ## Triage lifecycle
 
 Every issue has a status:
