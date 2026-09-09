@@ -18,10 +18,17 @@ et un lien vers une trace qui l'a rencontrée.
 
 Un **problème** regroupe les occurrences qui partagent une **empreinte** —
 `service` + type d'exception + les premières frames normalisées de la pile (avec
-repli sur le message quand il n'y a pas de pile). Les numéros de ligne et les
-adresses mémoire sont normalisés, si bien que l'empreinte reste stable entre les
-déploiements : le même bug ne se scinde pas en un nouveau problème à chaque
-version.
+repli sur le message quand il n'y a pas de pile).
+
+C'est la normalisation qui fait tenir le regroupement. Avant le hachage, avuru
+obs neutralise tout ce qui change à chaque occurrence : horodatages, UUID,
+identifiants hexadécimaux — identifiants de trace et de span notamment —,
+adresses mémoire, puis les suites de chiffres restantes, dont les numéros de
+ligne. L'empreinte reste donc stable entre les déploiements, et une erreur qui
+transporte l'identifiant de trace de sa propre requête dans son message forme
+toujours un seul problème, au lieu d'un problème par requête. Le titre du
+problème conserve la ligne **brute**, identifiants compris : il reste
+recherchable tel quel dans vos journaux.
 
 Chaque problème porte :
 

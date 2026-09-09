@@ -1,0 +1,65 @@
+---
+slug: errors-group-by-error
+title: "Un problème correspond de nouveau à une erreur — et non à une requête"
+description: "Les problèmes dérivés des lignes de journal se scindaient sur l'identifiant de trace contenu dans le message : une seule boucle de réessais produisait quinze problèmes au lieu d'un. Les empreintes normalisent désormais horodatages, UUID et identifiants hexadécimaux avant regroupement. Également : les outils MCP atteignent un service qui n'émet que des journaux, et les images du collecteur adoptent un nouveau plancher de sécurité gRPC."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-09-10
+---
+
+Un [problème d'erreur](/docs/signals/errors) doit représenter une défaillance,
+assortie de son nombre d'occurrences. Pour les erreurs dérivées des lignes de
+journal, il était devenu un problème par requête — et enquêter là-dessus a mis
+au jour deux autres correctifs.
+
+{/* truncate */}
+
+- **Les empreintes neutralisent enfin ce qui change à chaque fois.** L'empreinte
+  d'une erreur dérivée d'un journal hachait le corps du message en ne
+  normalisant que les adresses mémoire et les suites de chiffres. Un identifiant
+  de trace hexadécimal n'est ni l'un ni l'autre : une erreur qui journalisait son
+  propre identifiant de trace — ce que font les services bien instrumentés —
+  créait donc un problème à chaque occurrence. Sur une installation, une seule
+  boucle de réessais d'une charge de démonstration a rempli l'écran de quinze
+  problèmes de trois événements chacun, ces trois-là étant les réessais qui
+  partageaient une même trace. Horodatages, UUID, identifiants hexadécimaux puis
+  suites de chiffres sont désormais neutralisés avant le hachage, dans un ordre
+  choisi pour qu'aucune règle ne détruise l'entrée de la suivante. Le titre du
+  problème affiche toujours la ligne brute : il reste recherchable dans vos
+  journaux.
+
+  Le même correctif s'applique aux exceptions enregistrées sur un span sans pile
+  d'appels, où l'empreinte se replie sur le message et où les mêmes identifiants
+  apparaissent. Les problèmes fondés sur une opération et un code HTTP ne
+  changent pas : ce sont des champs structurés, pas du texte libre.
+
+  Deux points à connaître avant la mise à jour. L'état de tri est indexé par
+  empreinte : les problèmes dérivés des journaux que vous aviez résolus ou
+  ignorés réapparaissent une fois comme non résolus — cet état portait sur un
+  problème qui ne couvrait jamais qu'une requête. Et l'historique n'est pas
+  réécrit : les problèmes enregistrés avant la mise à jour restent scindés
+  jusqu'à leur expiration par la rétention.
+
+- **Les outils MCP acceptent un service qui n'émet que des journaux.** Chaque
+  outil filtrant par service validait le nom auprès des seuls services ayant
+  traité des requêtes tracées, puisque c'est la population sur laquelle se
+  définissent débit et latences. Tout ce qui n'est pas tracé en était exclu, et
+  l'outil répondait que le service n'avait rien signalé — à propos de charges qui
+  émettaient sans interruption et présentaient des problèmes ouverts. Un nom est
+  désormais résolu sur l'ensemble des signaux. Un nom inconnu reste une erreur
+  qui cite les correspondances proches, jamais une page vide, et un service
+  mal orthographié connu des seuls journaux peut enfin être suggéré.
+
+  Pour un tel service, `service_context` omet désormais son bloc de débit au
+  lieu d'annoncer des zéros qu'il ne peut pas calculer, indique ce que le service
+  a réellement émis, et renvoie toujours ses problèmes ouverts, ses alertes et
+  ses dépendances. `search_traces` répond avec une note précisant que le service
+  n'est pas tracé : une liste de traces vide ne doit jamais passer pour une
+  panne.
+
+- **Plancher de sécurité : gRPC-Go passe à la v1.83.2** dans les builds du
+  collecteur (passerelle et agent de nœud), pour la CVE-2026-84445 (serveurs xDS
+  de gRPC-Go, déni de service par plantage). L'avis vise précisément la version
+  que le plancher précédent épinglait pour répondre à l'avis d'avant ; aucune
+  ligne du collecteur ne porte encore le correctif, le plancher reste donc en
+  place jusqu'à ce que ce soit le cas.

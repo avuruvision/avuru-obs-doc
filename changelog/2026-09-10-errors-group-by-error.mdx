@@ -1,0 +1,57 @@
+---
+slug: errors-group-by-error
+title: "An issue is one error again — not one per request"
+description: "Error issues derived from log lines were splitting on the trace id inside the message, so a single retry loop produced fifteen issues instead of one. Fingerprints now normalize timestamps, UUIDs and hex identifiers before grouping. Plus: the MCP tools can reach a service that ships logs but no traces, and the collector images take a new gRPC security floor."
+authors: [avuru]
+tags: [platform, ui, security]
+date: 2026-09-10
+---
+
+An [error issue](/docs/signals/errors) is meant to be one failure with an
+occurrence count beside it. For errors derived from log lines it had quietly
+become one issue per request — and chasing that turned up two more fixes.
+
+{/* truncate */}
+
+- **Fingerprints now normalize the parts that change every time.** The
+  fingerprint for a log-derived error hashed the log body, normalizing only
+  memory addresses and digit runs. A bare hexadecimal trace id is neither, so
+  an error that logged its own trace id — which well-instrumented services do —
+  minted a new issue on every occurrence. On one install a single retry loop in
+  a demo workload filled the screen with fifteen issues of three events each,
+  the three being the retries that happened to share a trace. Timestamps,
+  UUIDs, hex identifiers and remaining digit runs are now collapsed before
+  hashing, in an order chosen so each rule cannot destroy the next one's input.
+  The issue title still shows the raw line, so it stays searchable in your logs.
+
+  The same fix applies to exceptions recorded on a span without a stack trace,
+  where the fingerprint falls back to the message and the same identifiers
+  appear. Issues keyed on an operation and an HTTP status are untouched: those
+  are structured fields, not free text.
+
+  Two things to know before upgrading. Triage state is keyed by fingerprint, so
+  log-derived issues you had resolved or ignored return as unresolved once — the
+  state you set applied to an issue that only ever covered one request. And
+  history is not rewritten: issues recorded before the upgrade stay split until
+  retention ages them out.
+
+- **The MCP tools can be asked about a service that ships logs but no traces.**
+  Every service-scoped tool validated the name against the services that had
+  handled traced requests, because that is the population request rates and
+  latency percentiles are defined over. Anything untraced fell outside it, and
+  the tool answered that the service had reported nothing — about workloads that
+  were reporting steadily and had open issues. A name is now resolved against
+  every signal. An unknown name is still an error naming the near matches, never
+  an empty page, and a misspelled log-only service can finally be suggested.
+
+  `service_context` now omits its request-rate block for such a service instead
+  of reporting zeros it cannot compute, says what the service did send, and
+  still returns its open issues, alerts and dependencies. `search_traces`
+  answers with a note that the service is untraced — an empty trace list must
+  never be mistaken for an outage.
+
+- **Security floor: gRPC-Go raised to v1.83.2** in the gateway and node-agent
+  collector builds, for CVE-2026-84445 (gRPC-Go xDS servers, denial of service
+  via crash). The advisory lands on the version the previous floor pinned to
+  answer the advisory before it; neither collector line carries the fix yet, so
+  the floor stays until one does.
