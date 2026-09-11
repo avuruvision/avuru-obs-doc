@@ -523,6 +523,15 @@ L'onglet n'existe que là où le module de journaux est actif. Il lit les tables
 que le module de journaux remplit déjà : aucune collecte nouvelle, aucune
 permission nouvelle.
 
+Les trois mêmes sources figurent sur la page d'un service. Son onglet
+**Journaux** demande au hub de rattacher le service à une charge de travail,
+d'après les propres spans du service ou d'après le Service Kubernetes placé
+devant lui, puis lit ce que lit cet onglet-ci, en ajoutant le nom du service à
+celui de la charge : les lignes d'une application peuvent être rangées sous
+l'un ou l'autre. Quand aucune charge ne peut lui être rattachée, cet onglet
+affiche les propres lignes du service et dit pourquoi celles des proxys ne sont
+pas proposées.
+
 ### Ce qu'un waypoint sert
 
 Le trafic d'un waypoint ne sait pas dire à quoi il sert : un waypoint auquel rien

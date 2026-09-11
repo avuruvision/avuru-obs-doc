@@ -1,0 +1,40 @@
+---
+slug: service-logs-and-copy
+title: "L'onglet Journaux d'un service trouve les lignes qui le concernent, et elles se copient en un clic"
+description: "Un service dont le pod range ses lignes sous un autre nom n'a plus d'onglet Journaux vide : le hub rattache le service à sa charge de travail et affiche ses propres lignes, plus, à une case à cocher, ce que les proxys du maillage ont écrit à son sujet. Chaque table de journaux sait désormais copier, sélectionner et télécharger ce qu'elle affiche."
+authors: [avuru]
+tags: [logs, ui]
+date: 2026-09-11
+---
+
+L'onglet Journaux d'un service ne revient plus vide quand le pod range ses
+lignes sous un autre nom, et chaque table de journaux sait désormais copier,
+sélectionner et télécharger les lignes qu'elle affiche. Les deux changements
+sont sur `main` pour la prochaine version.
+
+{/* truncate */}
+
+- **L'onglet Journaux d'un service trouve ses lignes.** Les spans d'un service
+  portent son `service.name` OTel ; les lignes que son pod écrit sur stdout sont
+  rangées sous la charge de travail qui les a écrites. Quand les deux diffèrent
+  (`orders-service` exécuté par le Deployment `orders`), l'onglet Journaux du
+  service demandait le mauvais nom et n'affichait rien, pendant que
+  [l'écran du maillage](/docs/signals/mesh#ses-journaux-depuis-trois-sources)
+  débordait des traces de pile de ce même service. En plein incident, on
+  cherche alors au mauvais endroit. Le hub rattache désormais le service à sa
+  charge, d'abord d'après ses propres spans (`k8s.deployment.name`), puis
+  d'après le Service Kubernetes placé devant lui, et lit les trois mêmes sources
+  que la page de la charge : les lignes de l'application sous l'un ou l'autre
+  nom, et celles de ztunnel et du waypoint en cases à cocher facultatives.
+  Quand il ne peut pas les rattacher, l'onglet affiche ce qu'il affichait
+  toujours et dit en une ligne lequel des deux corriger. Seul le module de
+  journaux est requis ; les sources des proxys demandent `mesh-config`. Voir la
+  [référence de l'API](/reference/api).
+
+- **Les journaux se copient hors de l'écran.** Faire passer une exception dans
+  un ticket obligeait à sélectionner à la main du texte monospace replié.
+  Chaque table de journaux (l'écran Journaux, l'onglet d'une charge, celui d'un
+  service) propose désormais `Copier N lignes`, une sélection de lignes avec
+  plages au clic-maj (`Copier N sélectionnées`), et le téléchargement de ce qui
+  est chargé dans un fichier `.log`. Le bouton de copie de chaque ligne
+  apparaît désormais aussi au focus clavier, pas seulement au survol.

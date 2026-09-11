@@ -1,0 +1,36 @@
+---
+slug: service-logs-and-copy
+title: "A service's Logs tab finds the lines that are about it, and they copy out in one click"
+description: "A service whose pod files its lines under a different name no longer has an empty Logs tab: the hub ties the service to its workload and shows its own lines plus, a checkbox away, what the mesh's proxies wrote about it. Every log table can now copy, select and download what it shows."
+authors: [avuru]
+tags: [logs, ui]
+date: 2026-09-11
+---
+
+A service's Logs tab no longer comes up empty when the pod files its lines under
+a different name, and every log table can now copy, select and download the
+lines it shows. Both are on `main` for the next release.
+
+{/* truncate */}
+
+- **A service's Logs tab finds its lines.** A service's spans carry its OTel
+  `service.name`; the lines its pod writes to stdout are filed under the
+  workload that wrote them. When the two differ (`orders-service` running as
+  the Deployment `orders`), the service's Logs tab asked for the wrong name and
+  showed nothing, while the [mesh screen](/docs/signals/mesh#its-logs-from-three-sources)
+  was full of the same service's stack traces. During an incident that sends
+  you looking in the wrong place. The hub now ties the service to its workload,
+  first from the service's own spans (`k8s.deployment.name`), then from the
+  Kubernetes Service in front of it, and reads the same three sources the
+  workload page reads: the app's own lines under either name, and ztunnel's and
+  the waypoint's as opt-in checkboxes. When it cannot tie them, the tab shows
+  what it always did and says in one line which of the two to fix. It needs only
+  the logs module; the proxy sources need `mesh-config`. See the
+  [API reference](/reference/api).
+
+- **Logs copy out of the screen.** Getting an exception into a ticket used to
+  mean dragging across wrapped monospace text. Every log table (the Logs
+  screen, a workload's tab, a service's tab) now has `Copy N lines`, row
+  selection with shift-click ranges (`Copy N selected`), and a download of what
+  is loaded as a `.log` file. The per-row copy button now appears on keyboard
+  focus as well as on hover.
