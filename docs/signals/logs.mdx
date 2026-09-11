@@ -68,6 +68,16 @@ The logs explorer is **live** today:
 - **Trace correlation** — a log row's `trace_id` links to its trace, and a
   trace's spans link back to the logs emitted during that request.
 - Keyset pagination for gap-free scrolling through large time windows.
+- **A service's logs, including the mesh's.** A service's **Logs** tab finds
+  its lines even when its pod files them under a different name than its spans
+  carry: the hub ties the service to its workload and reads the same sources as
+  a workload's Logs tab on the [mesh screen](/docs/signals/mesh), the app's own
+  lines by default and the proxies' a checkbox away. When no workload
+  can be tied to it, the tab says which of two things to fix.
+- **Take the lines with you.** Copy every loaded line, or tick the rows that
+  matter (shift-click extends a range) and copy just those, or download what is
+  loaded as a `.log` file. Each control says how many lines it will take. The
+  per-row copy button appears on hover and on keyboard focus.
 
 :::note This page is expanding
 Retention and per-project overrides are being documented.

@@ -484,6 +484,13 @@ matched, which waypoint.
 The tab exists only where the logs module is on. It reads the tables the logs
 module already fills: no new collection, no new permission.
 
+The same three sources are on a service's page. Its **Logs** tab asks the hub
+to tie the service to a workload, from the service's own spans or from the
+Kubernetes Service in front of it, and then reads what this tab reads, with the
+service's own name added to the workload's: an application's lines can be filed
+under either. Where no workload can be tied to it, that tab shows the service's
+own lines and says why the proxies' are not offered.
+
 ### What a waypoint serves
 
 A waypoint's own traffic cannot say what it is for: a waypoint nothing is bound
