@@ -1,0 +1,101 @@
+---
+id: otel-bridge
+title: Adoption OpenTelemetry et migration OTLP
+sidebar_label: Passerelle OTLP
+sidebar_position: 5
+description: Ajoutez Avuru Obs à vos collecteurs OpenTelemetry et validez un double export OTLP avec authentification et retour arrière.
+---
+
+# Adoption OpenTelemetry et migration OTLP
+
+Ajoutez Avuru Obs comme destination OTLP de vos SDK ou collecteurs. Conservez
+l’instrumentation et vérifiez endpoint, protocole, identité de service et clé
+d’ingestion avant de modifier la collecte de production.
+
+```bash
+# OTLP/HTTP, depuis un autre namespace Kubernetes
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway.avuruobs.svc.cluster.local:4318
+# Pour gRPC, utilisez le port 4317 et configurez le protocole correspondant.
+```
+
+L’endpoint générique HTTP est une base ; les endpoints spécifiques de signal
+comprennent `/v1/traces`, `/v1/logs` ou `/v1/metrics`. Activez seulement les
+exporteurs et modules nécessaires, notamment pour éviter un doublon avec stdout.
+
+## Adopter avec un backend existant
+
+Un SDK ou collecteur peut exporter vers plusieurs destinations. Cela ne signifie
+pas qu’un backend historique sait réexporter ses données stockées. Les procédures
+propres à chaque outil sont dans [Compare](/docs/compare/).
+
+## Émetteurs sans OTLP
+
+La gateway propose aussi des receivers optionnels, désactivés par défaut :
+
+| Protocole | Option Helm | Endpoint interne |
+| --- | --- | --- |
+| Jaeger gRPC / thrift HTTP | `gateway.receivers.jaeger.enabled` | `:14250` / `:14268/api/traces` |
+| Zipkin | `gateway.receivers.zipkin.enabled` | `:9411/api/v2/spans` |
+| Prometheus remote-write v2 | `gateway.receivers.prometheusRemoteWrite.enabled` | `:9291/api/v1/write` |
+| Loki push | `gateway.receivers.loki.enabled` | `:3100/loki/api/v1/push` |
+
+Remote-write demande infra-metrics ; Loki demande logs. Les clés d’ingestion
+s’appliquent aussi à ces receivers. Un client qui ne sait pas transmettre
+l’en-tête bearer ne peut pas satisfaire un mode d’authentification imposé.
+Remote-write v1 est refusé ; Jaeger UDP n’est pas proposé. Les labels Loki sont
+des attributs de log, pas automatiquement l’identité `service.name`.
+L’activation ouvre les ports Service ; une exposition publique nécessite sa
+propre configuration d’ingress.
+
+## Double export et retour arrière
+
+Commencez avec un service ou pipeline de test. Fusionnez ce fragment **traces**
+dans votre collecteur existant ; ne remplacez pas ses receivers, processors
+ou paramètres d’authentification. Les deux destinations doivent accepter OTLP/HTTP.
+Définissez les variables via les mécanismes de configuration et secrets du déploiement.
+
+```yaml
+exporters:
+  otlphttp/avuru:
+    endpoint: http://avuruobs-gateway.avuruobs.svc.cluster.local:4318
+    headers:
+      Authorization: "Bearer ${env:AVURU_INGEST_KEY}"
+    sending_queue:
+      enabled: true
+      queue_size: 1024
+    retry_on_failure:
+      enabled: true
+  otlphttp/existing:
+    endpoint: ${env:EXISTING_OTLP_HTTP_ENDPOINT}
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/existing, otlphttp/avuru]
+```
+
+Il s’agit d’un fragment : `otlp` et `batch` doivent déjà être définis. Conservez
+l’authentification et les files de l’exporteur existant. Ne retirez l’en-tête
+Avuru que si le mode d’ingestion ne demande pas de clé. Configurez les pipelines
+logs et métriques séparément. Évitez toute boucle de forwarding.
+
+Vérifiez dans **les deux destinations** :
+
+1. `service.name`, projet destinataire et horodatages récents.
+2. Même ID de trace, nombre de spans et relations parent/enfant.
+3. Signaux logs/métriques attendus et absence de doublons stdout.
+4. Santé des files, erreurs d’export et ressources du collecteur sous une charge représentative.
+
+Une file bornée ne garantit pas la livraison pendant une panne prolongée.
+Surveillez les pertes et dimensionnez la mise en attente. Pour revenir en
+arrière, retirez seulement l’exporteur Avuru du pipeline et vérifiez que la
+destination initiale reçoit toujours les données. Conservez sa configuration.
+
+La gateway Avuru dispose aussi de forwarders OTLP/Kafka optionnels ; consultez
+la [référence de configuration](/reference/configuration/). Ils nécessitent une
+destination valide et leurs propres réglages. Le transfert de l’historique,
+des alertes, dashboards et accès constitue un travail distinct.
+
+Validez une première trace avec l’[exemple Go](/integrations/languages/go/)
+ou le [checkout synthétique](/guides/investigate-slow-checkout/).

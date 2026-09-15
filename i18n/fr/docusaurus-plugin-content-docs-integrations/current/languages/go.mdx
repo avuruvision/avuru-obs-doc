@@ -1,0 +1,88 @@
+---
+title: Traçage OpenTelemetry Go avec Avuru Obs
+description: Exécutez un exemple Go OTLP complet avec propagation du contexte, logs JSON corrélés et arrêt gracieux dans Avuru Obs.
+sidebar_label: Go
+sidebar_position: 1
+tags: [integration, go, language]
+support_level: community
+since_version: 0.1.0
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import example from '!!raw-loader!@site/static/examples/go-otel/main.go';
+
+# Traçage OpenTelemetry Go
+
+Le SDK Go permet d’ajouter des spans applicatifs, de propager explicitement le
+contexte ou de couvrir des opérations hors de la
+[collecte eBPF](/docs/signals/service-map/). Cet exemple sert `GET /hello`,
+exporte un span serveur en OTLP/HTTP et écrit un log JSON avec les mêmes IDs.
+
+## Exécuter l’exemple
+
+Prérequis : Go 1.25 minimum et une gateway Avuru Obs. Téléchargez dans un même
+dossier [main.go](pathname:///examples/go-otel/main.go),
+[go.mod](pathname:///examples/go-otel/go.mod) et
+[go.sum](pathname:///examples/go-otel/go.sum). Les modules OpenTelemetry Go sont
+épinglés en 1.46.0 et doivent rester à des versions cohérentes.
+
+Dans un terminal séparé :
+
+```bash
+kubectl -n avuruobs port-forward svc/avuruobs-gateway 4318:4318
+```
+
+Puis, dans le dossier de l’exemple :
+
+```bash
+export OTEL_SERVICE_NAME=avuru-go-example
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces
+go mod download
+go run .
+```
+
+Si l’ingestion impose une clé, configurez `OTEL_EXPORTER_OTLP_TRACES_HEADERS`
+avec `Authorization=Bearer YOUR_INGEST_KEY` pour votre projet de test.
+Depuis un autre namespace Kubernetes, utilisez le nom complet
+`avuruobs-gateway.avuruobs.svc.cluster.local` plutôt que localhost.
+
+Appelez le service depuis un autre terminal :
+
+```bash
+curl --fail http://127.0.0.1:8081/hello
+# hello from avuru-go-example
+```
+
+## Source complète
+
+<CodeBlock language="go" title="main.go">{example}</CodeBlock>
+
+Le handler extrait le `traceparent` W3C avant de créer son span serveur.
+L’export se fait par lots. Ctrl+C arrête le serveur et vide les spans en attente
+avec un délai borné. Seul le tracing est configuré ici ; les métriques nécessitent
+leur propre meter provider et exporteur.
+
+## Vérifier dans Avuru Obs
+
+1. Dans Traces, choisissez le projet destinataire et les 15 dernières minutes.
+2. Filtrez `avuru-go-example` et ouvrez `GET /hello`.
+3. Vérifiez le type serveur et `http.route=/hello`.
+4. Comparez l’ID de trace au log JSON du processus.
+
+Le stdout d’un ordinateur local n’est pas envoyé automatiquement au collecteur
+Kubernetes. Les IDs démontrent le lien ; il faut une collecte pour transporter
+la ligne. Dans un pod avec collecte stdout active, l’agent du nœud peut la lire.
+Évitez un second export OTLP de la même ligne. Voir les
+[logs corrélés](/docs/signals/logs/).
+
+## Si le span n’arrive pas
+
+- Lisez les erreurs de l’exporteur ; attendez un lot ou arrêtez le processus proprement.
+- L’URL spécifique HTTP comprend `/v1/traces`. Le port 4317 concerne gRPC.
+- Vérifiez clé, projet, santé de la gateway et fenêtre temporelle.
+- HTTPS dépend du schéma de l’endpoint ; ne désactivez pas la validation du certificat.
+- Les spans SDK et eBPF peuvent se recouvrir. Identifiez les opérations observées avant de tout activer.
+
+Continuez avec les [traces](/docs/signals/traces/),
+[PostgreSQL](/integrations/databases/postgresql/) et la
+[documentation Go OpenTelemetry](https://opentelemetry.io/docs/languages/go/instrumentation/).

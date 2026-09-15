@@ -1,9 +1,9 @@
 ---
 id: traces
-title: Traces
+title: Self-hosted distributed tracing with eBPF and OpenTelemetry
 sidebar_label: Traces
 sidebar_position: 1
-description: The trace data model in avuru obs — spans, sampling and span links.
+description: Investigate distributed requests with waterfalls, trace comparison and correlated logs from eBPF and OpenTelemetry spans in Avuru Obs.
 ---
 
 # Traces
@@ -70,8 +70,22 @@ If your gateway or WAF is doing its job, that column is where you will see it.
 Head sampling is configured at the SDK or gateway. Tail-based sampling at the
 gateway is on the roadmap.
 
-:::note This page is expanding
-Sampling configuration, span-link semantics and the ClickHouse `traces` schema
-are being documented. See [Core concepts](/docs/getting-started/core-concepts)
-for the mental model.
-:::
+## Follow a slow request
+
+Start from the [service map](/docs/signals/service-map/) or filter **Traces** by
+service and duration. Open a trace, select the longest relevant child span and
+inspect its target, status and attributes. Nested spans overlap in time: adding
+their durations does not give total request time.
+
+Compare another trace with the same operation before assuming the selected
+request is typical. Follow its logs when they carry matching trace context.
+The [slow checkout exercise](/guides/investigate-slow-checkout/) provides a
+synthetic dataset and expected results for each step.
+
+## Missing spans and sampling
+
+Avuru Obs does not fill gaps with invented operations. Check propagation,
+collector health, project and time window when a trace looks incomplete.
+Sampling is opt-in; configure it deliberately in your collection pipeline.
+Spans omitted before ingestion cannot be recovered from the storage backend.
+See [OTLP adoption](/docs/setup/otel-bridge/) before changing an existing pipeline.

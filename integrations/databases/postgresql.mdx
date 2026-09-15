@@ -1,6 +1,6 @@
 ---
-title: PostgreSQL
-description: Observe PostgreSQL calls — captured automatically by eBPF and enriched via OTLP.
+title: PostgreSQL tracing and dependency mapping
+description: Understand PostgreSQL visibility in Avuru Obs, from eBPF connections to database client spans and slow-query investigation.
 sidebar_label: PostgreSQL
 sidebar_position: 1
 tags: [integration, postgres, database]
@@ -8,13 +8,74 @@ support_level: community
 since_version: 0.1.0
 ---
 
-# PostgreSQL
+# PostgreSQL tracing and dependency mapping
 
-The eBPF `sensor` already sees connections to PostgreSQL as edges on the service
-map. For **statement-level** spans, enable your language's database
-instrumentation (e.g. JDBC, `pg`, `database/sql`) so each query becomes a child
-span.
+Avuru Obs observes a database through the applications that call it. A node on
+the map is evidence of a dependency; it is not a PostgreSQL server health check.
 
-:::note This page is expanding
-Slow-query correlation and connection-pool metrics are being documented.
-:::
+## Choose the evidence you need
+
+| Evidence | Source | What it does not prove |
+| --- | --- | --- |
+| A network connection | eBPF flow telemetry | Query text, request latency or database health |
+| A PostgreSQL operation | Supported sensor protocol capture or application database instrumentation | Server-side execution plan or lock ownership |
+| A database dependency on the map | A caller's database client span | An independent service p95 or health verdict for PostgreSQL |
+| Pool usage or server internals | Explicit application metrics or a configured collector receiver | Automatically available from the dependency node |
+
+Sensor coverage depends on the runtime, kernel, encryption and observed
+protocol. If a connection is visible but query spans are missing, inspect that
+coverage or instrument the application database client. Do not assume every
+connection can be decoded into a query.
+
+## Identify a database operation
+
+For explicit instrumentation, create a **client span** around the actual query
+and propagate the request context into it. Language integrations can do this
+for their supported drivers. Useful OpenTelemetry attributes include:
+
+```json
+{
+  "db.system.name": "postgresql",
+  "server.address": "orders-db",
+  "server.port": 5432,
+  "db.namespace": "shop",
+  "db.operation.name": "SELECT"
+}
+```
+
+The gateway accepts standard OTLP. Existing instrumentation may emit legacy
+`db.system=postgresql` and `db.name`; inspect the exported span and your
+instrumentation's semantic-convention version before changing it. The
+[synthetic checkout exercise](/guides/investigate-slow-checkout/) sends both
+system names to make the example explicit.
+
+Never put credentials or query parameter values into telemetry. Query text can
+contain sensitive data; check what your instrumentation records before enabling
+it in production. See the upstream
+[database semantic conventions](https://opentelemetry.io/docs/specs/semconv/database/database-spans/).
+
+## Investigate a slow request
+
+1. Choose the calling application and time window in **Traces**.
+2. Open a slow request and find its PostgreSQL client span in the waterfall.
+3. Compare database duration with the enclosing request. Nested durations must not be added together.
+4. Inspect operation, target and status, then read logs carrying the same trace ID.
+5. Use database-side evidence to test a hypothesis about locks, query plans or capacity.
+
+A long client span can include connection-pool wait, network time and database
+execution, depending on where the instrumentation starts the span. Its duration
+alone cannot identify the root cause.
+
+To practise without connecting a database, use the downloadable
+[slow checkout dataset](/guides/investigate-slow-checkout/). It emits a clearly
+labelled synthetic database client span; it does not run SQL or measure PostgreSQL.
+
+## Troubleshooting
+
+- **No database node:** check for a client span with database identity and a target address. Flow-only visibility may not provide that identity.
+- **Database node without its own health or p95:** expected for an inferred dependency. Inspect the caller-observed edge and client spans.
+- **Separate names for one database:** compare `server.address`, connection aliases and resource identity before changing instrumentation.
+- **Logs do not join:** inspect `trace_id` and `span_id`; matching a service name or timestamp alone does not establish request correlation.
+
+Read more about [inferred dependencies](/docs/signals/service-map/#dependencies-that-never-report)
+and [trace/log correlation](/docs/signals/logs/).

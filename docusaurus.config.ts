@@ -12,7 +12,7 @@ const EDIT_BASE = `${DOCS_REPO}/edit/main/`;
 
 const config: Config = {
   title: 'Avuru Obs',
-  tagline: 'Open-source observability, APM, error tracking & alerting — a self-hosted Datadog, Grafana & Sentry alternative',
+  tagline: 'Open-source Kubernetes observability — eBPF, traces, metrics and logs',
   // .ico is the broadly-compatible default (Safari ignores SVG favicons); the
   // crisp SVG + PNG + apple-touch variants are advertised via headTags below.
   favicon: 'img/favicon.ico',
@@ -27,6 +27,8 @@ const config: Config = {
   // FTP server-dir in .github/workflows/deploy.yml.
   url: 'https://avuruobs.io',
   baseUrl: '/',
+  // Match directory URLs served by Hostinger; canonical, alternates and sitemap agree.
+  trailingSlash: true,
 
   organizationName: 'avuruvision',
   projectName: 'avuru-obs-doc',
@@ -47,14 +49,6 @@ const config: Config = {
     {tagName: 'link', attributes: {rel: 'icon', type: 'image/svg+xml', href: '/img/favicon.svg'}},
     {tagName: 'link', attributes: {rel: 'icon', type: 'image/png', sizes: '32x32', href: '/img/favicon-32.png'}},
     {tagName: 'link', attributes: {rel: 'apple-touch-icon', sizes: '180x180', href: '/img/apple-touch-icon.png'}},
-    {
-      tagName: 'meta',
-      attributes: {
-        name: 'keywords',
-        content:
-          'open source observability, open source APM, OpenTelemetry, eBPF, distributed tracing, metrics, logs, continuous profiling, Datadog alternative, New Relic alternative, Grafana alternative, Prometheus, self-hosted observability, OTLP, Sentry alternative, GlitchTip alternative, open source error tracking, self-hosted error tracking, error monitoring, crash reporting, Coroot alternative, service health monitoring, open source alerting, webhook alerts, alerting on service health, service dependency map, network health monitoring, eBPF network monitoring, TCP RTT',
-      },
-    },
     {tagName: 'meta', attributes: {name: 'twitter:card', content: 'summary_large_image'}},
     // Explicit dimensions + alt help WhatsApp/LinkedIn render the large preview.
     {tagName: 'meta', attributes: {property: 'og:image:width', content: '1200'}},
@@ -268,7 +262,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {label: 'Introduction', to: '/docs/intro'},
-            {label: '30 seconds', to: '/docs/getting-started/30-seconds'},
+            {label: 'Installation guide', to: '/docs/getting-started/30-seconds'},
             {label: 'Architecture', to: '/guides/architecture'},
             {label: 'Compare', to: '/docs/compare'},
           ],

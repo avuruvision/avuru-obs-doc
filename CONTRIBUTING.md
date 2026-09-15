@@ -50,3 +50,32 @@ strings with `npm run write-translations -- --locale fr`.
 
 Vercel/Netlify previews are optional and not wired by default — the CI build is
 the PR gate. Production publishes to Hostinger (FTPS) on merge to `main`.
+
+## Landing and search changes
+
+Keep the landing pre-rendered and its data examples clearly labelled. Use the
+existing Docusaurus translations (`atlas.*` in `i18n/fr/code.json`) when changing
+`src/components/home/content.ts`; add matching French entries before publishing.
+Keep docs slugs stable when improving titles.
+
+```bash
+npm run typecheck
+npm run lint:docs
+npm run build
+npm run test:seo
+npx playwright install chromium   # once locally; --with-deps on Linux CI
+npm run test:browser
+npm run test:examples
+go test -C static/examples/go-otel -race ./...
+npm run audit:i18n                # remaining translation work, informational
+```
+
+The browser suite serves the production build on port 4173 and blocks external
+requests. It checks EN/FR interactions, missing map measurements, mobile layouts,
+keyboard access, reduced motion, JavaScript-disabled content and axe WCAG checks.
+The Go example test starts a local receiver and verifies propagation and export
+at shutdown; it requires its documented port 8081 to be free.
+
+Use Prettier for changed frontend and test files. Inspect desktop and mobile
+screenshots in addition to automated checks. Deployment and Search Console
+follow-up are described in [`ops/atlas-rollout.md`](ops/atlas-rollout.md).

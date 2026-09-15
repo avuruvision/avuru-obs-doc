@@ -1,70 +1,70 @@
 ---
 id: 30-seconds
-title: De zéro à la première trace en 30 secondes
-sidebar_label: 30 secondes
+title: Installer Avuru Obs et découvrir sa première carte de services
+sidebar_label: Installation rapide
 sidebar_position: 1
-description: Installez avuru obs avec une seule commande Helm et regardez la carte des services apparaître — sans changement de code.
+description: Installez le chart Helm Avuru Obs, ouvrez l’interface et vérifiez les premiers services et traces sur votre cluster Kubernetes.
 ---
 
 import {InstallSelector} from '@site/src/components';
 
-# De zéro à la première trace
+# Installer Avuru Obs et découvrir sa première carte
 
-C'est le chemin sacré. Une commande, aucun changement de code, une carte des
-services en direct.
+Commencez sur un cluster de test. eBPF découvre le trafic pris en charge sans
+modifier les applications ; OpenTelemetry complète la collecte selon vos besoins.
+Le temps de démarrage dépend du cluster, du téléchargement des images et du trafic.
 
-## 1. Installer
+## 1. Vérifier les prérequis
+
+Vous avez besoin de Helm, d’un contexte Kubernetes accessible, d’un stockage
+persistant pour ClickHouse et de nœuds Linux compatibles avec le sensor.
+Consultez les [prérequis Kubernetes](/docs/setup/kubernetes/#requirements).
+La collecte eBPF demande des permissions au niveau du nœud : vérifiez les
+contraintes de sécurité de votre cluster.
+
+## 2. Installer
 
 <InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
 
-Le chart Helm installe le DaemonSet `sensor`, le collecteur `gateway`, le plan de
-contrôle `hub`, l'`ui` et ClickHouse.
+Le chart réunit le sensor, la gateway, le hub, l’interface et ClickHouse.
+L’exemple utilise une [version publiée](https://github.com/avuruvision/avuru-obs/releases).
+Docker permet une évaluation locale ; le parcours VM repose sur votre pipeline OTLP.
 
-## 2. Ouvrir l'UI
-
-```bash
-kubectl -n avuruobs port-forward svc/avuruobs-hub 8080:80
-```
-
-Ouvrez <strong>http://localhost:8080</strong>. En une minute ou deux, la
-**carte des services** se remplit toute seule — le `sensor` trace chaque service
-HTTP/gRPC en zéro-code via OBI, donc il n'y a **rien à instrumenter**.
-(Les arêtes non instrumentées sont enrichies via la fonctionnalité `network`
-d'OBI.)
-
-## 3. (Optionnel) Envoyer de l'OTLP
-
-Vous avez déjà des SDK OpenTelemetry ? Pointez-les vers le gateway et vos spans
-atterrissent à côté de ceux découverts par eBPF :
+## 3. Ouvrir l’interface
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway:4318
-# gRPC plutôt ? utilisez http://avuruobs-gateway:4317
+kubectl -n avuruobs port-forward svc/avuruobs-ui 8080:80
 ```
 
-:::tip C'est tout
-Pas d'agents à déployer, pas de redéploiement applicatif. Si votre noyau dispose
-de BTF (Linux ≥ 5.8), vous obtenez l'image complète ; les noyaux plus anciens se
-dégradent proprement.
-:::
+Ouvrez **http://localhost:8080/** et sélectionnez le projet qui reçoit les données.
+Générez du trafic vers une application prise en charge : une carte vide sur un
+cluster inactif n’indique pas forcément une panne de collecte.
 
-## Vérifier
+## 4. Vérifier
 
 ```bash
 kubectl -n avuruobs get pods
-# avuruobs-sensor-xxxxx     Running
-# avuruobs-gateway-xxxxx    Running
-# avuruobs-hub-xxxxx        Running
-# avuruobs-ui-xxxxx         Running
-# avuruobs-clickhouse-0     Running
 ```
 
-Si chaque pod est `Running` et que la carte des services affiche des nœuds, c'est
-gagné.
+Vérifiez la disponibilité des composants, puis un service dans la carte et une
+trace récente. Si ClickHouse reste en attente, examinez le PVC et la StorageClass.
+Si aucun signal n’arrive, vérifiez les permissions et logs du sensor, la
+compatibilité noyau/protocole et le projet sélectionné.
+
+## 5. Envoyer votre OTLP existant
+
+Depuis un autre namespace Kubernetes, utilisez le nom DNS complet :
+
+```bash
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://avuruobs-gateway.avuruobs.svc.cluster.local:4318/v1/traces
+```
+
+Cet endpoint concerne OTLP/HTTP. Le transport gRPC utilise le port 4317 avec sa
+configuration SDK correspondante. Consultez le [guide OTLP](/docs/setup/otel-bridge/)
+pour les clés d’ingestion, le double export et les autres signaux.
 
 ## Et après
 
-- **[Votre première trace](/docs/getting-started/first-trace)** — suivez une
-  requête de bout en bout dans l'application de démo.
-- **[Concepts clés](/docs/getting-started/core-concepts)** — ce que signifient
-  vraiment un signal, le contexte et la propagation.
+- [Comprendre la carte](/docs/signals/service-map/).
+- [Investiguer un checkout lent](/guides/investigate-slow-checkout/) avec un exemple synthétique reproductible.
+- [Choisir les modules](/docs/setup/modules/) et leurs prérequis.

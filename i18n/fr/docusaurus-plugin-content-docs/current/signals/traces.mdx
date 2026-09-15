@@ -1,0 +1,70 @@
+---
+id: traces
+title: Traçage distribué auto-hébergé avec eBPF et OpenTelemetry
+sidebar_label: Traces
+sidebar_position: 1
+description: Investiguez les requêtes distribuées avec waterfalls, comparaison de traces et logs corrélés à partir des spans eBPF et OpenTelemetry dans Avuru Obs.
+---
+
+# Traçage distribué avec eBPF et OpenTelemetry
+
+Une **trace** décrit le chemin d’une requête entre services sous forme d’un arbre
+de **spans**. Avuru Obs ingère les spans du sensor eBPF et des exporteurs OTLP
+et les stocke ensemble dans ClickHouse.
+
+## Modèle
+
+- **Span :** une opération avec début, fin, statut et attributs.
+- **Parent/enfant :** l’imbrication des opérations dans le waterfall.
+- **Liens entre spans :** des relations entre traces, par exemple pour des traitements par lots.
+
+## Explorer les traces {/* #explore-traces */}
+
+Dans l’explorateur :
+
+- Filtrez par service, opération, statut, attributs, durée et ordre. Le trafic auxiliaire est masqué par défaut.
+- Utilisez la heatmap latence/temps pour sélectionner une période ou une plage de durée.
+- Consultez les métriques RED par couple service/opération : débit, erreurs et P50/P95/P99.
+- Ouvrez une trace dans les vues waterfall, tableau des spans, flamegraph, statistiques, graphe et JSON.
+- Comparez deux traces pour repérer les spans ajoutés, retirés, plus rapides ou plus lents.
+
+## Trois résultats possibles {/* #did-it-work-three-answers-not-two */}
+
+Certaines instrumentations laissent le statut OpenTelemetry à `Unset` même sur
+un appel en échec. Avuru Obs examine aussi le code HTTP :
+
+| Donnée observée | Résultat |
+| --- | --- |
+| Statut explicite `Error` | Erreur |
+| Statut explicite `Ok` | Succès |
+| HTTP 5xx sans verdict explicite | Erreur |
+| HTTP 4xx sur un span client | Erreur côté appelant |
+| HTTP 4xx sur un span serveur | Refus |
+| HTTP 2xx, 3xx ou aucun code sans verdict explicite | Succès |
+
+Un refus serveur — autorisation rejetée, requête invalide ou blocage WAF — ne
+compte pas comme une défaillance du service. Les refus ont leur propre classe
+ambre et leur filtre ; ils n’augmentent pas le taux d’erreur des métriques RED,
+de la carte ou des alertes.
+
+## Suivre une requête lente
+
+Partez de la [carte des services](/docs/signals/service-map/) ou filtrez Traces
+par service et durée. Sélectionnez un span enfant pertinent et examinez cible,
+statut et attributs. Les spans imbriqués se chevauchent : additionner leurs
+durées ne donne pas la durée totale de la requête.
+
+Comparez une autre trace de la même opération avant de généraliser. Consultez
+les logs qui portent le même contexte de trace. Le
+[guide du checkout lent](/guides/investigate-slow-checkout/) fournit un jeu de
+données synthétiques et les résultats attendus.
+
+## Spans manquants et échantillonnage
+
+Le produit ne remplace pas les spans absents par des opérations inventées.
+Vérifiez propagation, santé du collecteur, projet et fenêtre temporelle si une
+trace est incomplète. L’échantillonnage est optionnel et doit être configuré
+délibérément dans le pipeline ; les spans omis avant ingestion ne sont pas
+récupérables dans le stockage. Le tail sampling dans la gateway reste sur la
+feuille de route. Consultez le [guide OTLP](/docs/setup/otel-bridge/) avant de
+modifier un pipeline existant.

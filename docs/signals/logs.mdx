@@ -1,9 +1,9 @@
 ---
 id: logs
-title: Logs
+title: OpenTelemetry logs and trace correlation
 sidebar_label: Logs
 sidebar_position: 2
-description: Log ingestion, parsing and correlation by trace_id.
+description: Collect logs, preserve trace and span IDs, and investigate requests with correlated OpenTelemetry logs in Avuru Obs.
 ---
 
 # Logs
@@ -17,8 +17,8 @@ the service logged during that request.
 
 ## What your service should emit
 
-The node agent tails every pod's stdout, so a service gets logs collected with
-no configuration at all. To get *useful* logs, emit **one JSON object per
+With the logs module and node-agent stdout collection enabled, pod logs flow
+through the gateway. Check the selected project and collection configuration. To get *useful* logs, emit **one JSON object per
 line** carrying these three things:
 
 | Field | Why |
@@ -79,6 +79,36 @@ The logs explorer is **live** today:
   loaded as a `.log` file. Each control says how many lines it will take. The
   per-row copy button appears on hover and on keyboard focus.
 
-:::note This page is expanding
-Retention and per-project overrides are being documented.
+## Verify trace correlation
+
+A structured stdout record can carry these fields:
+
+```json
+{"level":"INFO","message":"payment authorized","trace_id":"0123456789abcdef0123456789abcdef","span_id":"0123456789abcdef"}
+```
+
+These IDs are illustrative. In an application, copy them from the **active span**;
+never use a fixed ID for real requests. A trace ID has 32 hexadecimal characters
+and a span ID has 16. Invalid or absent IDs do not identify a request.
+
+Find the record in Logs, open its trace link and verify that the span belongs to
+the same request. For an executable example, use the
+[Go SDK integration](/integrations/languages/go/) or the
+[synthetic checkout exercise](/guides/investigate-slow-checkout/).
+
+## If the logs are not attached to a trace
+
+- A plain line can remain searchable without having trace context.
+- Service name and timestamp alone are not a trace ID.
+- Check project, time window, retention and the signal's collection module.
+- Choose one ingestion path for a log to avoid collecting the same event twice.
+
+Retention is configured by deployment and project; see
+[scaling and retention](/docs/operations/scaling/).
+
+:::note Release coverage
+Automatic severity parsing from container stdout and the expanded service-log
+and copy controls described above are documented on the current development
+trunk for v0.17. OTLP log ingestion and trace-ID correlation are already released.
+Check [feature status](/docs/status/) and the version you installed.
 :::

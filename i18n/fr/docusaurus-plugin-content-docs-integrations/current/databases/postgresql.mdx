@@ -1,0 +1,77 @@
+---
+title: Traces PostgreSQL et carte de dépendances
+description: Comprenez la visibilité PostgreSQL dans Avuru Obs, des connexions eBPF aux spans clients et à l’investigation des requêtes lentes.
+sidebar_label: PostgreSQL
+sidebar_position: 1
+tags: [integration, postgres, database]
+support_level: community
+since_version: 0.1.0
+---
+
+# Traces PostgreSQL et carte de dépendances
+
+Avuru Obs observe une base à travers ses applications clientes. Un nœud sur
+la carte atteste une dépendance ; ce n’est pas un diagnostic de santé PostgreSQL.
+
+## Choisir les preuves utiles
+
+| Preuve | Source | Ce qu’elle ne démontre pas |
+| --- | --- | --- |
+| Connexion réseau | Flux eBPF | Texte SQL, latence d’une requête ou santé de la base |
+| Opération PostgreSQL | Capture de protocole prise en charge ou instrumentation du client | Plan d’exécution ou détenteur d’un verrou |
+| Dépendance de base | Span client de l’application appelante | P95 propre ou verdict de santé du serveur PostgreSQL |
+| Pool ou métriques internes | Instrumentation ou receiver explicitement configuré | Collecte automatique à partir du nœud de dépendance |
+
+La couverture dépend du runtime, du noyau, du chiffrement et du protocole.
+Une connexion visible sans span de requête peut nécessiter une instrumentation
+applicative. Toutes les connexions ne peuvent pas être décodées en requêtes.
+
+## Identifier l’opération de base
+
+Créez un **span client** autour de la vraie requête et transmettez son contexte.
+Les intégrations de langage peuvent le faire pour leurs drivers compatibles.
+Attributs OpenTelemetry utiles :
+
+```json
+{
+  "db.system.name": "postgresql",
+  "server.address": "orders-db",
+  "server.port": 5432,
+  "db.namespace": "shop",
+  "db.operation.name": "SELECT"
+}
+```
+
+Certaines instrumentations utilisent encore `db.system=postgresql` et `db.name`.
+Inspectez le span et la version des conventions avant de les modifier.
+L’[exercice checkout](/guides/investigate-slow-checkout/) fournit les deux noms
+de système de base dans son exemple.
+
+N’intégrez pas de credentials ni de valeurs de paramètres SQL à la télémétrie.
+Le texte SQL peut contenir des informations sensibles : examinez ce que collecte
+votre instrumentation. Voir les
+[conventions de spans de base de données](https://opentelemetry.io/docs/specs/semconv/database/database-spans/).
+
+## Examiner une requête lente
+
+1. Choisissez l’application appelante et la fenêtre dans Traces.
+2. Ouvrez la requête et repérez son span PostgreSQL client.
+3. Comparez sa durée à la requête englobante sans additionner les spans imbriqués.
+4. Examinez opération, cible, statut et logs portant le même ID.
+5. Vérifiez ensuite vos hypothèses avec des preuves côté base : verrous, plans ou capacité.
+
+Selon les limites de l’instrumentation, le span client peut inclure attente de
+pool, réseau et exécution. Sa durée seule ne prouve pas la cause racine.
+
+L’[exemple téléchargeable](/guides/investigate-slow-checkout/) permet de pratiquer
+sans base : il envoie un span synthétique explicitement nommé, sans exécuter de SQL.
+
+## Dépannage
+
+- **Pas de nœud :** cherchez un span client avec identité de base et adresse cible.
+- **Pas de santé ou de p95 propre :** attendu pour une dépendance inférée ; examinez les mesures côté appelant.
+- **Plusieurs noms pour une base :** comparez `server.address`, alias et identité des ressources.
+- **Logs non rattachés :** vérifiez `trace_id` et `span_id` ; nom et heure ne suffisent pas.
+
+Consultez les [dépendances inférées](/docs/signals/service-map/)
+et la [corrélation traces/logs](/docs/signals/logs/).

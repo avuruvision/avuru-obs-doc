@@ -1,6 +1,6 @@
 ---
 id: otel-bridge
-title: OTLP bridge
+title: OpenTelemetry adoption and OTLP migration
 sidebar_label: OTLP bridge
 sidebar_position: 5
 description: Already emitting OTLP — or Jaeger, Zipkin, Prometheus remote-write or Loki push? Point your senders at the gateway.
@@ -8,8 +8,9 @@ description: Already emitting OTLP — or Jaeger, Zipkin, Prometheus remote-writ
 
 # OTLP bridge
 
-If your services already emit OpenTelemetry, avuru obs is a **drop-in OTLP
-backend**. Change the endpoint — nothing else.
+If your services already emit OpenTelemetry, add Avuru Obs as an OTLP
+destination. Keep the instrumentation and validate endpoint, protocol, service
+identity and ingest authentication before changing the production pipeline.
 
 ```bash
 # OTLP/HTTP
@@ -22,12 +23,11 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 This works for **traces, metrics and logs**. Spans you export land next to the
 eBPF-discovered map and share the same `service.name` resource identity.
 
-## Migrating from Jaeger / another OTLP backend
+## Adopt alongside an existing backend
 
-Repoint the exporter endpoint to the gateway. No SDK or code changes are needed —
-avuru obs speaks native OTLP. For tool-specific migration notes and side-by-side
-comparisons, see [Compare](/docs/compare) (Jaeger, the Grafana stack, Prometheus,
-Datadog).
+A sender or collector can export to more than one destination. That does not
+mean a historical backend can re-export stored telemetry. For tool-specific
+notes, see [Compare](/docs/compare/).
 
 ## Senders that do not speak OTLP
 
@@ -100,7 +100,53 @@ credentials come only from an existing Secret, never inline. A forwarder
 enabled with no endpoint or brokers fails the render instead of forwarding
 nowhere.
 
-:::note This page is expanding
-Per-language exporter snippets live under [Integrations](/integrations). Sampling
-and tail-based sampling guidance is being added to [Traces](/docs/signals/traces).
-:::
+## Validate a reversible rollout
+
+Start with one test service or collector pipeline. This fragment illustrates
+**trace** dual export from an existing OTel Collector; merge it into your current
+configuration rather than replacing receivers, processors or authentication.
+Both destinations must accept OTLP/HTTP. Define the two environment variables
+using your deployment's secret/configuration mechanism.
+
+```yaml
+exporters:
+  otlphttp/avuru:
+    endpoint: http://avuruobs-gateway.avuruobs.svc.cluster.local:4318
+    headers:
+      Authorization: "Bearer ${env:AVURU_INGEST_KEY}"
+    sending_queue:
+      enabled: true
+      queue_size: 1024
+    retry_on_failure:
+      enabled: true
+  otlphttp/existing:
+    endpoint: ${env:EXISTING_OTLP_HTTP_ENDPOINT}
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/existing, otlphttp/avuru]
+```
+
+This is a fragment: the referenced `otlp` receiver and `batch` processor must
+already be defined. Keep any existing authentication and queue settings on the
+original exporter. Remove the Avuru authorization header only if your ingest
+mode does not use keys. For logs and metrics, configure and validate their
+pipelines separately. Do not create a forwarding loop between backends.
+
+Check in **both** destinations:
+
+1. Stable `service.name`, expected project and recent timestamps.
+2. The same test trace ID, span count and parent relationships.
+3. Expected logs/metrics if those signals were enabled; no doubled stdout logs.
+4. Queue health, dropped exports and collector resource use under representative load.
+
+A bounded queue cannot guarantee delivery during a prolonged outage. Decide how
+much buffering you need and monitor failures. To roll back evaluation, remove
+only the Avuru exporter from the pipeline, retain the original destination and
+verify it continues receiving data. Keep the original configuration available.
+
+Historical storage, alert rules, dashboards and access policies are separate
+migration work. Use the [Go integration](/integrations/languages/go/) or the
+[synthetic checkout](/guides/investigate-slow-checkout/) to validate a first trace.

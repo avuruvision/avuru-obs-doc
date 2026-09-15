@@ -70,5 +70,8 @@
   "copyright": {
     "message": "avuru obs · AGPL-3.0 · conçu avec Docusaurus.",
     "description": "The footer copyright"
+  },
+  "link.item.label.Installation guide": {
+    "message": "Guide d’installation"
   }
 }

@@ -22,8 +22,31 @@ jobs:
       - name: Install
         run: npm ci --no-audit --no-fund
 
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Lint front-matter
         run: npm run lint:docs
 
       - name: Build (all locales, fails on broken links)
         run: npm run build
+
+      - name: Check rendered SEO and localized links
+        run: npm run test:seo
+
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser interactions and accessibility
+        run: npm run test:browser
+
+      - name: Check synthetic OTLP exercise
+        run: npm run test:examples
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: static/examples/go-otel/go.mod
+          cache-dependency-path: static/examples/go-otel/go.sum
+
+      - name: Check executable Go example
+        run: go test -C static/examples/go-otel -race ./...

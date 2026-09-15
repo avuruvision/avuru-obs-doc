@@ -1,6 +1,8 @@
-import React, {useState} from 'react';
+import React, {useId, useState} from 'react';
 import CodeBlock from '@theme/CodeBlock';
+import {translate} from '@docusaurus/Translate';
 import styles from './components.module.css';
+import {HELM_INSTALL, UI_PORT_FORWARD} from './installCommands';
 
 type Snippets = Record<string, {lang: string; code: string}>;
 
@@ -9,15 +11,14 @@ const DEFAULT_SNIPPETS: Snippets = {
     lang: 'bash',
     code: `# Flagship install — the chart is published to GHCR as an OCI artifact,
 # eBPF auto-discovers your services. No repo to add.
-helm install avuruobs oci://ghcr.io/avuruvision/charts/avuruobs \\
-  --version <X.Y.Z> -n avuruobs --create-namespace
+${HELM_INSTALL}
 
 # Point apps at the gateway (OTLP):
 #   http://avuruobs-gateway:4318   (HTTP)
 #   http://avuruobs-gateway:4317   (gRPC)
 
 # Open the UI:
-kubectl -n avuruobs port-forward svc/avuruobs-ui 8080:80`,
+${UI_PORT_FORWARD}`,
   },
   Docker: {
     lang: 'bash',
@@ -46,26 +47,63 @@ export default function InstallSelector({
   defaultOption,
   snippets = DEFAULT_SNIPPETS,
 }: InstallSelectorProps): React.ReactElement {
+  const id = useId();
   const tabs = options ?? Object.keys(snippets);
   const [active, setActive] = useState(defaultOption ?? tabs[0]);
   const snippet = snippets[active] ?? Object.values(snippets)[0];
 
   return (
     <div>
-      <div className={styles.tabs} role="tablist">
+      <div
+        className={styles.tabs}
+        role="tablist"
+        aria-label={translate({
+          id: 'install.platform',
+          message: 'Installation platform',
+        })}
+        onKeyDown={(event) => {
+          const index = tabs.indexOf(active);
+          const next =
+            event.key === 'ArrowRight'
+              ? (index + 1) % tabs.length
+              : event.key === 'ArrowLeft'
+                ? (index + tabs.length - 1) % tabs.length
+                : event.key === 'Home'
+                  ? 0
+                  : event.key === 'End'
+                    ? tabs.length - 1
+                    : null;
+          if (next === null) return;
+          event.preventDefault();
+          setActive(tabs[next]);
+          event.currentTarget
+            .querySelectorAll<HTMLButtonElement>('[role="tab"]')
+            [next]?.focus();
+        }}
+      >
         {tabs.map((opt) => (
           <button
             key={opt}
             type="button"
             role="tab"
+            id={`${id}-${opt}`}
+            aria-controls={`${id}-panel`}
+            tabIndex={opt === active ? 0 : -1}
             aria-selected={opt === active}
             className={`${styles.tab} ${opt === active ? styles.tabActive : ''}`}
-            onClick={() => setActive(opt)}>
+            onClick={() => setActive(opt)}
+          >
             {opt}
           </button>
         ))}
       </div>
-      <div className={styles.tabPanel}>
+      <div
+        className={styles.tabPanel}
+        role="tabpanel"
+        id={`${id}-panel`}
+        aria-labelledby={`${id}-${active}`}
+        tabIndex={0}
+      >
         <CodeBlock language={snippet.lang}>{snippet.code}</CodeBlock>
       </div>
     </div>

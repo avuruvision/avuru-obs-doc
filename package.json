@@ -2,7 +2,7 @@
   "name": "avuru-obs-docs",
   "version": "0.1.0",
   "private": true,
-  "description": "Documentation site for avuru obs — APM & observability without friction.",
+  "description": "Documentation site for avuru obs \u2014 APM & observability without friction.",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
@@ -14,7 +14,11 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "lint:docs": "node scripts/lint-frontmatter.mjs"
+    "lint:docs": "node scripts/lint-frontmatter.mjs",
+    "test:seo": "node --test tests/seo.test.mjs",
+    "test:browser": "playwright test",
+    "test:examples": "python3 -m unittest discover -s tests -p \"test_*.py\"",
+    "audit:i18n": "node scripts/audit-i18n.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -28,15 +32,24 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
+    "@playwright/test": "^1.63.0",
     "@types/react": "^19.2.18",
+    "cheerio": "^1.2.0",
     "gray-matter": "^4.0.3",
+    "prettier": "^3.9.6",
+    "raw-loader": "^4.0.2",
     "typescript": "~6.0.2"
   },
   "browserslist": {
-    "production": [">0.5%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 3 chrome version",
       "last 3 firefox version",
