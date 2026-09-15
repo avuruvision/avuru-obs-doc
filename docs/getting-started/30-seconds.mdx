@@ -1,66 +1,69 @@
 ---
 id: 30-seconds
-title: From zero to first trace in 30 seconds
-sidebar_label: 30 seconds
+title: Install Avuru Obs and discover your first Kubernetes service map
+sidebar_label: Quickstart
 sidebar_position: 1
-description: Install avuru obs with one Helm command and watch the service map appear — zero code changes.
+description: Install the Avuru Obs Helm chart, open the UI and verify your first services and traces on a Kubernetes cluster.
 ---
 
 import {InstallSelector} from '@site/src/components';
 
-# From zero to first trace
+# Install Avuru Obs and discover your first service map
 
-This is the sacred path. One command, no code changes, a live service map.
+Start on a test cluster. eBPF discovers supported traffic without application
+changes; OpenTelemetry extends collection where you need it. Startup depends
+on your cluster, image downloads and application traffic.
 
-## 1. Install
+## 1. Check prerequisites
+
+You need Helm, a reachable Kubernetes context, persistent storage for ClickHouse
+and Linux nodes compatible with the sensor. Read the
+[Kubernetes requirements](/docs/setup/kubernetes/#requirements).
+eBPF collection needs node-level permissions; check your cluster's security constraints.
+
+## 2. Install
 
 <InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
 
-The Helm chart installs the `sensor` DaemonSet, the `gateway` collector, the
-`hub` control plane, the `ui`, and ClickHouse.
+The chart brings together the sensor, gateway, hub, UI and ClickHouse. The
+example uses a [published release](https://github.com/avuruvision/avuru-obs/releases).
+Docker supports local evaluation; the VM path uses your OTLP pipeline.
 
-## 2. Open the UI
-
-```bash
-kubectl -n avuruobs port-forward svc/avuruobs-hub 8080:80
-```
-
-Open <strong>http://localhost:8080</strong>. Within a minute or two the
-**Service Map** populates itself — the `sensor` traces every HTTP/gRPC service
-with zero-code eBPF instrumentation, so there is **nothing to instrument**.
-(Un-instrumented edges are enriched via OBI's `network` feature.)
-
-## 3. (Optional) Send OTLP
-
-Already have OpenTelemetry SDKs? Point them at the gateway and your spans land
-next to the eBPF-discovered ones:
+## 3. Open the UI
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://avuruobs-gateway:4318
-# gRPC instead? use http://avuruobs-gateway:4317
+kubectl -n avuruobs port-forward svc/avuruobs-ui 8080:80
 ```
 
-:::tip That's it
-No agents to roll out, no app redeploys. If your kernel has BTF (Linux ≥ 5.8),
-you get the full picture; older kernels degrade gracefully.
-:::
+Open **http://localhost:8080/** and select the receiving project. Generate traffic
+to a supported application: an empty map on an idle cluster is not necessarily
+a collection failure.
 
-## Verify
+## 4. Verify
 
 ```bash
 kubectl -n avuruobs get pods
-# avuruobs-sensor-xxxxx     Running
-# avuruobs-gateway-xxxxx    Running
-# avuruobs-hub-xxxxx        Running
-# avuruobs-ui-xxxxx         Running
-# avuruobs-clickhouse-0     Running
 ```
 
-If every pod is `Running` and the Service Map shows nodes, you're done.
+Check that the components are ready, then find a service on the map and a recent
+trace. If ClickHouse is pending, inspect its PVC and StorageClass. If signals
+are missing, check sensor permissions and logs, kernel/protocol support and
+the selected project.
+
+## 5. Send your existing OTLP
+
+From a different Kubernetes namespace, use the complete service DNS name:
+
+```bash
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://avuruobs-gateway.avuruobs.svc.cluster.local:4318/v1/traces
+```
+
+This endpoint is for OTLP/HTTP. gRPC uses port 4317 with the corresponding SDK
+configuration. Read the [OTLP guide](/docs/setup/otel-bridge/) for ingest keys,
+dual export and other signals.
 
 ## Next
 
-- **[Your first trace](/docs/getting-started/first-trace)** — follow a request
-  end-to-end through the demo app.
-- **[Core concepts](/docs/getting-started/core-concepts)** — what a signal,
-  context and propagation actually mean here.
+- [Understand the service map](/docs/signals/service-map/).
+- [Investigate a slow checkout](/guides/investigate-slow-checkout/) with a reproducible synthetic example.
+- [Choose your modules](/docs/setup/modules/) and check their prerequisites.

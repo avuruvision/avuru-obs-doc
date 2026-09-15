@@ -1,6 +1,6 @@
 ---
-title: Go
-description: Export OpenTelemetry traces and metrics from a Go service to avuru obs.
+title: Go OpenTelemetry tracing with Avuru Obs
+description: Run a complete Go OTLP tracing example with context propagation, correlated JSON logs and graceful shutdown against Avuru Obs.
 sidebar_label: Go
 sidebar_position: 1
 tags: [integration, go, language]
@@ -8,19 +8,82 @@ support_level: community
 since_version: 0.1.0
 ---
 
-# Go
+import CodeBlock from '@theme/CodeBlock';
+import example from '!!raw-loader!@site/static/examples/go-otel/main.go';
 
-Use the OpenTelemetry Go SDK and the OTLP exporter:
+# Go OpenTelemetry tracing
 
-```go
-exp, _ := otlptracehttp.New(ctx,
-    otlptracehttp.WithEndpoint("avuruobs-gateway:4318"),
-    otlptracehttp.WithInsecure(),
-)
+Use the Go SDK when you need application spans, explicit propagation or
+operations outside the [eBPF sensor's coverage](/docs/signals/service-map/).
+This example serves `GET /hello`, exports a server span over OTLP/HTTP and
+writes a JSON log carrying the same trace and span IDs.
+
+## Run the example
+
+You need Go 1.25 or later and an Avuru Obs gateway. Download
+[main.go](pathname:///examples/go-otel/main.go),
+[go.mod](pathname:///examples/go-otel/go.mod) and
+[go.sum](pathname:///examples/go-otel/go.sum) into the same directory.
+The example pins OpenTelemetry Go 1.46.0; keep its modules on matching versions.
+
+For a local exercise, forward the gateway in a separate terminal:
+
+```bash
+kubectl -n avuruobs port-forward svc/avuruobs-gateway 4318:4318
 ```
 
-Set `OTEL_SERVICE_NAME` so spans carry a stable identity.
+Then, in the downloaded example directory:
 
-:::note This page is expanding
-A complete example with metrics and graceful shutdown is on the way.
-:::
+```bash
+export OTEL_SERVICE_NAME=avuru-go-example
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces
+go mod download
+go run .
+```
+
+If ingest authentication is enforced, configure
+`OTEL_EXPORTER_OTLP_TRACES_HEADERS` with `Authorization=Bearer YOUR_INGEST_KEY`.
+Use the key of a test project. Inside another Kubernetes namespace, use the
+fully qualified gateway hostname, such as
+`avuruobs-gateway.avuruobs.svc.cluster.local`, rather than localhost.
+
+Make a request from another terminal:
+
+```bash
+curl --fail http://127.0.0.1:8081/hello
+# hello from avuru-go-example
+```
+
+## Complete source
+
+<CodeBlock language="go" title="main.go">{example}</CodeBlock>
+
+The handler extracts W3C `traceparent` context before starting its server span.
+The batch exporter sends asynchronously; Ctrl+C gracefully stops the HTTP
+server and flushes pending spans with a bounded timeout. Only tracing is
+configured here: metrics need their own meter provider and exporter.
+
+## Verify in Avuru Obs
+
+1. Open **Traces**, choose the receiving project and the last 15 minutes.
+2. Filter service `avuru-go-example` and open `GET /hello`.
+3. Check that the span is a server span and carries `http.route=/hello`.
+4. Compare its trace ID with the JSON line printed by the process.
+
+A laptop's stdout is **not** automatically sent to a Kubernetes collector.
+The IDs demonstrate correlation; collecting that line requires a log pipeline.
+In a pod with stdout collection enabled, the node agent can read it. Avoid also
+exporting the same log over OTLP unless you intend to ingest it twice.
+See [logs and trace correlation](/docs/signals/logs/).
+
+## If a span does not arrive
+
+- Check exporter errors on stderr and leave the process running long enough for a batch, or stop it gracefully.
+- For this HTTP exporter, the signal-specific URL includes `/v1/traces`; port 4317 is for gRPC.
+- Check the ingest key, receiving project, gateway health and current time window.
+- HTTPS is supported through the endpoint scheme. Do not disable certificate verification to resolve a configuration error.
+- eBPF and SDK spans can overlap. Check which instrumentation observes the same operation before enabling both everywhere.
+
+Continue with [distributed tracing](/docs/signals/traces/),
+[PostgreSQL visibility](/integrations/databases/postgresql/) and the
+[OpenTelemetry Go instrumentation documentation](https://opentelemetry.io/docs/languages/go/instrumentation/).

@@ -1,0 +1,82 @@
+---
+id: logs
+title: Logs OpenTelemetry et corrélation avec les traces
+sidebar_label: Logs
+sidebar_position: 2
+description: Collectez les logs, préservez les identifiants de trace et de span, puis investiguez les requêtes avec les logs corrélés dans Avuru Obs.
+---
+
+# Logs OpenTelemetry et corrélation avec les traces
+
+Les logs sont des événements horodatés. Lorsqu’ils portent un `trace_id`, ils
+permettent de passer d’une requête aux événements enregistrés pendant son
+traitement. L’ingestion passe par OTLP ou les receivers de logs du collecteur.
+
+## Ce que le service doit émettre
+
+Avec le module logs et la collecte stdout activés, l’agent du nœud lit les logs
+des pods et les transmet à la gateway. Vérifiez projet et configuration de collecte.
+Émettez un objet JSON par ligne avec ces champs :
+
+| Champ | Utilité |
+| --- | --- |
+| `level` | Niveau de sévérité, numérique comme pino (`30`, `50`) ou nommé (`INFO`, `ERROR`). |
+| `trace_id` | Identifiant de la requête, indispensable à la corrélation. |
+| `span_id` | Identifiant de l’opération au sein de cette requête. |
+
+Les autres champs deviennent des attributs recherchables et la ligne brute reste
+accessible en recherche plein texte. Les lignes non JSON sont conservées.
+La lecture automatique de sévérité reconnaît aussi des paires `level=` et des
+niveaux nommés usuels. Sans niveau reconnu, la sévérité reste indéfinie : un
+filtre minimum de sévérité ne sélectionne pas ces lignes. Un niveau fourni par
+un SDK OTLP n’est pas remplacé. L’option de collecte est
+`sensor.agent.logs.parseSeverity=false` pour désactiver cette analyse.
+
+L’ajout des IDs appartient au runtime de l’application :
+
+- **Node/pino :** un `mixin` lit `trace.getActiveSpan()?.spanContext()`. En ESM, ne supposez pas qu’un module d’auto-instrumentation fonctionne sans son loader.
+- **Java/logback :** utilisez les clés MDC du contexte de tracing.
+- **Go :** l’[exemple complet](/integrations/languages/go/) lit les IDs du span actif.
+
+Choisissez un chemin de collecte par événement. Exporter un log via OTLP alors
+que son stdout est déjà collecté crée un doublon. Les logs OTLP doivent aussi
+porter l’identité de ressource/projet attendue par votre pipeline.
+
+## Explorer les logs
+
+- Recherchez le corps et filtrez par sévérité ou service ; l’URL conserve les filtres.
+- Ouvrez la trace depuis un log portant son ID et retrouvez les logs d’une requête depuis ses spans.
+- Parcourez les fenêtres volumineuses avec la pagination par curseur.
+- Dans l’onglet Logs d’un service, le produit peut rapprocher identité du service et workload Kubernetes, avec les sources de proxies disponibles si le module requis est actif.
+- Les contrôles de copie et de téléchargement portent sur les lignes chargées ou sélectionnées et annoncent leur nombre.
+
+## Vérifier la corrélation
+
+```json
+{"level":"INFO","message":"payment authorized","trace_id":"0123456789abcdef0123456789abcdef","span_id":"0123456789abcdef"}
+```
+
+Ces IDs sont illustratifs. En application, lisez-les depuis le **span actif**,
+sans utiliser une constante. L’ID de trace comporte 32 caractères hexadécimaux,
+celui du span 16. Une valeur absente ou invalide n’identifie pas une requête.
+
+Retrouvez la ligne dans Logs, ouvrez sa trace et vérifiez que le span appartient
+à la même requête. Le [guide du checkout lent](/guides/investigate-slow-checkout/)
+propose un exemple exécutable.
+
+## Si les logs ne rejoignent pas la trace
+
+- Une ligne sans contexte reste recherchable mais ne peut pas être rattachée automatiquement.
+- Le nom du service et l’horodatage ne remplacent pas l’ID de trace.
+- Vérifiez projet, fenêtre, rétention et module de collecte.
+- Évitez de collecter deux fois le même événement.
+
+Consultez [stockage et rétention](/docs/operations/scaling/) pour les réglages
+par déploiement et projet.
+
+:::note Versions concernées
+L’analyse automatique de sévérité stdout et les nouveaux contrôles de logs de
+service/copie sont documentés sur le trunk pour v0.17. L’ingestion OTLP et la
+corrélation par ID de trace sont déjà publiées. Consultez
+[l’état des fonctionnalités](/docs/status/) et votre version installée.
+:::

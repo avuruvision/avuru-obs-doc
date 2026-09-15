@@ -1,6 +1,6 @@
 ---
 id: service-map
-title: Service map
+title: Kubernetes service dependency map with eBPF
 sidebar_label: Service map
 sidebar_position: 0
 description: The live dependency map Avuru Obs draws itself — services, the databases and brokers behind them, and the connections nobody instrumented — with no code changes.
@@ -9,11 +9,21 @@ description: The live dependency map Avuru Obs draws itself — services, the da
 # Service map
 
 The map is the product's front page: **what is running, what talks to what, and
-which of it is unwell** — drawn from telemetry that arrives on its own. Install
-the chart on a fresh cluster and the map fills in within five minutes, with no
-SDK, no sidecar and no code change.
+which of it is unwell** — drawn from telemetry that arrives on its own. Install the chart and generate traffic to supported workloads. Discovery depends
+on kernel and protocol support, collection permissions and the available traffic.
+The five-minute target is a Kubernetes CI gate, not a guarantee for every cluster.
 
-It is not a diagram anyone maintains. Nothing on it was declared.
+The graph is derived from observed telemetry. It is not a manually maintained diagram.
+
+![Avuru Obs service dependency map with application and datastore nodes](/img/product/service-map.png)
+
+*Product screenshot; your services, layout and available measurements will differ.*
+
+## Try a complete investigation
+
+Start with the [slow checkout exercise](/guides/investigate-slow-checkout/):
+load a small synthetic dataset, follow checkout to its PostgreSQL dependency,
+then inspect the request's spans and correlated log. No database is required.
 
 ## Where the picture comes from
 
@@ -66,9 +76,9 @@ nothing to explain it — and four services sharing one cache is a blast radius
 nobody can see.
 
 Avuru Obs derives them from the **exit spans of the services calling them**. No
-extra agent, no extra storage, nothing to switch on. On a zero-code install the
-eBPF sensor reads the SQL and Redis wire protocols in the kernel, so the
-database appears on the map in the first five minutes.
+extra agent, no extra storage, nothing to switch on. Where protocol capture is supported, the eBPF sensor can supply these spans.
+Otherwise, instrument the calling database client with OpenTelemetry. A network
+connection alone does not establish a database operation or its duration.
 
 Each dependency node is named as a URI — `postgresql://orders-db`,
 `redis://session-cache`, `kafka://broker-0` — and its edges carry call volume,

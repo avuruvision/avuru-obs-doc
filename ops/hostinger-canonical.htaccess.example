@@ -1,0 +1,10 @@
+# Merge into the existing document-root configuration; do not replace it blindly.
+# This file is intentionally not published by Docusaurus.
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.avuruobs\.io$ [NC]
+RewriteRule ^ https://avuruobs.io%{REQUEST_URI} [R=301,L,NE]
+
+# The original query string is preserved because the substitution has no query.
+# Hostinger's existing directory handling adds the trailing slash to docs routes.
+# Confirm that missing routes return a real 404, not a homepage fallback.
+ErrorDocument 404 /404.html

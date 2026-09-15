@@ -31,40 +31,20 @@ section porte un regard honnête sur la façon dont **avuru obs** se compare aux
 que vous êtes le plus susceptible de remplacer — et sur la manière de migrer depuis
 chacun sans tout réécrire.
 
-La version courte du pitch :
+Avuru Obs réunit traces, logs et métriques dans ClickHouse, avec découverte eBPF
+pour les workloads pris en charge et ingestion OTLP pour votre instrumentation.
+Le profiling CPU est expérimental et optionnel. Green, cost, mesh, AI et MCP
+sont optionnels ; les intégrations sortantes utilisent les destinations configurées.
 
-- **Un seul moteur, pas quatre.** Traces, logs, métriques et profilage continu
-  arrivent dans le même stockage **ClickHouse**, si bien que la corrélation
-  inter-signaux n'est qu'une requête de plus. Voir
-  [Architecture](/guides/architecture).
-- **Découverte automatique eBPF.** Le `sensor` exécute **OBI** en amont pour des
-  traces sans code, et votre carte des services est **dérivée de ces spans de
-  trace** — sans SDK ni changement de code. La fonction `network` d'OBI couvre les
-  liens non instrumentés ; installez le chart et la carte s'allume.
-- **Natif OpenTelemetry.** **OTLP** standard en entrée et en sortie. Ce que vous
-  exécutez aujourd'hui parle presque certainement déjà OTLP, donc migrer est
-  généralement un changement d'exportateur d'une ligne. Voir le [pont
-  OTLP](/docs/setup/otel-bridge).
-- **Auto-hébergé, entièrement open source (AGPL-3.0).** Votre télémétrie ne quitte
-  jamais votre infrastructure, et le coût suit votre cluster — pas une facturation
-  par hôte ou par Go.
-- **Énergie & carbone dans le même moteur.** Le **module green** (opt-in)
-  attribue **Wh et gCO₂e par service** (CNCF Kepler, RAPL) et les corrèle à la
-  télémétrie que vous collectez déjà — budgets carbone et **export prêt pour la
-  CSRD**, calculés sur votre propre cluster. Aucun APM majeur — Datadog
-  compris — n'attribue le carbone par service sans changement de code ni SaaS.
-  Voir [Green](/docs/signals/green).
+La dernière release publique vérifiée est **v0.16.0** (7 septembre 2026).
+Certaines pages documentent le trunk : consultez [l’état des fonctionnalités](/docs/status/)
+et les [versions publiées](https://github.com/avuruvision/avuru-obs/releases)
+pour connaître la disponibilité dans votre version.
 
-:::note Où en est avuru obs aujourd'hui
-avuru obs est en **v0.14.0**. Les traces, les logs, les métriques RED, le
-profilage continu, la carte des services, le suivi des erreurs, la santé des
-services, les alertes, la santé réseau, le **module green** (énergie & carbone
-par service, opt-in), le coût & gaspillage, le module IA, une console de
-maillage et un serveur MCP auquel un assistant hébergé peut s'authentifier sont
-opérationnels. Les comparaisons ci-dessous disent clairement ce qui est livré et
-ce qui est prévu — voir [l'état des fonctionnalités](/docs/status) et la
-[chronologie des versions](/docs/releases).
-:::
+Évaluez vos besoins avec un service de test et votre pipeline de collecte.
+Migrer de backend ne transfère pas automatiquement historique, dashboards,
+règles d’alerte ou accès. Le [guide OTLP](/docs/setup/otel-bridge/)
+propose un parcours réversible à valider.
 
 ## En un coup d'œil
 
@@ -96,6 +76,5 @@ Les étapes complètes sont dans le [guide du pont OTLP](/docs/setup/otel-bridge
 Chaque page ci-dessous ajoute les spécificités de l'outil concerné.
 
 :::tip Prêt à essayer ?
-Le moyen le plus rapide de comparer, c'est côte à côte — [installez en 30
-secondes](/docs/getting-started/30-seconds) et pointez un service vers avuru obs.
+Le moyen le plus rapide de comparer, c'est côte à côte — [suivez le guide d’installation](/docs/getting-started/30-seconds) et pointez un service vers avuru obs.
 :::

@@ -1,9 +1,9 @@
 ---
 id: cost
-title: Cost & waste
+title: Kubernetes CPU requests, usage and overprovisioning
 sidebar_label: Cost
 sidebar_position: 11
-description: What each workload reserved against what it actually used — the capacity your cluster is sized and billed for while nothing runs in it. No pricing API, no egress, no new workload.
+description: Compare Kubernetes CPU and memory requests with observed peaks to investigate overprovisioning, with optional rates and no automatic workload changes.
 ---
 
 # Cost & waste
@@ -21,8 +21,9 @@ sentence: what it asked for.
   actually drew, ordered by the gap. The biggest workload in your cluster is
   not a finding; the one reserving eight cores to use a tenth of one is.
 - **Workloads that reserve nothing.** Called out as their own state, not shown
-  as a zero. A container with no request cannot be placed deliberately by the
-  scheduler and is the first thing the kubelet evicts under pressure.
+  as a zero. Missing requests change scheduling and resource guarantees. Eviction also
+  depends on QoS, priority, resource usage and node pressure; the request alone
+  does not determine eviction order.
 - **Node allocation beside node usage.** A node that is fully *requested* takes
   no more pods however little it is *using* — two very different problems that
   look identical on a utilisation chart.
@@ -37,8 +38,23 @@ average.
 A request cannot be cut below what the workload actually reached without risking
 eviction the next time it gets there. Subtracting the average would report as
 waste precisely the headroom the workload demonstrably needed. Both are shown —
-the average tells you how much of the time the peak was not happening — but only
-the peak bounds a safe change.
+the average tells you how much of the time the peak was not happening — but the
+observed peak is still historical evidence, not a guarantee of future demand.
+
+## Read an example before resizing
+
+| Same observation window | CPU cores |
+| --- | --- |
+| Reserved capacity | 4.0 |
+| Average observed usage | 0.5 |
+| Peak observed usage | 1.5 |
+| Reservation above the observed peak | 2.5 |
+
+The 3.5-core gap to the average is not the reported headroom signal. The 2.5-core
+gap above the peak is a candidate for investigation, not a recommendation to
+remove that entire reservation. Check coverage, bursts, scaling events and
+application SLOs before changing requests. Missing requests or usage samples
+must not be interpreted as zero.
 
 ## No pricing API
 
@@ -52,9 +68,8 @@ cost:
     currency: EUR
 ```
 
-There is no cloud billing integration and there will not be one. avuru obs makes
-no outbound call, and a price this product looked up somewhere would be the
-first thing it ever sent out of your cluster.
+This calculation uses the rates you configure and does not query a cloud
+pricing API. It does not represent a provider invoice or promise a bill reduction.
 
 With no rates configured the screens are still useful — "2.4 cores reserved, 0.3
 used" is already the finding — and they state that no rates are set rather than

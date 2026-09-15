@@ -268,5 +268,371 @@
   },
   "home.feat.learn": {
     "message": "Découvrir →"
+  },
+  "atlas.title": {
+    "message": "Observabilité Kubernetes open source"
+  },
+  "atlas.description": {
+    "message": "Cartographiez vos services Kubernetes avec eBPF. Explorez traces, métriques et logs dans une plateforme auto-hébergée. Essayez la démo Avuru Obs."
+  },
+  "atlas.socialAlt": {
+    "message": "Avuru Obs — Aucun service ne fonctionne seul. Explorez vos dépendances Kubernetes."
+  },
+  "atlas.eyebrow": {
+    "message": "Observabilité Kubernetes open source"
+  },
+  "atlas.headline": {
+    "message": "Aucun service"
+  },
+  "atlas.headlineAccent": {
+    "message": "ne fonctionne seul."
+  },
+  "atlas.intro": {
+    "message": "Découvrez les dépendances entre vos services avec eBPF. Explorez traces, métriques et logs dans une plateforme auto-hébergée, sans modifier les applications prises en charge."
+  },
+  "atlas.explore": {
+    "message": "Explorer la carte des services"
+  },
+  "atlas.install": {
+    "message": "Installer Avuru Obs"
+  },
+  "atlas.demo": {
+    "message": "Ouvrir la démo"
+  },
+  "atlas.mapHeading": {
+    "message": "Explorez les dépendances de vos services Kubernetes"
+  },
+  "atlas.mapTitle": {
+    "message": "Carte des services"
+  },
+  "atlas.sample": {
+    "message": "Exemple / shop"
+  },
+  "atlas.health": {
+    "message": "Santé"
+  },
+  "atlas.latency": {
+    "message": "Latence"
+  },
+  "atlas.carbon": {
+    "message": "Carbone"
+  },
+  "atlas.lensLabel": {
+    "message": "Choisir une vue de la carte"
+  },
+  "atlas.healthy": {
+    "message": "Sain"
+  },
+  "atlas.degraded": {
+    "message": "Dégradé"
+  },
+  "atlas.inferred": {
+    "message": "Dépendance inférée"
+  },
+  "atlas.estimated": {
+    "message": "Estimé"
+  },
+  "atlas.noData": {
+    "message": "Sans données"
+  },
+  "atlas.notObserved": {
+    "message": "Non observé"
+  },
+  "atlas.none": {
+    "message": "Aucun observé"
+  },
+  "atlas.selected": {
+    "message": "Service sélectionné"
+  },
+  "atlas.callers": {
+    "message": "Appelé par"
+  },
+  "atlas.dependencies": {
+    "message": "Dépend de"
+  },
+  "atlas.p95": {
+    "message": "Latence p95 du service"
+  },
+  "atlas.carbonMetric": {
+    "message": "Carbone estimé · fenêtre exemple de 1 h"
+  },
+  "atlas.degradedHint": {
+    "message": "Latence élevée. Ouvrez une trace pour voir où une requête a passé du temps."
+  },
+  "atlas.healthyHint": {
+    "message": "Suivez les appelants et les dépendances de ce service, puis explorez une requête."
+  },
+  "atlas.inferredHint": {
+    "message": "Inférée à partir des spans sortants des appelants. Cette dépendance ne fournit pas de spans de service ; son propre p95 est inconnu."
+  },
+  "atlas.carbonHint": {
+    "message": "Estimation TDP illustrative. Le module green est optionnel ; énergie mesurée et estimée restent distinctes."
+  },
+  "atlas.missingCarbonHint": {
+    "message": "Aucune attribution énergétique pour cette dépendance. Une donnée absente ne vaut pas zéro."
+  },
+  "atlas.mapCaption": {
+    "message": "Données illustratives · sélectionnez un service pour explorer son voisinage"
+  },
+  "atlas.mapDocs": {
+    "message": "Comment la carte est construite"
+  },
+  "atlas.pause": {
+    "message": "Suspendre l’animation"
+  },
+  "atlas.resume": {
+    "message": "Reprendre l’animation"
+  },
+  "atlas.reducedMotion": {
+    "message": "Mouvement réduit"
+  },
+  "atlas.allServices": {
+    "message": "Choisir un service"
+  },
+  "atlas.fullMap": {
+    "message": "Voir la carte complète"
+  },
+  "atlas.localMap": {
+    "message": "Voir le voisinage"
+  },
+  "atlas.swipe": {
+    "message": "Faites défiler la carte horizontalement pour atteindre tous les services."
+  },
+  "atlas.bridge1": {
+    "message": "Découvrez le trafic pris en charge"
+  },
+  "atlas.bridge2": {
+    "message": "Gardez votre instrumentation"
+  },
+  "atlas.bridge3": {
+    "message": "Votre infrastructure"
+  },
+  "atlas.questionsEyebrow": {
+    "message": "Un même système. Plusieurs questions."
+  },
+  "atlas.questionsTitle": {
+    "message": "Changez de vue. Gardez le contexte."
+  },
+  "atlas.questionsIntro": {
+    "message": "Partez d’un service. Comprenez ce qui l’entoure, suivez une requête lente, puis explorez son empreinte."
+  },
+  "atlas.q1": {
+    "message": "Qui dépend de ce service ?"
+  },
+  "atlas.q1Body": {
+    "message": "Identifiez les appelants, les services en aval et les bases inférées. Découvrez les connexions à examiner."
+  },
+  "atlas.q1Action": {
+    "message": "Explorer les dépendances"
+  },
+  "atlas.q2": {
+    "message": "Quel chemin est lent ?"
+  },
+  "atlas.q2Body": {
+    "message": "Repérez une latence élevée. Une trace permet de distinguer une dépendance lente du temps passé dans l’application."
+  },
+  "atlas.q2Action": {
+    "message": "Explorer la latence"
+  },
+  "atlas.q3": {
+    "message": "Quelle est son empreinte ?"
+  },
+  "atlas.q3Body": {
+    "message": "Activez le module green pour explorer le carbone par service. Les estimations sont identifiées et les données manquantes restent visibles."
+  },
+  "atlas.q3Action": {
+    "message": "Explorer le carbone"
+  },
+  "atlas.signalsEyebrow": {
+    "message": "De la vue d’ensemble à une requête"
+  },
+  "atlas.signalsTitle": {
+    "message": "Suivez une requête entre traces, métriques et logs."
+  },
+  "atlas.signalsIntro": {
+    "message": "La carte montre la relation. Les signaux sous-jacents permettent de l’examiner. Un moteur, un stockage ClickHouse."
+  },
+  "atlas.trace": {
+    "message": "Trace"
+  },
+  "atlas.logs": {
+    "message": "Logs"
+  },
+  "atlas.metrics": {
+    "message": "Métriques"
+  },
+  "atlas.traceBody": {
+    "message": "Identifiez le span qui explique le délai. Comparez-le à une autre requête."
+  },
+  "atlas.logsBody": {
+    "message": "Lisez les événements de la requête lorsque vos logs portent son identifiant de trace."
+  },
+  "atlas.metricsBody": {
+    "message": "Examinez débit, erreurs et durée dans le temps avant de décider si cette requête est représentative."
+  },
+  "atlas.incidentGuide": {
+    "message": "Investiguer un checkout lent"
+  },
+  "atlas.illustrativeTrace": {
+    "message": "Requête illustrative · 842 ms"
+  },
+  "atlas.adoptionEyebrow": {
+    "message": "Établissez la première connexion"
+  },
+  "atlas.adoptionTitle": {
+    "message": "Du cluster aux connexions."
+  },
+  "atlas.adoptionIntro": {
+    "message": "Partez de votre existant. Découvrez le trafic pris en charge avec eBPF ou utilisez la télémétrie que vous collectez déjà."
+  },
+  "atlas.installStep": {
+    "message": "Un point de départ."
+  },
+  "atlas.installStepBody": {
+    "message": "Le chart Helm réunit le sensor, la gateway, le hub, l’interface et ClickHouse."
+  },
+  "atlas.discoverStep": {
+    "message": "Laissez les appels tracer la carte."
+  },
+  "atlas.discoverStepBody": {
+    "message": "eBPF observe le trafic pris en charge pendant que vos applications fonctionnent. Vérifiez les prérequis noyau et protocoles avant l’installation."
+  },
+  "atlas.otelStep": {
+    "message": "Réutilisez vos données OpenTelemetry."
+  },
+  "atlas.otelStepBody": {
+    "message": "Gardez vos SDK et collecteurs. Ajoutez une destination OTLP, validez un service, puis élargissez progressivement."
+  },
+  "atlas.requirements": {
+    "message": "Prérequis d’installation"
+  },
+  "atlas.otelGuide": {
+    "message": "Adoption et migration OTLP"
+  },
+  "atlas.modulesEyebrow": {
+    "message": "Approfondissez selon vos besoins"
+  },
+  "atlas.modulesTitle": {
+    "message": "Une vue connectée. De la profondeur."
+  },
+  "atlas.modulesIntro": {
+    "message": "Mesh, cost, green, AI et MCP sont optionnels. Activez ce dont votre équipe a besoin avec les contrôles de collecte et d’accès adaptés."
+  },
+  "atlas.modulesAction": {
+    "message": "Explorer les modules"
+  },
+  "atlas.meshTitle": {
+    "message": "Au cœur du service mesh"
+  },
+  "atlas.meshBody": {
+    "message": "Santé des proxies, configuration des workloads et trafic déclaré ou observé."
+  },
+  "atlas.costTitle": {
+    "message": "La capacité à examiner"
+  },
+  "atlas.costBody": {
+    "message": "CPU et mémoire réservés face au pic observé. Un signal à examiner, sans redimensionnement automatique."
+  },
+  "atlas.greenTitle": {
+    "message": "L’énergie et sa provenance"
+  },
+  "atlas.greenBody": {
+    "message": "Énergie et carbone par service, avec une distinction explicite entre mesures et estimations."
+  },
+  "atlas.aiTitle": {
+    "message": "Les appels de modèles et leur origine"
+  },
+  "atlas.aiBody": {
+    "message": "Tokens, latence et parcours d’agents à partir des spans GenAI envoyés par vos applications."
+  },
+  "atlas.trustEyebrow": {
+    "message": "Ouvert par conception"
+  },
+  "atlas.trustTitle": {
+    "message": "Hébergez votre observabilité sur votre infrastructure."
+  },
+  "atlas.trustBody": {
+    "message": "AGPL-3.0, avec SSO OIDC et rôles par projet dans l’édition ouverte. Vous exploitez le stockage et choisissez les intégrations autorisées à transmettre des données."
+  },
+  "atlas.architecture": {
+    "message": "Explorer l’architecture"
+  },
+  "atlas.releases": {
+    "message": "Versions publiées"
+  },
+  "atlas.source": {
+    "message": "Consulter le code"
+  },
+  "atlas.storeLabel": {
+    "message": "Stockage de télémétrie"
+  },
+  "atlas.hubLabel": {
+    "message": "Requêtes et configuration"
+  },
+  "atlas.faqTitle": {
+    "message": "Quelques réponses avant de commencer."
+  },
+  "atlas.faq1": {
+    "message": "Faut-il modifier le code de mes applications ?"
+  },
+  "atlas.faq1Body": {
+    "message": "eBPF découvre les workloads pris en charge sans modification applicative. La couverture dépend du noyau, du runtime et des protocoles. Utilisez OpenTelemetry pour des spans personnalisés ou les signaux hors de cette couverture."
+  },
+  "atlas.faq2": {
+    "message": "Puis-je garder mes collecteurs actuels ?"
+  },
+  "atlas.faq2Body": {
+    "message": "Oui. Envoyez de l’OTLP en HTTP ou gRPC à la gateway. Pendant l’évaluation, utilisez un double export et vérifiez identité des services, clés d’ingestion et couverture des signaux avant de basculer."
+  },
+  "atlas.faq3": {
+    "message": "Tous les modules sont-ils activés par défaut ?"
+  },
+  "atlas.faq3Body": {
+    "message": "Non. Green, cost, mesh, AI et MCP sont optionnels. Le profiling CPU est lui aussi expérimental et optionnel. Le guide des modules détaille les prérequis et contrôles de collecte."
+  },
+  "atlas.faq4": {
+    "message": "Ma télémétrie reste-t-elle sur mon infrastructure ?"
+  },
+  "atlas.faq4Body": {
+    "message": "Le stockage est auto-hébergé. Les exporteurs sortants, webhooks ou un assistant connecté via MCP peuvent transmettre des données aux destinations configurées. Adaptez ces intégrations à votre politique de données."
+  },
+  "atlas.endEyebrow": {
+    "message": "Votre système a une forme"
+  },
+  "atlas.endTitle": {
+    "message": "Venez la découvrir."
+  },
+  "atlas.endBody": {
+    "message": "Explorez la démo ou installez le chart publié sur votre cluster. Commencez par un service et suivez ses connexions."
+  },
+  "atlas.quickstart": {
+    "message": "Suivre le guide d’installation"
+  },
+  "atlas.copy": {
+    "message": "Copier la commande"
+  },
+  "atlas.copied": {
+    "message": "Commande copiée"
+  },
+  "atlas.copyFailed": {
+    "message": "Copie indisponible. Sélectionnez la commande et copiez-la manuellement."
+  },
+  "atlas.installNote": {
+    "message": "Vérifiez les prérequis et choisissez une version publiée du chart dans le guide. Le temps de démarrage dépend de votre cluster."
+  },
+  "atlas.notFound.title": {
+    "message": "Une connexion manquante."
+  },
+  "atlas.notFound.body": {
+    "message": "Cette page est introuvable. Repartez de la carte des services ou trouvez votre prochaine étape dans la documentation."
+  },
+  "atlas.notFound.home": {
+    "message": "Revenir à l’accueil"
+  },
+  "atlas.notFound.docs": {
+    "message": "Explorer la documentation"
+  },
+  "install.platform": {
+    "message": "Plateforme d’installation"
   }
 }

@@ -1,0 +1,108 @@
+---
+title: Investiguer un checkout Kubernetes lent avec traces et logs
+sidebar_label: Investiguer un checkout lent
+sidebar_position: 4
+description: Reproduisez une investigation avec une trace OTLP synthétique, une dépendance PostgreSQL et un log corrélé dans Avuru Obs.
+---
+
+# Investiguer un checkout lent
+
+La [carte des services](/docs/signals/service-map/) montre les relations ; une
+trace montre où **une requête** a passé du temps. Cet exercice relie un checkout
+de 842 ms à un span de base de données de 710 ms et au log associé. Les données
+sont synthétiques : aucun achat ni aucune requête SQL n’est exécuté.
+
+## Prérequis
+
+- Une installation Avuru Obs avec traces et module logs actifs.
+- Un projet de test et sa clé si l’authentification d’ingestion est imposée.
+- Python 3 et un accès à la gateway OTLP/HTTP.
+
+L’exercice écrit quatre spans et un log dans le projet de test. Il ne modifie
+pas la configuration applicative. Consultez le
+[guide d’installation](/docs/getting-started/30-seconds/) si nécessaire.
+
+## 1. Envoyer l’exemple
+
+Téléchargez [slow-checkout.py](pathname:///examples/slow-checkout.py).
+Inspectez d’abord le contenu sans rien envoyer :
+
+```bash
+python3 slow-checkout.py --dry-run
+```
+
+Sur Kubernetes, gardez ce port-forward actif dans un autre terminal :
+
+```bash
+kubectl -n avuruobs port-forward svc/avuruobs-gateway 4318:4318
+```
+
+Si une clé est requise, définissez `AVURU_INGEST_KEY` dans votre shell.
+Le script l’envoie dans un en-tête bearer sans l’afficher. Lancez ensuite :
+
+```bash
+python3 slow-checkout.py --endpoint http://127.0.0.1:4318
+```
+
+Conservez l’ID de trace affiché. L’acceptation par le receiver est une première
+vérification ; le stockage et la visibilité dans l’interface en sont une autre.
+
+## 2. Trouver la relation
+
+Ouvrez la carte, choisissez le projet destinataire et les 15 dernières minutes.
+Cherchez `atlas-checkout` → `atlas-payment` → `postgresql://atlas-orders-db`.
+La base est inférée depuis le span client de payment, sans span serveur propre.
+Laissez l’agrégation se rafraîchir. Un percentile fondé sur une seule requête
+ne représente pas une référence de performance.
+
+La carte du produit dépend des données reçues ; son rendu peut différer de
+l’illustration simplifiée sur la landing.
+
+## 3. Lire la trace
+
+Ouvrez les traces du checkout et sélectionnez l’ID imprimé. Si la carte n’est
+pas encore actualisée, filtrez directement Traces sur `atlas-checkout`.
+
+| Span | Durée | Interprétation |
+| --- | --- | --- |
+| `POST /checkout` | 842 ms | Requête serveur totale |
+| Appel client checkout → payment | 790 ms | Durée vue par l’appelant |
+| Span serveur payment | 770 ms | Traitement observé dans payment |
+| `SELECT orders` | 710 ms | Opération cliente vers la base |
+
+Les spans sont **imbriqués** : n’additionnez pas leurs durées. L’appel client
+peut inclure du transport au-delà du traitement serveur. L’opération de base
+occupe l’essentiel de cet exemple, mais ne prouve ni index manquant, ni verrou,
+ni surcharge du serveur.
+
+![Waterfall et détails d’un span dans Avuru Obs](/img/product/trace-waterfall.png)
+
+*Capture du produit ; les services et valeurs diffèrent de cet exercice.*
+
+## 4. Suivre le log corrélé
+
+Ouvrez les logs de la trace ou recherchez le message d’`atlas-payment` dans Logs.
+Il porte le même ID de trace et celui du span payment. Le message précise qu’il
+s’agit d’un exemple synthétique.
+
+Un log absent ne prouve pas l’absence d’événement : vérifiez module, projet,
+fenêtre et ID. Une ligne stdout sans ID de trace peut être recherchée, sans
+être rattachée automatiquement à cette requête. Voir la
+[corrélation traces/logs](/docs/signals/logs/).
+
+## 5. Choisir la suite de l’investigation
+
+Sur un incident réel, comparez une autre requête, consultez les
+[métriques RED](/docs/signals/metrics/) et recherchez des preuves côté base avant
+une modification. Une trace lente décrit une requête, pas la cause de toutes
+les lenteurs.
+
+En cas d’échec :
+
+- **Connexion refusée :** vérifiez le port-forward et le port HTTP de la gateway.
+- **401/403 :** contrôlez la clé du projet et le mode d’authentification.
+- **Accepté mais absent :** contrôlez projet, horodatage, santé d’ingestion et rafraîchissement.
+- **Base absente :** vérifiez `db.system` et `server.address` dans le span client.
+
+Continuez avec l’[exemple Go](/integrations/languages/go/) ou
+[l’intégration PostgreSQL](/integrations/databases/postgresql/).

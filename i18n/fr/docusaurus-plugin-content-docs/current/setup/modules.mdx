@@ -1,0 +1,60 @@
+---
+id: modules
+title: Modules d’observabilité et contrôles de collecte
+sidebar_label: Modules
+sidebar_position: 6
+description: Choisissez les signaux et modules Avuru Obs, leurs prérequis et leur collecte sans modifier le cœur carte, traces et RED.
+---
+
+# Modules d’observabilité
+
+Un module active une famille de signaux ou de capacités. Le cœur carte des
+services, traces et métriques RED reste disponible. Les modules green, mesh,
+cost et AI sont désactivés par défaut. L’accès MCP se configure séparément et
+est lui aussi optionnel. La collecte de profils CPU est expérimentale et doit
+être activée explicitement.
+
+## Choisir les capacités
+
+| Module | Couverture | Option Helm |
+| --- | --- | --- |
+| core | Carte, traces et RED | Toujours actif |
+| logs | Collecte, recherche et corrélation | `modules.logs.enabled` |
+| infra-metrics | Métriques des nœuds et pods | `modules.infraMetrics.enabled` |
+| profiling | Profils CPU et flamegraphs | `modules.profiling.enabled` ; vérifier aussi le contrôle du profiler |
+| green | Énergie et carbone par service | `modules.green.enabled`, puis configuration de la source d’énergie |
+| error-tracking | Erreurs dédupliquées issues des spans et logs | `modules.errorTracking.enabled` |
+| service-health | Santé des groupes de services | `modules.serviceHealth.enabled` |
+| alerting | Notifications sur transitions de santé | `modules.alerting.enabled` ; inactif sans règles |
+| mesh | Santé et configuration du maillage | `modules.mesh.enabled` |
+| cost | Réservations et usage de capacité | `modules.cost.enabled` |
+| ai | Spans GenAI, tokens et coûts configurés | `modules.ai.enabled` |
+
+Green et cost nécessitent les métriques d’infrastructure et leurs collectes
+complémentaires. La source énergétique peut être mesurée ou estimée : voir
+[green](/docs/signals/green/). Cost nécessite notamment la collecte Kubernetes
+cluster via `sensor.agent.cluster.enabled`. Les métriques RED proviennent des
+traces et restent disponibles sans le module infra-metrics.
+
+La redaction `gateway.genai.redactContent` ne dépend pas de l’affichage du module
+AI : vérifiez ce contrôle même si ce module est désactivé. Pour les prérequis
+précis, consultez [AI](/docs/signals/ai/), [mesh](/docs/signals/mesh/) et
+[cost](/docs/signals/cost/).
+
+## Modifier les modules
+
+Conservez les valeurs de votre installation dans un fichier suivi. Modifiez les
+options voulues, puis appliquez un `helm upgrade` avec le chart publié et la
+version choisie. Consultez [la configuration](/reference/configuration/) et
+[la mise à niveau](/docs/operations/upgrade/) avant de changer une installation existante.
+
+## Effets d’une désactivation
+
+- Les endpoints concernés deviennent indisponibles ; `/api/v1/capabilities` indique les capacités actives.
+- La collecte du signal s’arrête selon le module et ses contrôles.
+- L’entrée d’interface disparaît ou explique comment réactiver le module.
+- Une désactivation ne supprime pas les tables existantes. Un module jamais activé évite la création de son stockage propre.
+
+En réactivant un module, le migrateur applique les schémas nécessaires de manière
+idempotente. Vérifiez l’arrivée de nouveaux signaux : l’activation d’un écran
+ne remplace pas la configuration de sa source de données.

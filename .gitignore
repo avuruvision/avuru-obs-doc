@@ -21,3 +21,8 @@ yarn-error.log*
 
 # Local linter cache
 .trunk/
+
+# Browser validation artifacts
+/test-results/
+/playwright-report/
+__pycache__/

@@ -1,0 +1,65 @@
+---
+id: kubernetes
+title: Installer Avuru Obs sur Kubernetes avec Helm
+sidebar_label: Kubernetes
+sidebar_position: 1
+description: Installez le chart Helm OCI publié, vérifiez les prérequis et exposez l’interface Avuru Obs sur votre cluster Kubernetes.
+---
+
+import {InstallSelector} from '@site/src/components';
+
+# Installer Avuru Obs sur Kubernetes
+
+Le chart Helm déploie le DaemonSet sensor, la gateway, le hub, l’interface et
+ClickHouse. Il est publié en OCI sur GHCR : aucun dépôt Helm à ajouter.
+
+## Prérequis {/* #requirements */}
+
+- Kubernetes ≥ 1.26 et Helm ≥ 3.8 avec prise en charge OCI.
+- Nœuds Linux compatibles eBPF avec BTF, généralement noyau ≥ 5.8.
+- Permissions nécessaires à la collecte du sensor sur les nœuds.
+- StorageClass par défaut pour le volume persistant de ClickHouse.
+
+Un noyau non compatible peut empêcher la collecte eBPF ; un pipeline OTLP peut
+fournir les signaux indépendamment de cette collecte. Vérifiez les contraintes
+de votre environnement plutôt que de supposer une couverture complète.
+
+## Installer
+
+<InstallSelector options={['Kubernetes', 'Docker', 'VM']} defaultOption="Kubernetes" />
+
+L’exemple utilise une [version publiée](https://github.com/avuruvision/avuru-obs/releases).
+Les images applicatives sont publiées pour amd64 et arm64. Les procédures de
+signature et de vérification sont dans le
+[guide de release](https://github.com/avuruvision/avuru-obs/blob/main/RELEASING.md#verifying-a-release).
+
+## Envoyer l’OTLP
+
+Dans le namespace `avuruobs`, le nom court `avuruobs-gateway` suffit. Depuis un
+autre namespace, utilisez `avuruobs-gateway.avuruobs.svc.cluster.local` :
+
+- OTLP/HTTP : port 4318 ; les endpoints spécifiques de signal ont un chemin `/v1/traces`, `/v1/logs` ou `/v1/metrics`.
+- OTLP/gRPC : port 4317, avec la configuration gRPC du SDK ou collecteur.
+
+Le [guide OTLP](/docs/setup/otel-bridge/) couvre aussi les clés d’ingestion.
+
+## Ouvrir l’interface
+
+```bash
+kubectl -n avuruobs port-forward svc/avuruobs-ui 8080:80
+```
+
+Ouvrez **http://localhost:8080/**. L’interface est un composant distinct ; son
+origine relaie `/api` vers le hub. Pour un accès permanent, configurez ingress,
+TLS et l’authentification selon votre environnement.
+
+## Vérifier et dimensionner
+
+Contrôlez les pods, le PVC et l’apparition de données récentes après avoir
+généré du trafic. Une carte vide demande de vérifier projet, permissions,
+compatibilité et pipeline avant de conclure à l’absence de services.
+
+- [Modules](/docs/setup/modules/) : activez les signaux nécessaires.
+- [Mise à niveau](/docs/operations/upgrade/) : valeurs et migrations.
+- [Stockage et rétention](/docs/operations/scaling/) : dimensionnement et haute disponibilité.
+- [Configuration](/reference/configuration/) : liste des options.

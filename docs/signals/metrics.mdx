@@ -1,22 +1,53 @@
 ---
 id: metrics
-title: Metrics
+title: Kubernetes RED metrics and OpenTelemetry metrics
 sidebar_label: Metrics
 sidebar_position: 3
-description: OTLP metrics, exemplars and histograms in avuru obs.
+description: Read service rate, errors and duration alongside traces, and ingest OpenTelemetry infrastructure metrics in Avuru Obs.
 ---
 
-# Metrics
+# Kubernetes RED metrics and OpenTelemetry metrics
 
-Metrics are numeric measurements over time. avuru obs derives **RED metrics**
-(Rate, Errors, Duration) from eBPF automatically, and ingests OTLP metrics from
-your SDKs.
+Avuru Obs derives service **RED metrics** from ingested traces and accepts OTLP
+metrics from collectors and SDKs. These are different sources: a trace-derived
+rate describes the requests observed in spans, while an infrastructure metric
+describes a measurement collected from a node, container or application.
 
-- **Types** — counter, gauge, histogram, updowncounter.
-- **Exemplars** — link a metric data point back to a representative trace.
+## Read service rate, errors and duration
 
-:::info Planned — M3
-The metrics **dashboard** is on the way (the per-service RED aggregates are
-already available via the hub API). Node/pod infra metrics land alongside it. See
-the [Roadmap](/docs/roadmap) and [Feature status](/docs/status).
-:::
+Open a service's RED dashboard and choose a time window:
+
+- **Rate:** how much traced request traffic arrived over time.
+- **Errors:** failures in that traffic. Server-side 4xx refusals are shown separately; see [trace outcomes](/docs/signals/traces/#did-it-work-three-answers-not-two).
+- **Duration:** latency distributions and percentiles, rather than an average alone.
+
+If the service looks slow, open its traces in the same window and compare an
+individual request. A p95 spike identifies a period to investigate; it does
+not identify the cause. Sampling and missing spans affect what can be inferred
+from trace-derived metrics.
+
+## Add infrastructure and application metrics
+
+Enable the infrastructure metrics module and configure the relevant collection
+sources. The gateway accepts OTLP metrics over HTTP or gRPC; see
+[OTLP setup](/docs/setup/otel-bridge/) and [modules](/docs/setup/modules/).
+Use a stable `service.name` and the correct project identity for application metrics.
+
+OTel instruments include counters, gauges, histograms and up/down counters.
+Their aggregation and temporality matter: do not interpret a cumulative counter
+as an instantaneous rate. Verify the exporter and gateway configuration for the
+metric family you need. Not every ingested metric has a dedicated UI chart.
+
+## Compare CPU requests with usage
+
+The optional [cost module](/docs/signals/cost/) combines Kubernetes reservations
+with observed usage. Compare requests with the **observed peak**, keeping the
+window in view. A historical peak is evidence, not a guarantee of future demand.
+An average alone is not a safe resize target.
+
+## Check an unexpected result
+
+Confirm the project, service, time window and signal source before concluding
+that a zero means inactivity. Missing collection is different from a measured
+zero. For a practical investigation, follow the
+[slow checkout guide](/guides/investigate-slow-checkout/).

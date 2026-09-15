@@ -1,0 +1,53 @@
+---
+id: metrics
+title: Métriques RED Kubernetes et métriques OpenTelemetry
+sidebar_label: Métriques
+sidebar_position: 3
+description: Lisez débit, erreurs et durée des services avec leurs traces, et collectez les métriques d’infrastructure OpenTelemetry dans Avuru Obs.
+---
+
+# Métriques RED Kubernetes et OpenTelemetry
+
+Avuru Obs calcule les **métriques RED** des services à partir des traces ingérées
+et accepte les métriques OTLP des collecteurs et SDK. Le débit dérivé des traces
+représente les requêtes observées dans les spans ; une métrique d’infrastructure
+représente une mesure issue d’un nœud, conteneur ou d’une application.
+
+## Lire débit, erreurs et durée
+
+Ouvrez le tableau RED d’un service et choisissez une fenêtre temporelle :
+
+- **Débit :** trafic de requêtes tracées au fil du temps.
+- **Erreurs :** échecs observés. Les refus HTTP 4xx côté serveur restent distincts ; voir les [résultats des traces](/docs/signals/traces/#did-it-work-three-answers-not-two).
+- **Durée :** distributions et percentiles de latence, au-delà d’une simple moyenne.
+
+Lors d’une hausse de latence, ouvrez les traces dans la même fenêtre et comparez
+une requête. Un pic de p95 indique une période à examiner, pas une cause.
+L’échantillonnage et les spans manquants limitent l’interprétation des métriques
+calculées à partir des traces.
+
+## Ajouter les métriques d’infrastructure et applicatives
+
+Activez le module de métriques d’infrastructure et configurez les sources de
+collecte adaptées. La gateway accepte OTLP en HTTP ou gRPC : consultez le
+[guide OTLP](/docs/setup/otel-bridge/) et les [modules](/docs/setup/modules/).
+Pour les métriques applicatives, conservez un `service.name` stable et l’identité
+du projet destinataire.
+
+Les instruments OTel comprennent compteurs, jauges, histogrammes et compteurs
+bidirectionnels. Agrégation et temporalité comptent : un compteur cumulatif
+n’est pas un débit instantané. Vérifiez la configuration de l’exporteur et de
+la gateway. Toutes les métriques ingérées n’ont pas un graphique dédié dans l’interface.
+
+## Comparer les réservations CPU à l’usage
+
+Le [module cost](/docs/signals/cost/) rapproche les réservations Kubernetes de
+l’usage. Comparez les demandes au **pic observé** dans la fenêtre choisie.
+Un pic historique ne garantit pas les besoins futurs ; une moyenne seule n’est
+pas une cible de redimensionnement fiable.
+
+## Vérifier un résultat surprenant
+
+Contrôlez projet, service, fenêtre et source avant d’interpréter un zéro comme
+de l’inactivité. L’absence de collecte diffère d’un zéro mesuré. Pour un exercice
+concret, suivez le [guide du checkout lent](/guides/investigate-slow-checkout/).

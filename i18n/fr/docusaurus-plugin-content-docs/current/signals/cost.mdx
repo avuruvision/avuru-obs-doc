@@ -1,9 +1,9 @@
 ---
 id: cost
-title: Coûts & gaspillage
+title: Réservations CPU Kubernetes, usage et surdimensionnement
 sidebar_label: Coûts
 sidebar_position: 11
-description: Ce que chaque charge de travail a réservé face à ce qu'elle a réellement consommé — la capacité pour laquelle votre cluster est dimensionné et facturé pendant que rien ne tourne dedans. Aucune API de tarification, aucune sortie de données, aucun nouveau composant.
+description: Comparez les réservations CPU et mémoire Kubernetes aux pics observés pour examiner le surdimensionnement sans modifier automatiquement les workloads.
 ---
 
 # Coûts & gaspillage
@@ -23,9 +23,9 @@ phrase : ce qu'il a demandé.
   charge de votre cluster n'est pas une découverte ; celle qui réserve huit cœurs
   pour en utiliser un dixième, si.
 - **Les charges qui ne réservent rien.** Signalées comme un état à part entière,
-  pas comme un zéro. Un conteneur sans requête ne peut pas être placé
-  délibérément par l'ordonnanceur, et c'est la première chose que le kubelet
-  évince sous pression.
+  pas comme un zéro. Des requests absentes modifient les garanties de ressources et le placement.
+  L’éviction dépend aussi de la QoS, de la priorité, de l’usage et de la pression
+  du nœud ; la request ne détermine pas seule cet ordre.
 - **L'allocation d'un nœud à côté de son usage.** Un nœud entièrement *réservé*
   n'accepte plus aucun pod, aussi peu qu'il *consomme* — deux problèmes très
   différents que rien ne distingue sur une courbe d'utilisation.
@@ -42,7 +42,7 @@ Une requête ne peut pas être abaissée sous ce que la charge a réellement att
 sans risquer une éviction la prochaine fois qu'elle y revient. Soustraire la
 moyenne présenterait comme du gaspillage précisément la marge dont la charge a
 démontré avoir besoin. Les deux sont affichées — la moyenne dit quelle part du
-temps le pic n'avait pas lieu — mais seul le pic borne un changement sûr.
+temps le pic n'avait pas lieu — mais le pic observé reste une preuve historique, pas une garantie de demande future.
 
 ## Pas d'API de tarification
 
@@ -56,9 +56,8 @@ cost:
     currency: EUR
 ```
 
-Il n'y a aucune intégration de facturation cloud et il n'y en aura pas. avuru obs
-n'émet aucun appel sortant, et un prix que ce produit irait chercher ailleurs
-serait la première chose qu'il ferait jamais sortir de votre cluster.
+Ce calcul utilise vos tarifs et ne consulte pas d’API de prix cloud. Il ne
+représente pas une facture fournisseur et ne garantit pas une réduction de facture.
 
 Sans tarifs configurés, les écrans restent utiles — « 2,4 cœurs réservés, 0,3
 consommé » est déjà la découverte — et ils indiquent qu'aucun tarif n'est défini
@@ -119,3 +118,19 @@ passerait.
   partagés, aucun amortissement, aucune modélisation d'instances réservées — et
   rien ici ne modifie une charge de travail. Le produit dit ce qui est
   sur-réservé ; le changement vous appartient.
+
+## Lire un exemple avant de redimensionner
+
+| Même fenêtre d’observation | Cœurs CPU |
+| --- | --- |
+| Capacité réservée | 4,0 |
+| Usage moyen | 0,5 |
+| Pic observé | 1,5 |
+| Réservation au-dessus du pic | 2,5 |
+
+L’écart de 3,5 cœurs à la moyenne n’est pas le signal de marge présenté.
+Les 2,5 cœurs au-dessus du pic demandent une investigation, pas une suppression
+automatique de cette réservation. Vérifiez couverture, pointes, changements de
+réplicas et SLO. Un pic historique ne garantit pas les besoins futurs. Une
+réservation ou mesure absente ne vaut pas zéro. L’ordre d’éviction Kubernetes
+dépend aussi de la QoS, de la priorité, de l’usage et de la pression du nœud.
