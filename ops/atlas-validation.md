@@ -8,7 +8,7 @@ Validated locally on 15 September 2026 from the `docs/atlas-landing-seo` branch.
 | Documentation front matter | 241 files passed |
 | Production build | EN and FR passed without broken-link or broken-anchor warnings |
 | Rendered SEO | 5 tests passed; 386 sitemap URLs checked against canonical and reciprocal hreflang targets |
-| Browser behavior | 22 Playwright tests passed |
+| Browser behavior | 23 Playwright tests passed |
 | Accessibility | axe checks passed for EN/FR at 390 and 1440 px, including open mobile navigation |
 | Responsive behavior | No page overflow at 320, 390, 768 or 1440 px; compact and full map tested |
 | Progressive enhancement | Core content, docs links and FAQ usable without JavaScript |

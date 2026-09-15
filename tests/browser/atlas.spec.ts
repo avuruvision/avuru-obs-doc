@@ -235,3 +235,17 @@ for (const locale of locales) {
     expect(result.violations).toEqual([]);
   });
 }
+
+test('every desktop service label fits inside the graph', async ({page}) => {
+  await page.setViewportSize({width: 1440, height: 1000});
+  await page.goto('/');
+  const graph = await page.locator('[data-full]').boundingBox();
+  expect(graph).not.toBeNull();
+  for (const node of await page.locator('[data-service]:visible').all()) {
+    const box = await node.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(
+      graph!.y + graph!.height + 1,
+    );
+  }
+});

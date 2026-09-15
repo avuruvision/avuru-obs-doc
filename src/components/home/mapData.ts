@@ -32,7 +32,7 @@ export const services: Service[] = [
     status: 'inferred',
   },
   {id: 'redis', x: 92, y: 57, latency: null, carbon: null, status: 'inferred'},
-  {id: 'worker', x: 72, y: 87, latency: 19, carbon: 0.8, status: 'healthy'},
+  {id: 'worker', x: 72, y: 82, latency: 19, carbon: 0.8, status: 'healthy'},
 ];
 
 export const edges: [string, string][] = [
