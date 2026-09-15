@@ -1,0 +1,19 @@
+---
+slug: v0-18-0
+title: "v0.18.0 — Look inside your Kubernetes cluster"
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-09-16
+---
+
+Inspect Node and Pod placement in an interactive 3D view, then follow the connections recorded in your traces.
+
+{/* truncate */}
+
+- **Cluster X-Ray.** In Infrastructure, switch from Inventory to Cluster X-Ray. Orbit, zoom, separate the layers, adjust transparency and select a Pod to inspect CPU, memory and placement. Namespace, node and Pod filters and the selected identity live in the URL.
+- **Observed requests.** Client spans carry request counts, errors and p95 latency. A matched Server span identifies the destination Pod; a recorded address without a matched Pod appears as an unresolved peer. A globe does not imply public Internet location, and particle speed is illustrative.
+- **A bounded, optional scene.** The renderer loads when you open X-Ray. The scene shows up to 9 nodes, 12 Pods per node and 100 connections, with explicit counts. Narrow filters to inspect the rest. Reduced motion pauses particles; the inventory remains available without WebGL.
+- **Clear limits.** The infrastructure layer is a logical illustration. This view does not report physical chassis identity, Pod readiness or resource limits. Missing trace identities remain missing connections.
+
+See [Cluster X-Ray](/docs/signals/cluster-xray), the [API reference](/reference/api)
+and the [release artifacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.18.0).

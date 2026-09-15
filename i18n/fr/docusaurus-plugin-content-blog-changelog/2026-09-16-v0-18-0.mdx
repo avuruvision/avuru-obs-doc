@@ -1,0 +1,19 @@
+---
+slug: v0-18-0
+title: "v0.18.0 — Explorez l’intérieur de votre cluster Kubernetes"
+authors: [avuru]
+tags: [ui, platform]
+date: 2026-09-16
+---
+
+Inspectez le placement des Nodes et des Pods dans une vue 3D interactive, puis suivez les connexions enregistrées dans vos traces.
+
+{/* truncate */}
+
+- **Cluster X-Ray.** Dans Infrastructure, passez de l’inventaire à Cluster X-Ray. Faites pivoter la scène, zoomez, séparez les couches, ajustez la transparence et sélectionnez un Pod pour consulter son CPU, sa mémoire et son placement. Les filtres de namespace, Node et Pod ainsi que la sélection sont conservés dans l’URL.
+- **Requêtes observées.** Les spans clients fournissent le nombre de requêtes, les erreurs et la latence p95. Un span serveur associé identifie le Pod destinataire ; une adresse enregistrée sans Pod associé apparaît comme un pair non résolu. Le globe ne signifie pas que ce pair se trouve sur Internet et la vitesse des particules est illustrative.
+- **Une scène facultative et limitée.** Le moteur est chargé à l’ouverture de X-Ray. La scène affiche au maximum 9 Nodes, 12 Pods par Node et 100 connexions, avec des compteurs explicites. Affinez les filtres pour explorer le reste. La préférence de mouvement réduit suspend les particules ; l’inventaire reste disponible sans WebGL.
+- **Des limites explicites.** La couche infrastructure est une illustration logique. Cette vue ne fournit ni l’identité du châssis physique, ni l’état de disponibilité Kubernetes, ni les limites de ressources des Pods. Sans identité dans les traces, aucune connexion n’est inventée.
+
+Consultez [Cluster X-Ray](/docs/signals/cluster-xray), la [référence API](/reference/api)
+et les [artefacts de la version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.18.0).

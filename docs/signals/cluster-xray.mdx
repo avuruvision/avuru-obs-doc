@@ -1,0 +1,61 @@
+---
+id: cluster-xray
+title: Explore Kubernetes placement with Cluster X-Ray
+sidebar_label: Cluster X-Ray
+sidebar_position: 4
+description: Inspect Kubernetes Nodes, Pods and trace-backed connections in an interactive isometric view.
+---
+
+# Explore Kubernetes placement with Cluster X-Ray
+
+Open **Infrastructure → Cluster X-Ray** to see observed Nodes and Pods in a 3D
+scene. The view uses the current project and global time window. The default
+Inventory view remains available beside it.
+
+## Explore the layers
+
+Drag to orbit, scroll or use the buttons to zoom, and select **Reset camera** to
+return to the initial isometric view. Toggle Pods, Nodes or logical infrastructure;
+adjust **Spacing** to separate the layers and **X-Ray transparency** to look
+through their surfaces. The infrastructure layer is illustrative: it does not
+identify a discovered physical chassis or cloud instance type.
+
+Use node, namespace and Pod filters to narrow the view. Select a Pod in the scene
+or through **Select Pod to inspect**, which also works from the keyboard. Its
+inspector shows the recorded node, namespace, workload, CPU usage in cores and
+memory usage. Kubernetes readiness and resource limits are not available here.
+**Isolate neighbourhood** keeps the selected Pod and its observed neighbours.
+
+Selection and filters are preserved in the URL. If a selected Pod is outside the
+current filters or time window, the inspector says so instead of substituting a
+different Pod.
+
+## Read connections
+
+The Hub reads Client spans and matches Server children by tenant, trace and span
+identity. Pod names, namespaces and node names come from resource attributes.
+Service dependencies are never distributed arbitrarily between replicas.
+
+- Lines show observed request direction. A line with errors uses the error color.
+- Counts, errors and p95 latency are caller-side measurements over the selected window.
+- A recorded destination address without a matched Pod appears at the **unresolved peers** globe. Its location is unknown; the globe does not claim public Internet access.
+- Particle speed is illustrative, not a request-rate measurement. Use **Pause flows** to stop it. Reduced-motion preferences pause animation automatically.
+
+Missing Pod identities mean missing attributed connections. They do not imply
+that a Pod has no traffic. A failed connection read shows a retry action while
+placement remains available. No additional sensor option or application change
+is required; existing spans must carry the relevant Kubernetes resource attributes.
+
+## Large inventories and browser support
+
+The scene displays up to **9 nodes, 12 Pods per node and 100 connections**. Visible
+counts state when objects are omitted. The inventory query loads up to 200 Pods
+per node filter, ordered by CPU. Narrow the node or Pod filter to bring an omitted
+Pod into view. The selector can inspect loaded Pods outside the scene limit.
+
+The 3D engine loads only when this view opens. Hidden and offscreen scenes stop
+rendering. If WebGL is unavailable, use **Open inventory**. The scene uses a dark
+surface in both application themes; the surrounding interface follows your theme.
+
+See the [metrics guide](/docs/signals/metrics) and
+[Pod connection API](/reference/api).
