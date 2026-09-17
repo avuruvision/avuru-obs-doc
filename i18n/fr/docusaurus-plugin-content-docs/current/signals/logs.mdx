@@ -65,8 +65,8 @@ porter l’identité de ressource/projet attendue par votre pipeline.
 ### Interroger l’API
 
 `GET /api/v1/logs` accepte plusieurs paramètres `service` et plusieurs
-paramètres `workload=namespace/name`. Ajoutez
-`source=app,ztunnel,waypoint,other` pour choisir les familles de sources. Les
+paramètres `workload=namespace/name`. Répétez `source`, ou ajoutez
+`source=app,ztunnel,waypoint,other`, pour choisir les familles de sources. Les
 sujets sont combinés avec **OU**, puis `q`, `severity` et `tags` s’appliquent
 avec **ET**. `GET /api/v1/logs/services` renvoie les suggestions de services et
 de workloads limitées au projet et à la période demandés. Consultez la

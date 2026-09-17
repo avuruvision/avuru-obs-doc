@@ -93,9 +93,10 @@ The logs explorer is **live** today:
 ### Query the API
 
 `GET /api/v1/logs` accepts repeated `service` parameters and repeated
-`workload=namespace/name` parameters. Add `source=app,ztunnel,waypoint,other`
-to select source families; the subjects are combined with OR, then `q`,
-`severity` and `tags` are applied with AND. `GET /api/v1/logs/services` returns
+`workload=namespace/name` parameters. Repeat `source`, or pass
+`source=app,ztunnel,waypoint,other`, to select source families; the subjects
+are combined with OR, then `q`, `severity` and `tags` are applied with AND.
+`GET /api/v1/logs/services` returns
 the project-scoped service and workload suggestions for the requested time
 window. See the [API reference](/reference/api) for cursor and resolution
 details.
