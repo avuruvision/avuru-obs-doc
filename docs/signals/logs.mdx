@@ -63,21 +63,42 @@ and files it under the fallback tenant. Set the signal-specific
 
 The logs explorer is **live** today:
 
-- **Full-text search** over the log body, with **severity** and **service**
-  filters (all held in the URL for shareable views).
+- **Full-text search** over the log body, with severity, tags, sources and a
+  multi-service selector. Suggestions include services known only from logs;
+  Kubernetes workloads include their namespace so namesakes stay distinct.
+  An exact service name can also be entered directly. Every filter is held in
+  the URL for shareable views.
+- **One stream or separate panels.** The merged view orders all selected
+  services and workloads on one timeline. The panel view gives every selection
+  its own scroll and pagination while keeping the same time, severity, source
+  and text filters. It runs at most four storage requests concurrently.
+- **Application and mesh sources together.** Application, ztunnel, waypoint
+  and uncategorised records are enabled by default and can be switched
+  independently. Every row names both its emitting service and source. The
+  same explorer is available from **Signals → Logs** and the mesh's **Logs**
+  tab.
 - **Trace correlation** — a log row's `trace_id` links to its trace, and a
   trace's spans link back to the logs emitted during that request.
 - Keyset pagination for gap-free scrolling through large time windows.
 - **A service's logs, including the mesh's.** A service's **Logs** tab finds
   its lines even when its pod files them under a different name than its spans
   carry: the hub ties the service to its workload and reads the same sources as
-  a workload's Logs tab on the [mesh screen](/docs/signals/mesh), the app's own
-  lines by default and the proxies' a checkbox away. When no workload
+  a workload's Logs tab on the [mesh screen](/docs/signals/mesh). When no workload
   can be tied to it, the tab says which of two things to fix.
 - **Take the lines with you.** Copy every loaded line, or tick the rows that
   matter (shift-click extends a range) and copy just those, or download what is
   loaded as a `.log` file. Each control says how many lines it will take. The
   per-row copy button appears on hover and on keyboard focus.
+
+### Query the API
+
+`GET /api/v1/logs` accepts repeated `service` parameters and repeated
+`workload=namespace/name` parameters. Add `source=app,ztunnel,waypoint,other`
+to select source families; the subjects are combined with OR, then `q`,
+`severity` and `tags` are applied with AND. `GET /api/v1/logs/services` returns
+the project-scoped service and workload suggestions for the requested time
+window. See the [API reference](/reference/api) for cursor and resolution
+details.
 
 ## Verify trace correlation
 
@@ -109,6 +130,7 @@ Retention is configured by deployment and project; see
 :::note Release coverage
 Automatic severity parsing from container stdout and the expanded service-log
 and copy controls described above are documented on the current development
-trunk for v0.17. OTLP log ingestion and trace-ID correlation are already released.
+trunk for v0.17. The multi-service explorer and mesh-wide Logs tab are also
+documented from the current development trunk. OTLP log ingestion and trace-ID correlation are already released.
 Check [feature status](/docs/status/) and the version you installed.
 :::

@@ -44,11 +44,34 @@ porter l’identité de ressource/projet attendue par votre pipeline.
 
 ## Explorer les logs
 
-- Recherchez le corps et filtrez par sévérité ou service ; l’URL conserve les filtres.
+- Recherchez le corps et filtrez par sévérité, tags, sources et plusieurs
+  services. Les suggestions incluent les services connus uniquement par leurs
+  logs. Les workloads Kubernetes portent leur namespace pour distinguer les
+  homonymes, et un nom de service exact peut être saisi librement. L’URL
+  conserve tous les filtres.
+- Choisissez un flux fusionné, ordonné sur une seule chronologie, ou des
+  panneaux indépendants par service. Chaque sélection garde son défilement et
+  sa pagination tout en partageant la période et les filtres. Au maximum quatre
+  requêtes de stockage sont exécutées en parallèle.
+- Les sources Application, ztunnel, waypoint et Autres sont actives par défaut
+  et peuvent être décochées séparément. Chaque ligne conserve le service
+  émetteur et indique sa source. Le même explorateur est accessible depuis
+  **Signaux → Logs** et depuis l’onglet **Logs** du service mesh.
 - Ouvrez la trace depuis un log portant son ID et retrouvez les logs d’une requête depuis ses spans.
 - Parcourez les fenêtres volumineuses avec la pagination par curseur.
 - Dans l’onglet Logs d’un service, le produit peut rapprocher identité du service et workload Kubernetes, avec les sources de proxies disponibles si le module requis est actif.
 - Les contrôles de copie et de téléchargement portent sur les lignes chargées ou sélectionnées et annoncent leur nombre.
+
+### Interroger l’API
+
+`GET /api/v1/logs` accepte plusieurs paramètres `service` et plusieurs
+paramètres `workload=namespace/name`. Ajoutez
+`source=app,ztunnel,waypoint,other` pour choisir les familles de sources. Les
+sujets sont combinés avec **OU**, puis `q`, `severity` et `tags` s’appliquent
+avec **ET**. `GET /api/v1/logs/services` renvoie les suggestions de services et
+de workloads limitées au projet et à la période demandés. Consultez la
+[référence API](/reference/api) pour les détails du curseur et de la
+résolution.
 
 ## Vérifier la corrélation
 
@@ -77,6 +100,8 @@ par déploiement et projet.
 :::note Versions concernées
 L’analyse automatique de sévérité stdout et les nouveaux contrôles de logs de
 service/copie sont documentés sur le trunk pour v0.17. L’ingestion OTLP et la
-corrélation par ID de trace sont déjà publiées. Consultez
+corrélation par ID de trace sont déjà publiées. L’explorateur multiservice et
+l’onglet Logs du mesh sont également documentés depuis le trunk de
+développement actuel. Consultez
 [l’état des fonctionnalités](/docs/status/) et votre version installée.
 :::
