@@ -1,0 +1,67 @@
+---
+id: cluster-xray
+title: Explorez le placement Kubernetes avec Cluster X-Ray
+sidebar_label: Cluster X-Ray
+sidebar_position: 4
+description: Inspectez les Nodes, les Pods et les connexions issues des traces dans une vue isométrique interactive.
+---
+
+# Explorez le placement Kubernetes avec Cluster X-Ray
+
+Ouvrez **Infrastructure → Cluster X-Ray** pour afficher les Nodes et Pods observés
+dans une scène 3D. La vue respecte le projet courant et la fenêtre temporelle
+globale. L’inventaire reste la vue par défaut, accessible à côté.
+
+## Explorer les couches
+
+Faites glisser la scène pour la faire pivoter. Utilisez la molette ou les boutons
+pour zoomer et **Reset camera** pour retrouver la vue isométrique initiale.
+Activez ou masquez les Pods, Nodes et l’infrastructure logique. Le réglage
+**Spacing** sépare les couches ; **X-Ray transparency** permet de voir à travers
+leurs surfaces. La couche infrastructure est illustrative : elle n’identifie ni
+un châssis physique découvert ni un type d’instance cloud.
+
+Affinez la vue avec les filtres de Node, namespace et Pod. Sélectionnez un Pod
+dans la scène ou dans **Select Pod to inspect**, également utilisable au clavier.
+L’inspecteur affiche le Node, le namespace, la charge de travail, l’utilisation
+CPU en cœurs et la mémoire enregistrés. L’état de disponibilité Kubernetes et
+les limites de ressources ne sont pas fournis ici. **Isolate neighbourhood**
+conserve le Pod sélectionné et ses voisins observés.
+
+La sélection et les filtres sont conservés dans l’URL. Si le Pod sélectionné
+sort des filtres ou de la fenêtre temporelle, l’inspecteur l’indique sans lui
+substituer un autre Pod.
+
+## Lire les connexions
+
+Le Hub lit les spans clients et associe les spans serveurs enfants par tenant,
+trace et identité de span. Les noms des Pods, namespaces et Nodes proviennent
+des attributs de ressource. Les dépendances d’un service ne sont jamais
+réparties arbitrairement entre ses réplicas.
+
+- Les lignes indiquent la direction des requêtes observées. Une ligne avec des erreurs utilise la couleur d’erreur.
+- Le nombre de requêtes, les erreurs et la latence p95 sont mesurés côté appelant sur la fenêtre choisie.
+- Une adresse de destination enregistrée sans Pod associé apparaît au globe **unresolved peers**. Sa localisation reste inconnue : ce globe ne prouve pas un accès à Internet.
+- La vitesse des particules est illustrative et ne représente pas un débit de requêtes. **Pause flows** les arrête. La préférence de mouvement réduit suspend automatiquement l’animation.
+
+Sans identité de Pod dans les spans, aucune connexion n’est attribuée. Cela ne
+signifie pas que le Pod n’a pas de trafic. Un échec de lecture des connexions
+propose de réessayer tout en conservant le placement. Aucune option supplémentaire
+du capteur ni modification de l’application n’est requise ; les spans existants
+doivent porter les attributs de ressource Kubernetes nécessaires.
+
+## Grands inventaires et navigateurs
+
+La scène affiche au maximum **9 Nodes, 12 Pods par Node et 100 connexions**. Les
+compteurs indiquent lorsque des objets sont omis. La requête d’inventaire charge
+jusqu’à 200 Pods par filtre de Node, classés par CPU. Affinez les filtres pour
+faire apparaître un Pod omis. Le sélecteur permet d’inspecter les Pods chargés
+même lorsqu’ils dépassent la limite de la scène.
+
+Le moteur 3D est chargé uniquement à l’ouverture de cette vue. Les scènes masquées
+ou hors écran arrêtent leur rendu. Sans WebGL, utilisez **Open inventory**. La
+scène conserve une surface sombre dans les deux thèmes de l’application ; le
+reste de l’interface suit votre thème.
+
+Consultez le [guide des métriques](/docs/signals/metrics) et
+[l’API des connexions de Pods](/reference/api).
