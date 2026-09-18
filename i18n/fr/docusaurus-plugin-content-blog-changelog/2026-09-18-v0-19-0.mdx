@@ -1,0 +1,21 @@
+---
+slug: v0-19-0
+title: "v0.19.0 — Lisez les logs de plusieurs services en un seul flux, dans un thème sombre apaisé"
+authors: [avuru]
+tags: [logs, ui, platform]
+date: 2026-09-18
+---
+
+Choisissez les services et workloads qui vous intéressent, sélectionnez les sources à lire, puis suivez leurs logs en un flux fusionné ou en panneaux côte à côte — depuis Signaux → Logs et depuis le nouvel onglet Service Mesh → Logs.
+
+{/* truncate */}
+
+- **Un explorateur, deux accès.** Le même explorateur s’ouvre depuis **Signaux → Logs** et depuis un nouvel onglet **Logs** du Service Mesh. Un champ Services propose recherche, suggestions, cases à cocher et pastilles supprimables ; les workloads affichent leur namespace pour distinguer les homonymes, et un nom exact absent des suggestions est accepté tel que saisi.
+- **Des sources au choix.** Lisez les lignes des applications, celles de ztunnel, celles des waypoints, et tout le reste sous **Autres**, chacune indépendamment et toutes actives par défaut. Les lignes des proxies sont rattachées aux workloads sélectionnés ; quand le hub ne peut pas apparier les pods précisément, ou pas résoudre un workload du tout, l’explorateur le dit au lieu d’élargir la recherche.
+- **Flux fusionné ou panneaux par service.** Le flux fusionné est une chronologie unique, du plus récent au plus ancien, avec le service émetteur et la source sur chaque ligne. Les panneaux partagent filtres et période mais paginent indépendamment, quatre chargements simultanés au plus, sur deux colonnes en grand écran. Sans sélection, l’affichage en panneaux invite à en faire une plutôt que d’ouvrir un panneau par service du cluster.
+- **Un état partageable.** Services, workloads, sources et affichage vivent dans l’URL ; un changement de filtre réinitialise la pagination, la bascule d’affichage conserve les filtres. Les pages de détail d’un service et d’un workload ouvrent l’explorateur préfiltré.
+- **API.** `GET /api/v1/logs` combine par **OU** les paramètres répétés `service`, `workload=namespace/name` et `source`, puis applique `q`, `severity` et `tags` par **ET**, en une seule requête paginée. Chaque ligne porte `source` à côté de `service` ; `resolutions` explique ce que chaque sujet a résolu. Les pages suivantes renvoient un `resolutionToken` signé pour qu’un rafraîchissement du cluster ne change pas l’ensemble des sources sous un curseur, et le curseur départage les services partageant un même horodatage. `GET /api/v1/logs/services` suggère les services présents dans les logs et leurs workloads, limités au projet et à la période. Un `service` unique se comporte exactement comme avant.
+- **Thème sombre ardoise.** Les surfaces sombres passent à l’ardoise avec des actions bleu clair ; la carte des services et Cluster X-Ray suivent en mode sombre, le thème clair est inchangé, et le vert ne signifie plus que « sain ». Le texte secondaire est un vrai jeton qui atteint 4,5:1 sur toutes les surfaces.
+
+Voir [Logs](/docs/signals/logs), la [référence API](/reference/api)
+et les [artefacts de la version](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.0).

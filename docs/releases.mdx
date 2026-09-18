@@ -21,9 +21,23 @@ only.
 
 <Timeline>
 
-<ReleaseEntry version="0.19.0" date="in development" status="in-progress">
+<ReleaseEntry version="0.20.0" date="in development" status="in-progress">
 
 The `main` trunk. See the [Roadmap](/docs/roadmap).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.19.0" date="2026-09-18" status="shipped">
+
+**Several services' logs as one stream.** The [log explorer](/docs/signals/logs)
+selects services and workloads, reads application, ztunnel, waypoint and other
+sources independently, and shows them merged or as panels per service — from
+Signals and from a new Service Mesh tab. `GET /api/v1/logs` composes subjects
+with a signed pagination token; `GET /api/v1/logs/services` suggests them. The
+dark theme moves to slate with readable secondary text.
+
+See the [changelog](/changelog/v0-19-0) and the
+[release artifacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.0).
 
 </ReleaseEntry>
 
