@@ -22,9 +22,23 @@ cassants ; les incréments de correctif ne sont que des corrections.
 
 <Timeline>
 
-<ReleaseEntry version="0.19.0" date="en développement" status="in-progress" statusLabel="En cours">
+<ReleaseEntry version="0.20.0" date="en développement" status="in-progress" statusLabel="En cours">
 
 Le tronc `main`. Voir la [Feuille de route](/docs/roadmap).
+
+</ReleaseEntry>
+
+<ReleaseEntry version="0.19.0" date="2026-09-18" status="shipped" statusLabel="Livré">
+
+**Les logs de plusieurs services en un seul flux.** L’[explorateur de logs](/docs/signals/logs)
+sélectionne services et workloads, lit indépendamment les sources application,
+ztunnel, waypoint et autres, et les affiche fusionnées ou en panneaux par service —
+depuis Signaux et depuis un nouvel onglet du Service Mesh. `GET /api/v1/logs`
+compose les sujets avec un jeton de pagination signé ; `GET /api/v1/logs/services`
+les suggère. Le thème sombre passe à l’ardoise avec un texte secondaire lisible.
+
+Voir le [changelog](/changelog/v0-19-0) et les
+[artefacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.0).
 
 </ReleaseEntry>
 

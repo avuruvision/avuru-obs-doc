@@ -1,0 +1,21 @@
+---
+slug: v0-19-0
+title: "v0.19.0 — Read several services' logs as one stream, in a calmer dark theme"
+authors: [avuru]
+tags: [logs, ui, platform]
+date: 2026-09-18
+---
+
+Pick the services and workloads you care about, choose which sources to read, and follow their logs as one merged stream or as side-by-side panels — from Signals → Logs and from the new Service Mesh → Logs tab.
+
+{/* truncate */}
+
+- **One log explorer, two homes.** The same explorer opens from **Signals → Logs** and from a new **Logs** tab in Service Mesh. A Services field offers search, suggestions, checkboxes and removable chips; workloads show their namespace so namesakes stay apart, and an exact name that is not suggested is accepted as typed.
+- **Sources you choose.** Read the applications' own lines, ztunnel's, the waypoints', and everything else under **Other**, each independently and all on by default. Proxy lines are tied to the selected workloads; when the hub cannot match pods precisely, or cannot resolve a workload at all, the explorer says so rather than widening the search.
+- **Merged stream or panels per service.** The merged stream is one newest-first timeline with the emitting service and the source on every row. Panels share the filters and the window but page on their own, at most four loading at once, two columns on wide screens. Without a selection, the panel view asks for one instead of opening a panel per service in the cluster.
+- **Shareable state.** Services, workloads, sources and display live in the URL; a filter change restarts pagination, switching display keeps the filters. Service and workload detail pages link into the explorer prefiltered.
+- **API.** `GET /api/v1/logs` composes repeated `service`, `workload=namespace/name` and `source` parameters with OR, then applies `q`, `severity` and `tags` with AND, in one paginated query. Rows carry `source` next to `service`; `resolutions` explain what each subject resolved to. Later pages echo a signed `resolutionToken` so a cluster refresh cannot change the source set under a cursor, and the cursor breaks ties between services sharing a timestamp. `GET /api/v1/logs/services` suggests log-backed services and their workloads, scoped to the project and window. A single `service` behaves exactly as before.
+- **Slate dark theme.** Dark surfaces move to slate with soft blue actions; the service map and Cluster X-Ray follow in dark mode, the light theme is unchanged, and green now means healthy only. Secondary text is a real token that clears 4.5:1 on every surface.
+
+See [Logs](/docs/signals/logs), the [API reference](/reference/api)
+and the [release artifacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.0).
