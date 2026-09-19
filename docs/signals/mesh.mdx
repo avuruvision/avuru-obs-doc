@@ -395,6 +395,15 @@ Telemetry is joined onto that list by namespace, using the same resolution the
 service map uses, so the two screens can never disagree about where a workload
 lives.
 
+The same resolution draws the **project line** *(v0.19.1)*. The cluster's record
+knows nothing of projects, so an account granted specific projects sees it
+narrowed to the namespaces those projects' telemetry reached in the window — on
+this list, on the workload list, in the configuration browser and on every
+workload and waypoint page. An identity that may see every project (a `*`
+grant, or an install running without authentication) sees the cluster whole,
+silent namespaces included: that row is the point of this module for an
+operator, and it is the one telemetry could never draw.
+
 ### Every workload the cluster runs, in the mesh or not
 
 Enrolment is a fact about a pod: the sidecar is a container in it, and ambient

@@ -27,6 +27,20 @@ The `main` trunk. See the [Roadmap](/docs/roadmap).
 
 </ReleaseEntry>
 
+<ReleaseEntry version="0.19.1" date="2026-09-19" status="shipped">
+
+**Patch.** [Service Mesh](/docs/signals/mesh) built its namespace, workload and
+configuration lists from the cluster's own record and never applied the
+caller's project, so an account granted one project — the shared demo viewer,
+say — could read every namespace, workload and policy on the cluster. The record
+is now narrowed to the namespaces the caller's projects reach; a wildcard
+identity still sees the cluster whole. No schema or API change.
+
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.1)
+· [changelog](/changelog/v0-19-1).
+
+</ReleaseEntry>
+
 <ReleaseEntry version="0.19.0" date="2026-09-18" status="shipped">
 
 **Several services' logs as one stream.** The [log explorer](/docs/signals/logs)
