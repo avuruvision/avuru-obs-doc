@@ -1,0 +1,44 @@
+---
+slug: v0-19-1
+title: "v0.19.1 : un compte limité à un projet voit son mesh, pas tout le cluster"
+description: "Une version corrective. Le Service Mesh construisait ses listes d'espaces de noms, de charges et de configuration à partir du registre du cluster sans appliquer le projet de l'appelant : un compte limité à un projet pouvait lire tous les espaces de noms du cluster. Corrigé."
+authors: [avuru]
+tags: [security, platform]
+date: 2026-09-19
+---
+
+**v0.19.1** est une version corrective : le Service Mesh ne montre plus à un
+compte limité à certains projets que les espaces de noms que ces projets
+atteignent. Rien d'autre ne change — ni migration de schéma, ni nouvelle
+surface d'API ou de configuration.
+
+{/* truncate */}
+
+- **Ce qui n'allait pas.** La [liste des espaces de noms, celle des charges de
+  travail, le navigateur de configuration et les pages d'une charge et d'un
+  waypoint](/docs/signals/mesh#vos-espaces-de-noms-et-ce-que-la-configuration-a-de-faux)
+  sont construits à partir du registre du cluster, que Kubernetes tient sans
+  aucune notion de projet. Tous les autres écrans restreignent ce qu'ils montrent
+  au projet de la requête ; ces cinq-là ne le faisaient pas. Un compte limité à
+  un seul projet — le compte de démonstration partagé, par exemple — pouvait
+  ouvrir le Service Mesh et lire chaque espace de noms, chaque charge et chaque
+  politique du cluster.
+- **Ce qu'il montre désormais.** Le registre du cluster est restreint aux
+  espaces de noms que les projets de l'appelant atteignent, déterminés comme la
+  carte des services le fait : à partir de la télémétrie de ce projet dans la
+  fenêtre choisie. Une charge ou un waypoint hors de cette vue est absent, et non
+  « lié à rien ». Si les espaces de noms du projet ne peuvent pas être résolus,
+  l'écran signale une erreur plutôt que d'afficher le cluster, ou une liste vide
+  qui se lirait comme « pas de maillage ».
+- **Les opérateurs gardent tout le cluster.** Une identité qui peut voir tous
+  les projets — un droit `*`, ou une installation sans authentification —
+  continue de voir chaque espace de noms, y compris celui dont la télémétrie
+  n'est jamais arrivée. Cette ligne est la raison d'être du module de
+  configuration.
+
+**Si vous utilisez le compte de démonstration partagé ou des comptes limités à
+un projet**, passez en `0.19.1`. Les installations à projet unique et les
+administrateurs globaux ne verront aucune différence.
+
+Voir la page [Versions](/docs/releases) et la
+[release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.1).

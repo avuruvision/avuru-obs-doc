@@ -28,6 +28,22 @@ Le tronc `main`. Voir la [Feuille de route](/docs/roadmap).
 
 </ReleaseEntry>
 
+<ReleaseEntry version="0.19.1" date="2026-09-19" status="shipped" statusLabel="Livré">
+
+**Correctif.** Le [Service Mesh](/docs/signals/mesh) construisait ses listes
+d'espaces de noms, de charges de travail et de configuration à partir du
+registre du cluster sans appliquer le projet de l'appelant : un compte limité à
+un projet — le compte de démonstration partagé, par exemple — pouvait lire chaque
+espace de noms, chaque charge et chaque politique du cluster. Le registre est
+désormais restreint aux espaces de noms que les projets de l'appelant
+atteignent ; une identité globale voit toujours le cluster entier. Aucun
+changement de schéma ni d'API.
+
+[Release GitHub](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.1)
+· [changelog](/changelog/v0-19-1).
+
+</ReleaseEntry>
+
 <ReleaseEntry version="0.19.0" date="2026-09-18" status="shipped" statusLabel="Livré">
 
 **Les logs de plusieurs services en un seul flux.** L’[explorateur de logs](/docs/signals/logs)

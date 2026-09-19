@@ -427,6 +427,16 @@ La télémétrie est jointe à cette liste par espace de noms, avec la même
 résolution que celle qu'emploie la carte des services : les deux écrans ne
 peuvent donc jamais se contredire sur l'endroit où vit une charge de travail.
 
+Cette même résolution trace la **frontière du projet** *(v0.19.1)*. Le registre
+du cluster ignore tout des projets : un compte limité à certains projets le voit
+donc restreint aux espaces de noms que la télémétrie de ces projets a atteints
+dans la fenêtre — sur cette liste, sur celle des charges de travail, dans le
+navigateur de configuration et sur chaque page de charge ou de waypoint. Une
+identité qui peut voir tous les projets (un droit `*`, ou une installation sans
+authentification) voit le cluster entier, espaces de noms silencieux compris :
+cette ligne est la raison d'être de ce module pour un opérateur, et c'est celle
+que la télémétrie n'aurait jamais pu tracer.
+
 ### Chaque charge de travail que le cluster exécute, dans le maillage ou non
 
 L'inscription est un fait qui concerne un pod : le sidecar est un conteneur

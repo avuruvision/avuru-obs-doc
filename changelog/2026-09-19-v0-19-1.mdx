@@ -1,0 +1,38 @@
+---
+slug: v0-19-1
+title: "v0.19.1: a project-scoped account sees its own mesh, not the cluster's"
+description: "A patch release. Service Mesh built its namespace, workload and configuration lists from the cluster's own record and never applied the caller's project, so an account granted one project could read every namespace on the cluster. Fixed."
+authors: [avuru]
+tags: [security, platform]
+date: 2026-09-19
+---
+
+**v0.19.1** is a patch: Service Mesh now shows an account granted specific
+projects only the namespaces those projects reach. Nothing else changes — no
+schema migration, no new API or configuration surface.
+
+{/* truncate */}
+
+- **What was wrong.** The [namespace list, the workload list, the configuration
+  browser and the workload and waypoint pages](/docs/signals/mesh#your-namespaces-and-what-the-configuration-gets-wrong)
+  are built from the cluster's own record, which Kubernetes keeps with no notion
+  of a project. Every other screen narrows what it shows to the request's
+  project; these five did not. An account granted a single project — the shared
+  demo viewer, for one — could open Service Mesh and read every namespace,
+  workload and policy on the cluster.
+- **What it shows now.** The cluster's record is narrowed to the namespaces the
+  caller's projects reach, derived the way the service map derives them: from
+  that project's telemetry in the selected window. A workload or waypoint outside
+  that view is absent, not "bound to nothing". If the project's namespaces cannot
+  be resolved, the screen reports an error rather than the cluster, and rather
+  than an empty list that would read as "no mesh".
+- **Operators keep the whole cluster.** An identity that may see every project —
+  a `*` grant, or an install running without authentication — still sees every
+  namespace, including the one whose telemetry never arrived. That row is the
+  reason the configuration module exists.
+
+**If you run the shared demo login or project-scoped accounts**, upgrade to
+`0.19.1`. Single-project installs and wildcard administrators see no change.
+
+See the [Releases](/docs/releases) page and the
+[GitHub release](https://github.com/avuruvision/avuru-obs/releases/tag/v0.19.1).
