@@ -1,0 +1,20 @@
+---
+slug: v0-20-0
+title: "v0.20.0 — Typed decisions: a design note and a harness before any model call"
+authors: [avuru]
+tags: [ai, logs, docs]
+date: 2026-09-23
+---
+
+A design note ranks where a classifier that answers with a calibrated probability, never with text, would fit avuru obs, and what each use would cost the promise that nothing leaves the cluster. An offline harness measures the first case before any model is ever called from the product.
+
+{/* truncate */}
+
+- **Every decision is a rule today.** The severity a log line is given when its own text says nothing, the fingerprint that folds two errors into one issue, the state machine that fires an alert: all rules, in SQL, Go thresholds or collector statements. The note asks where a typed decision — a choice over a fixed set of options, a score, a yes-or-no probability — would do better than a rule, and answers with a ranked map.
+- **The promise sets the ceiling.** The hub makes no outbound call, so a hosted classifier can never sit in the ingest path or behind a feature that is on by default. The note prices every use case against that: at most an opt-in, batch module sending structured or already-scrubbed payloads, born off, with the same consent language as the MCP server. Service roles, health thresholds and log clustering are not worth an outbound dependency and stay in code.
+- **Log-severity backfill first.** Lines the sensor's parsers cannot read land at severity 0 and vanish from the log floor and from error issues. Six buckets, free ground truth from the lines the parsers did read, a hub-side batch that never touches ingest: the one case worth measuring. Error-issue merging, alert triage on structured metadata and vendor attribute-key detection follow; secret detection only as a pre-flight on MCP egress the operator already chose.
+- **A harness before a module.** `tools/jev-eval` runs from a laptop against a copy of the log table, never from the hub. It reports accuracy against the sensor's own labels, how many severity-0 lines come back at each confidence floor, latency, and cost per million lines, against four go/no-go bars. It runs and tests without a key, on a recorded fixture that is synthetic and says so.
+- **Nothing in the product changes.** No hub, gateway, sensor, chart or UI change ships in this release; the note stays a draft until the measurement happens.
+
+See the [design note](https://github.com/avuruvision/avuru-obs/blob/main/design/2026-09-22-typed-decisions-jev.md)
+and the [release artifacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.20.0).
