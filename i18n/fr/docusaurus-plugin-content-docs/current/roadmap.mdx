@@ -530,7 +530,64 @@ ligne ztunnel dans l'onglet Proxys alimentée par la collecte plutôt que par
 les spans, qui attend la ligne suivante avec les compteurs d'octets TCP que la
 collecte conserve déjà.
 
-## Au-delà de la v0.16 (indicatif)
+## v0.17 — l'espace de travail connecté (publiée le 15/09/2026)
+
+La carte est le point d'entrée de l'application. Explorer garde les appelants
+et les dépendances du service sélectionné à côté du graphe, puis mène à ses
+traces, ses journaux et sa fiche. La sélection voyage dans l'URL et se fait au
+clavier. Un projet vide explique comment brancher eBPF et OTLP ; une lecture
+échouée propose de réessayer. L'interface commune adopte des surfaces sauge et
+forêt, avec une navigation mobile qui conserve les modules activés et les
+commandes de projet. L'écran Erreurs gagne un résumé de l'ensemble de problèmes
+filtré, l'onglet Journaux d'un service résout sa charge de travail, les tables
+de journaux se copient et se téléchargent, et le corps des journaux de
+conteneurs livre une sévérité.
+
+Livrée avec la [version v0.17.0](/changelog/v0-17-0).
+
+## v0.18 — regarder à l'intérieur du cluster (publiée le 16/09/2026)
+
+L'infrastructure gagne [Cluster X-Ray](/docs/signals/cluster-xray) : une vue
+isométrique interactive des Nodes, des Pods translucides et d'une couche
+d'infrastructure logique à côté de l'inventaire. Orbiter, zoomer, séparer ou
+masquer les couches, filtrer les namespaces, inspecter le CPU, la mémoire et le
+placement d'un Pod, et suivre les connexions que les traces ont enregistrées —
+uniquement entre identités de Pods enregistrées, les adresses non résolues
+restant explicitement non localisées. Le moteur de rendu se charge à la
+demande, la scène annonce ses limites, et l'inventaire reste disponible au
+clavier et sans WebGL.
+
+Livrée avec la [version v0.18.0](/changelog/v0-18-0).
+
+## v0.19 — les logs de plusieurs services en un seul flux (publiée le 18/09/2026)
+
+Un seul [explorateur de logs](/docs/signals/logs) pour Signaux → Logs et
+Service Mesh → Logs : choisissez services et workloads, sélectionnez les sources
+à lire, et suivez-les fusionnés du plus récent au plus ancien ou en un panneau
+par service. Sélection, sources et affichage vivent dans l'URL ;
+`GET /api/v1/logs` compose les sujets en une seule requête paginée sous un
+jeton de pagination signé. Le thème sombre passe à l'ardoise avec un texte
+secondaire lisible. La v0.19.1 a restreint les écrans du maillage aux
+namespaces que les projets de l'appelant atteignent.
+
+Livrée avec la [version v0.19.0](/changelog/v0-19-0).
+
+## v0.20 — les décisions typées, sur le papier (publiée le 23/09/2026)
+
+Aucune modification du produit. Une note de conception classe les endroits où
+un classifieur qui répond par une probabilité calibrée plutôt que par du texte
+aurait sa place — la sévérité qu'une règle n'a pas su lire, des erreurs qu'une
+empreinte a séparées, des alertes à trier — et ce que chacun coûterait à la
+promesse que rien ne quitte le cluster : au plus un module optionnel, par
+lots, n'envoyant que des charges structurées ou déjà nettoyées, désactivé à la
+naissance, jamais sur le chemin d'ingestion. Un banc d'essai hors ligne mesure
+le premier cas, le rattrapage de sévérité des logs, depuis un poste de travail
+contre une copie de la table des logs. La note reste un brouillon tant que
+cette mesure n'a pas eu lieu.
+
+Livrée avec la [version v0.20.0](/changelog/v0-20-0).
+
+## Au-delà de la v0.20 (indicatif)
 
 - **Les proxys depuis la collecte, non depuis les spans.** Sur un cluster
   ambiant, ztunnel n'émet aucun span, si bien que l'onglet Proxys n'a pas de
@@ -546,7 +603,11 @@ collecte conserve déjà.
   deux. Un seul récit sur le gaspillage, en deux unités.
 - **L'incident :** des synthèses de cause racine, avec tout commutateur de
   fournisseur **désactivé par défaut** — ce serait le premier appel réseau
-  sortant d'un produit dont la promesse est que rien ne quitte le cluster.
+  sortant d'un produit dont la promesse est que rien ne quitte le cluster. La
+  note de conception de la v0.20 porte la moitié *décision* — quelle urgence,
+  et est-ce le symptôme d'une alerte amont déjà déclenchée — sur le papier,
+  comme décision typée sur des métadonnées structurées, sans rien générer ; la
+  moitié synthèse reste écartée.
 - **Des parcours de vérification scriptés en plusieurs étapes**, si la demande
   se manifeste — la v0.9 livre délibérément des vérifications à requête unique.
 - **Un profilage plus profond :** profils hors-CPU et mémoire, à mesure que le

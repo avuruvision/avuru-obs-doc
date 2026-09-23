@@ -469,7 +469,58 @@ dozen fields per pod on purpose; and a ztunnel row on the Proxies tab seeded
 from the scrape rather than from spans, which waits for the next line with the
 TCP byte counters the scrape already keeps.
 
-## Beyond v0.16 (directional)
+## v0.17 — the connected workspace (released 2026-09-15)
+
+The map is the application entry point. Explorer keeps a selected service's
+callers and dependencies beside the graph, then links into its traces, logs and
+service detail. Selection travels in the URL and is available from the keyboard.
+An empty project teaches eBPF and OTLP connection; a failed read offers retry.
+The shared UI adopts sage and forest surfaces with mobile navigation that keeps
+enabled modules and project controls. The Errors screen gains a summary over
+the matching issue set, a service's Logs tab resolves its workload, log tables
+copy and download, and container log bodies yield a severity.
+
+Shipped as the [v0.17.0 release](/changelog/v0-17-0).
+
+## v0.18 — look inside the cluster (released 2026-09-16)
+
+Infrastructure gains [Cluster X-Ray](/docs/signals/cluster-xray): an
+interactive isometric view of Nodes, translucent Pods and a logical
+infrastructure layer beside the inventory. Orbit, zoom, separate or hide
+layers, filter namespaces, inspect a Pod's CPU, memory and placement, and
+follow the connections the traces recorded — only between recorded Pod
+identities, with unresolved addresses kept explicitly unlocated. The renderer
+loads on demand, the scene states its limits, and the inventory stays for
+keyboards and browsers without WebGL.
+
+Shipped as the [v0.18.0 release](/changelog/v0-18-0).
+
+## v0.19 — several services' logs as one stream (released 2026-09-18)
+
+One [log explorer](/docs/signals/logs) for Signals → Logs and Service Mesh →
+Logs: pick services and workloads, choose which sources to read, and follow
+them merged newest-first or as one panel per service. Selection, sources and
+display live in the URL; `GET /api/v1/logs` composes the subjects in one
+paginated query under a signed pagination token. The dark theme moves to slate
+with readable secondary text. v0.19.1 narrowed the mesh screens to the
+namespaces the caller's projects reach.
+
+Shipped as the [v0.19.0 release](/changelog/v0-19-0).
+
+## v0.20 — typed decisions, on paper (released 2026-09-23)
+
+No product change. A design note ranks where a classifier that answers with a
+calibrated probability rather than text would fit — the severity a rule could
+not read, errors a fingerprint kept apart, alerts to triage — and what each
+would cost the promise that nothing leaves the cluster: at most an opt-in,
+batch module sending structured or already-scrubbed payloads, born off, never
+the ingest path. An offline harness measures the first case, log-severity
+backfill, from a laptop against a copy of the log table. The note stays a draft
+until that measurement runs.
+
+Shipped as the [v0.20.0 release](/changelog/v0-20-0).
+
+## Beyond v0.20 (directional)
 
 - **The proxies from the scrape, not from spans.** On an ambient cluster
   ztunnel emits no span, so the Proxies tab has no row for it even while its
@@ -483,7 +534,10 @@ TCP byte counters the scrape already keeps.
   gCO2e, on an install running both. One story about waste, in two units.
 - **The incident:** root-cause summaries, with any provider switch **disabled by
   default** — it would be the first outbound call in a product whose whole
-  promise is that nothing leaves the cluster.
+  promise is that nothing leaves the cluster. v0.20's design note takes the
+  *decision* half — how urgent, and is it a symptom of an upstream alert
+  already firing — onto paper as a typed decision over structured metadata,
+  with nothing generated; the summary half stays out.
 - **Scripted multi-step check journeys**, if demand appears — v0.9 ships
   single-request checks deliberately.
 - **Deeper profiling:** off-CPU and memory profiles, as the upstream eBPF

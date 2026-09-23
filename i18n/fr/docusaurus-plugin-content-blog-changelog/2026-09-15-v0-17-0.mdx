@@ -1,0 +1,19 @@
+---
+slug: v0-17-0
+title: "v0.17.0 — Explorer : la carte devient la porte d'entrée, chaque signal à un clic"
+authors: [avuru]
+tags: [service-map, ui, logs]
+date: 2026-09-15
+---
+
+La carte des services devient le point d'entrée de l'application : sélectionnez un service, gardez la carte sous les yeux, et passez à ses appelants, ses dépendances, ses traces et ses journaux depuis un seul inspecteur.
+
+{/* truncate */}
+
+- **Explorer.** Sélectionner un nœud garde la carte visible et ouvre un inspecteur avec les appelants, les dépendances et des liens vers la fiche du service, ses traces et ses journaux. La sélection se partage dans l'URL et un sélecteur accessible au clavier offre le même chemin. Les dépendances inférées gardent leur latence et leur santé indisponibles et renvoient aux preuves de leurs appelants. Une nouvelle installation explique comment brancher eBPF et OTLP ; une lecture échouée propose de réessayer.
+- **Des thèmes pour toute l'application.** Des surfaces sauge et forêt remplacent l'ancienne palette, avec des accents citron vert en mode sombre et des couleurs d'état distinctes. Le clair devient le défaut et une préférence existante est conservée. La navigation mobile expose les mêmes destinations selon les modules et les mêmes commandes de projet.
+- **Erreurs, journaux et niveaux.** Livrés dans la même ligne et décrits dans leurs propres entrées : le [bandeau de synthèse de l'écran Erreurs](/changelog/errors-stats-band), [les problèmes de nouveau regroupés par erreur](/changelog/errors-group-by-error), [l'onglet Journaux d'un service qui résout sa charge de travail, avec copie et téléchargement](/changelog/service-logs-and-copy), et [le corps des journaux de conteneurs qui livre une sévérité](/changelog/mesh-logs-default-and-severity).
+- **Plancher de sécurité.** gRPC-Go relevé en v1.83.2 dans les distributions passerelle et agent de nœud, et les outils MCP atteignent un service qui émet des journaux mais aucune trace.
+
+Voir [Carte des services](/docs/signals/service-map) et les
+[artefacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.17.0).

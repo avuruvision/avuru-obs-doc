@@ -1,0 +1,19 @@
+---
+slug: v0-17-0
+title: "v0.17.0 — Explorer: the map is the front door, every signal one click away"
+authors: [avuru]
+tags: [service-map, ui, logs]
+date: 2026-09-15
+---
+
+The service map becomes the application entry point: select a service, keep the map in view, and step into its callers, dependencies, traces and logs from one inspector.
+
+{/* truncate */}
+
+- **Explorer.** Selecting a node keeps the map visible and opens an inspector with callers, dependencies and links to service details, traces and logs. The selection is shareable in the URL and a keyboard-accessible selector offers the same path. Inferred dependencies keep their own latency and health unavailable and point at the callers' evidence instead. A new installation explains how to connect eBPF and OTLP; a failed read offers retry.
+- **Themes across the application.** Sage and forest surfaces replace the previous palette, with lime accents in dark mode and separate status colours. Light is the new default and an existing preference is kept. Mobile navigation exposes the same module-aware destinations and project controls.
+- **Errors, logs and levels.** Shipped in the same line and described in their own entries: the [Errors screen's summary band](/changelog/errors-stats-band), [issues grouped by error again](/changelog/errors-group-by-error), [a service's Logs tab resolving its workload, and log copy and download](/changelog/service-logs-and-copy), and [container log bodies yielding a severity](/changelog/mesh-logs-default-and-severity).
+- **Security floor.** gRPC-Go raised to v1.83.2 in the gateway and node-agent distributions, and the MCP tools reach a service that ships logs but no traces.
+
+See [Service map](/docs/signals/service-map) and the
+[release artifacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.17.0).
