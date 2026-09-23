@@ -1,0 +1,20 @@
+---
+slug: v0-20-0
+title: "v0.20.0 — Décisions typées : la note et le banc d'essai avant tout appel à un modèle"
+authors: [avuru]
+tags: [ai, logs, docs]
+date: 2026-09-23
+---
+
+Une note de conception classe les endroits où un classifieur qui répond par une probabilité calibrée, jamais par du texte, aurait sa place dans avuru obs, et ce que chaque usage coûterait à la promesse que rien ne quitte le cluster. Un banc d'essai hors ligne mesure le premier cas avant qu'un modèle ne soit jamais appelé depuis le produit.
+
+{/* truncate */}
+
+- **Aujourd'hui, chaque décision est une règle.** La sévérité attribuée à une ligne de log dont le texte ne dit rien, l'empreinte qui replie deux erreurs en un seul problème, l'automate qui déclenche une alerte : des règles, en SQL, en seuils Go ou en instructions du collecteur. La note se demande où une décision typée — un choix parmi un ensemble fixe d'options, un score, une probabilité oui ou non — ferait mieux qu'une règle, et répond par une carte classée.
+- **La promesse fixe le plafond.** Le hub n'émet aucun appel sortant ; un classifieur hébergé ne peut donc jamais se trouver sur le chemin d'ingestion ni derrière une fonction active par défaut. La note évalue chaque cas d'usage à cette aune : au plus un module optionnel, par lots, n'envoyant que des charges structurées ou déjà nettoyées, désactivé à la naissance, avec le même langage de consentement que le serveur MCP. Rôles des services, seuils de santé et regroupement de logs ne valent pas une dépendance sortante et restent dans le code.
+- **Le rattrapage de sévérité des logs en premier.** Les lignes que les analyseurs du capteur ne savent pas lire tombent à la sévérité 0 et disparaissent du plancher de logs comme des problèmes d'erreur. Six niveaux, une vérité terrain gratuite fournie par les lignes que les analyseurs ont bien lues, un lot côté hub qui ne touche jamais l'ingestion : le seul cas qui vaille d'être mesuré. La fusion de problèmes d'erreur, le tri d'alertes sur métadonnées structurées et la détection des clés d'attributs propres à un fournisseur viennent ensuite ; la détection de secrets seulement comme contrôle préalable d'une sortie MCP que l'opérateur a déjà choisie.
+- **Un banc d'essai avant un module.** `tools/jev-eval` s'exécute depuis un poste de travail contre une copie de la table des logs, jamais depuis le hub. Il rapporte la justesse face aux étiquettes du capteur lui-même, le nombre de lignes à sévérité 0 récupérées à chaque seuil de confiance, la latence et le coût par million de lignes, contre quatre critères de décision. Il s'exécute et se teste sans clé, sur un enregistrement synthétique qui l'annonce comme tel.
+- **Rien ne change dans le produit.** Aucune modification du hub, de la passerelle, du capteur, du chart ou de l'interface ne fait partie de cette version ; la note reste un brouillon tant que la mesure n'a pas eu lieu.
+
+Voir la [note de conception](https://github.com/avuruvision/avuru-obs/blob/main/design/2026-09-22-typed-decisions-jev.md)
+et les [artefacts](https://github.com/avuruvision/avuru-obs/releases/tag/v0.20.0).
